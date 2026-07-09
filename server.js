@@ -16,6 +16,22 @@ app.use(express.static(path.join(__dirname)));
 const PORT = process.env.PORT || 3000;
 
 //=======================================
+// Ruta de configuración (nombres de campo)
+//=======================================
+
+app.get("/api/config", (req, res) => {
+
+    res.json({
+
+        campoEncuestador: process.env.CAMPO_ENCUESTADOR || "C_digo_encuestador",
+
+        campoSupervisor: process.env.CAMPO_SUPERVISOR || "C_digo_Supervisor"
+
+    });
+
+});
+
+//=======================================
 // Ruta para obtener datos de Kobo
 //=======================================
 

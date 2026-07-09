@@ -44,9 +44,36 @@ setInterval(actualizarHora, 60000);
 // LEER DATOS DEL SERVIDOR
 // ==========================================
 
+// Guardamos aquí los nombres de campo configurados en el .env
+let campoEncuestador = "C_digo_encuestador";
+let campoSupervisor = "C_digo_Supervisor";
+
+async function obtenerConfig() {
+
+    try {
+
+        const respuesta = await fetch("/api/config");
+
+        const config = await respuesta.json();
+
+        campoEncuestador = config.campoEncuestador;
+        campoSupervisor = config.campoSupervisor;
+
+    } catch (error) {
+
+        console.error("No se pudo cargar la configuración, usando valores por defecto.", error);
+
+    }
+
+}
+
 async function obtenerDatos() {
 
     try {
+
+        // Primero traemos la configuración (nombres de campo),
+        // y luego los datos de las encuestas.
+        await obtenerConfig();
 
         // Ruta relativa: funciona igual en localhost y una vez publicado
         const respuesta = await fetch("/api/encuestas");
@@ -272,9 +299,9 @@ function generarRanking(datos){
 
     datos.resultados.forEach(encuesta=>{
 
-        const enc=encuesta["C_digo_encuestador"];
+        const enc=encuesta[campoEncuestador];
 
-        const sup=encuesta["C_digo_Supervisor"];
+        const sup=encuesta[campoSupervisor];
 
         if(enc){
 
