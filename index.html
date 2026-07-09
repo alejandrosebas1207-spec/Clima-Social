@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>Clima Social</title>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet/dist/leaflet.css">
+
+<link rel="stylesheet"
+href="style.css">
+
+</head>
+
+<body>
+
+<header>
+
+<h1>Encuesta Línea Base Quito 2026</h1>
+
+</header>
+
+<div class="contenedor">
+
+<div class="tarjetas">
+
+<div class="card">
+
+<h3>Encuestas</h3>
+
+<p id="encuestas">0</p>
+
+</div>
+
+<div class="card">
+
+<h3>Meta</h3>
+
+<p>1600</p>
+
+</div>
+
+<div class="card">
+
+<h3>Avance</h3>
+
+<p id="avance">0%</p>
+
+</div>
+
+<div class="card">
+
+<h3>Hoy</h3>
+
+<p id="hoy">0</p>
+
+</div>
+
+<div class="card">
+
+<h3>Actualización</h3>
+
+<p id="hora">--:--</p>
+
+</div>
+
+</div>
+
+<div id="map"></div>
+
+<div class="grafico">
+
+<h2>Avance diario</h2>
+
+<canvas id="grafico"></canvas>
+
+</div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="script.js"></script>
+
+</body>
+<div class="ranking-container">
+
+    <div class="ranking-card">
+
+        <h3>🏆 Ranking de Encuestadores</h3>
+
+        <div id="rankingEncuestadores"></div>
+
+    </div>
+
+    <div class="ranking-card">
+
+        <h3>👮 Ranking de Supervisores</h3>
+
+        <div id="rankingSupervisores"></div>
+
+    </div>
+
+</div>
