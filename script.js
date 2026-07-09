@@ -317,6 +317,18 @@ function mostrarRanking(objeto,id,tipo){
     const ranking=Object.entries(objeto)
         .sort((a,b)=>b[1]-a[1]);
 
+    // Si no se encontró ningún dato con ese nombre de campo,
+    // mostramos un aviso en vez de romper el resto del dashboard.
+    if (ranking.length === 0) {
+
+        contenedor.innerHTML = `<p style="color:#888;font-size:14px;">
+            No se encontraron datos de "${tipo}" en esta encuesta.
+        </p>`;
+
+        return;
+
+    }
+
     const maximo=ranking[0][1];
 
     ranking.forEach((item,index)=>{
