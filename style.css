@@ -1,15 +1,35 @@
+/* ==========================================
+   VARIABLES DE MARCA — Clima Social
+   Colores extraídos directamente del logo
+========================================== */
+
+:root{
+
+    --gris-carbon:#3c3c3c;
+    --morado:#3c0050;
+    --azul-acero:#4f7a8c;
+    --dorado:#efa000;
+    --rojo:#bc3246;
+    --verde:#4f8232;
+    --azul-marino:#1e2882;
+
+    --fondo:#f4f5f7;
+    --texto-suave:#6b6b6b;
+
+}
+
 /* ======== ESTILO GENERAL ======== */
 
 *{
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:Segoe UI, Arial, sans-serif;
+    font-family:"Segoe UI", Arial, sans-serif;
 }
 
 body{
 
-    background:#eef2f7;
+    background:var(--fondo);
 
 }
 
@@ -17,10 +37,10 @@ body{
 
 header{
 
-    background:#ec3717;
-    color:rgb(255, 255, 255);
+    background:var(--gris-carbon);
+    color:#ffffff;
 
-    padding:20px;
+    padding:22px 20px;
 
     text-align:center;
 
@@ -28,7 +48,11 @@ header{
 
     font-weight:bold;
 
-    box-shadow:0 2px 8px rgba(255, 0, 0, 0.25);
+    letter-spacing:.3px;
+
+    box-shadow:0 2px 10px rgba(0,0,0,.2);
+
+    border-bottom:4px solid var(--dorado);
 
 }
 
@@ -37,8 +61,10 @@ header{
 .contenedor{
 
     width:95%;
+    max-width:1400px;
     margin:auto;
-    margin-top:20px;
+    margin-top:24px;
+    padding-bottom:40px;
 
 }
 
@@ -52,7 +78,7 @@ header{
 
     gap:18px;
 
-    margin-bottom:20px;
+    margin-bottom:24px;
 
 }
 
@@ -64,35 +90,52 @@ header{
 
     padding:18px;
 
-    box-shadow:0 5px 12px rgba(0,0,0,.15);
+    box-shadow:0 4px 12px rgba(0,0,0,.08);
 
-    transition:.3s;
+    border-top:4px solid var(--azul-acero);
+
+    transition:.25s;
 
 }
 
 .card:hover{
 
-    transform:translateY(-5px);
+    transform:translateY(-4px);
+
+    box-shadow:0 8px 18px rgba(0,0,0,.12);
 
 }
 
+/* Cada tarjeta toma un color distinto de la paleta de la marca */
+.card:nth-child(1){ border-top-color:var(--morado); }
+.card:nth-child(2){ border-top-color:var(--azul-marino); }
+.card:nth-child(3){ border-top-color:var(--verde); }
+.card:nth-child(4){ border-top-color:var(--dorado); }
+.card:nth-child(5){ border-top-color:var(--rojo); }
+
 .card h3{
 
-    color:#ff0000;
+    color:var(--texto-suave);
 
-    font-size:16px;
+    font-size:14px;
+
+    text-transform:uppercase;
+
+    letter-spacing:.5px;
+
+    font-weight:600;
 
 }
 
 .card p{
 
-    margin-top:15px;
+    margin-top:12px;
 
-    font-size:34px;
+    font-size:32px;
 
     font-weight:bold;
 
-    color:#2d3436;
+    color:var(--gris-carbon);
 
 }
 
@@ -110,7 +153,7 @@ header{
 
     overflow:hidden;
 
-    box-shadow:0 5px 12px rgba(0,0,0,.15);
+    box-shadow:0 4px 12px rgba(0,0,0,.08);
 
 }
 
@@ -124,40 +167,38 @@ header{
 
     border-radius:12px;
 
-    padding:20px;
+    padding:24px;
 
-    box-shadow:0 5px 12px rgba(0,0,0,.15);
+    box-shadow:0 4px 12px rgba(0,0,0,.08);
 
 }
 
 .grafico h2{
 
-    color:#1E3A5F;
+    color:var(--gris-carbon);
 
     margin-bottom:20px;
 
-}
+    font-size:19px;
 
-/* ======== RESPONSIVE ======== */
+    border-left:4px solid var(--dorado);
 
-@media(max-width:700px){
-
-.card p{
-
-font-size:25px;
+    padding-left:10px;
 
 }
 
-#map{
+/* Controla la altura del gráfico para que no se vea gigante.
+   Chart.js con maintainAspectRatio:false respeta esta altura. */
+.grafico-lienzo{
 
-height:420px;
+    position:relative;
+
+    height:280px;
+    width:100%;
 
 }
 
-}
-/*==========================
-RANKING
-==========================*/
+/* ======== RANKING ======== */
 
 .ranking-container{
 
@@ -179,7 +220,7 @@ RANKING
 
     padding:20px;
 
-    box-shadow:0 3px 10px rgba(0,0,0,.12);
+    box-shadow:0 4px 12px rgba(0,0,0,.08);
 
 }
 
@@ -187,11 +228,15 @@ RANKING
 
     margin-bottom:20px;
 
+    color:var(--gris-carbon);
+
+    font-size:16px;
+
 }
 
 .ranking-item{
 
-    margin-bottom:18px;
+    margin-bottom:16px;
 
 }
 
@@ -204,6 +249,10 @@ RANKING
     font-weight:600;
 
     margin-bottom:6px;
+
+    color:var(--gris-carbon);
+
+    font-size:14px;
 
 }
 
@@ -225,8 +274,37 @@ RANKING
 
     height:100%;
 
-    background:#1565C0;
+    background:linear-gradient(90deg, var(--azul-marino), var(--azul-acero));
 
     border-radius:20px;
+
+}
+
+/* El ranking de supervisores usa un degradado distinto para diferenciarlo */
+#rankingSupervisores .progreso{
+
+    background:linear-gradient(90deg, var(--morado), var(--rojo));
+
+}
+
+/* ======== RESPONSIVE ======== */
+
+@media(max-width:700px){
+
+    .card p{
+        font-size:25px;
+    }
+
+    #map{
+        height:420px;
+    }
+
+    .ranking-container{
+        grid-template-columns:1fr;
+    }
+
+    .grafico-lienzo{
+        height:220px;
+    }
 
 }

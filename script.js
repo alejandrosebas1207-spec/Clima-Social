@@ -127,8 +127,8 @@ function dibujarPuntos(datos) {
             radius: 3,
             color: "#ffffff",
             weight: 0.5,
-            fillColor: "#1565C0",
-            fillOpacity: 0.7
+            fillColor: "#1e2882",
+            fillOpacity: 0.75
 
         }).addTo(mapa);
 
@@ -224,6 +224,19 @@ function generarGraficoDiario(datos) {
 
     const ctx = document.getElementById("grafico");
 
+    // Paleta oficial de Clima Social, extraída del logo.
+    // Se repite en ciclo si hay más días que colores.
+    const paletaMarca = [
+        "#1e2882", // azul marino
+        "#bc3246", // rojo
+        "#4f7a8c", // azul acero
+        "#efa000", // dorado
+        "#4f8232", // verde
+        "#3c0050"  // morado
+    ];
+
+    const coloresBarras = dias.map((_, i) => paletaMarca[i % paletaMarca.length]);
+
     // Si el gráfico ya existe (por una actualización), lo destruimos
     // antes de crear uno nuevo para que no se dupliquen ni se peguen encima.
     if (graficoAvance) {
@@ -244,9 +257,9 @@ function generarGraficoDiario(datos) {
 
                 data: cantidades,
 
-                backgroundColor: "#1565C0",
+                backgroundColor: coloresBarras,
 
-                borderRadius: 4
+                borderRadius: 6
 
             }]
 
@@ -255,6 +268,8 @@ function generarGraficoDiario(datos) {
         options: {
 
             responsive: true,
+
+            maintainAspectRatio: false,
 
             plugins: {
 
