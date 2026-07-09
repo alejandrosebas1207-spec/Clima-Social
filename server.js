@@ -27,7 +27,9 @@ app.get("/api/config", (req, res) => {
 
         campoSupervisor: process.env.CAMPO_SUPERVISOR || "C_digo_Supervisor",
 
-        metaEncuestas: process.env.META_ENCUESTAS || 1600
+        metaEncuestas: process.env.META_ENCUESTAS || 1600,
+
+        nombreProyecto: process.env.NOMBRE_PROYECTO || "Clima Social"
 
     });
 

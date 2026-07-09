@@ -60,6 +60,10 @@ async function obtenerConfig() {
         campoSupervisor = config.campoSupervisor;
         META_ENCUESTAS = Number(config.metaEncuestas);
 
+        // Aplicar el nombre del proyecto al título y a la pestaña del navegador
+        document.getElementById("tituloProyecto").textContent = config.nombreProyecto;
+        document.title = config.nombreProyecto;
+
     } catch (error) {
 
         console.error("No se pudo cargar la configuración, usando valores por defecto.", error);
