@@ -48,7 +48,8 @@ async function obtenerDatos() {
 
     try {
 
-        const respuesta = await fetch("http://localhost:3000/api/encuestas");
+        // Ruta relativa: funciona igual en localhost y una vez publicado
+        const respuesta = await fetch("/api/encuestas");
 
         if (!respuesta.ok) {
             throw new Error("No fue posible obtener los datos.");

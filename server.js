@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
@@ -8,17 +9,11 @@ const app = express();
 
 app.use(cors());
 
+// Sirve los archivos del frontend (index.html, script.js, style.css)
+// desde la misma carpeta del proyecto.
+app.use(express.static(path.join(__dirname)));
+
 const PORT = process.env.PORT || 3000;
-
-//=======================================
-// Ruta de prueba
-//=======================================
-
-app.get("/", (req, res) => {
-
-    res.send("Servidor funcionando correctamente.");
-
-});
 
 //=======================================
 // Ruta para obtener datos de Kobo
