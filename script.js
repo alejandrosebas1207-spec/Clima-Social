@@ -2,8 +2,8 @@
 // DASHBOARD CLIMA SOCIAL
 // ==========================================
 
-// Meta del proyecto
-const META_ENCUESTAS = 1600;
+// La meta ahora es configurable — se carga desde /api/config
+let META_ENCUESTAS = 1600;
 
 // Coordenadas iniciales (Quito)
 const centroMapa = [-0.1807, -78.4678];
@@ -58,6 +58,7 @@ async function obtenerConfig() {
 
         campoEncuestador = config.campoEncuestador;
         campoSupervisor = config.campoSupervisor;
+        META_ENCUESTAS = Number(config.metaEncuestas);
 
     } catch (error) {
 
@@ -106,6 +107,8 @@ function dibujarPuntos(datos) {
 
     // Actualizar tarjetas
     document.getElementById("encuestas").textContent = datos.total;
+
+    document.getElementById("meta").textContent = META_ENCUESTAS;
 
     const avance = ((datos.total / META_ENCUESTAS) * 100).toFixed(1);
 

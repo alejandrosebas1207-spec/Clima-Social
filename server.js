@@ -25,7 +25,9 @@ app.get("/api/config", (req, res) => {
 
         campoEncuestador: process.env.CAMPO_ENCUESTADOR || "C_digo_encuestador",
 
-        campoSupervisor: process.env.CAMPO_SUPERVISOR || "C_digo_Supervisor"
+        campoSupervisor: process.env.CAMPO_SUPERVISOR || "C_digo_Supervisor",
+
+        metaEncuestas: process.env.META_ENCUESTAS || 1600
 
     });
 
