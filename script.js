@@ -129,6 +129,136 @@ function dibujarPuntos(datos) {
 
     generarRanking(datos);
 
+    // ===========================
+    // GENERAR GRÁFICO DE AVANCE DIARIO
+    // ===========================
+
+    generarGraficoDiario(datos);
+
+}
+
+//=====================================
+// PROCESAR FECHAS -> CONTEO POR DÍA
+//=====================================
+
+function contarPorDia(datos) {
+
+    // Objeto tipo { "2026-07-01": 12, "2026-07-02": 8, ... }
+    const conteoPorDia = {};
+
+    datos.resultados.forEach(encuesta => {
+
+        const fechaCompleta = encuesta["_submission_time"];
+
+        if (!fechaCompleta) return;
+
+        // "2026-07-09T14:32:10" -> "2026-07-09"
+        const dia = fechaCompleta.split("T")[0];
+
+        conteoPorDia[dia] = (conteoPorDia[dia] || 0) + 1;
+
+    });
+
+    return conteoPorDia;
+
+}
+
+//=====================================
+// GRÁFICO DE AVANCE DIARIO
+//=====================================
+
+let graficoAvance = null;
+
+function generarGraficoDiario(datos) {
+
+    const conteoPorDia = contarPorDia(datos);
+
+    // Ordenar los días cronológicamente
+    const dias = Object.keys(conteoPorDia).sort();
+
+    const cantidades = dias.map(dia => conteoPorDia[dia]);
+
+    // Actualizar tarjeta "Hoy"
+    const hoyTexto = new Date().toISOString().split("T")[0];
+
+    document.getElementById("hoy").textContent = conteoPorDia[hoyTexto] || 0;
+
+    // Formatear fechas para que se vean como "09 jul" en vez de "2026-07-09"
+    const diasFormateados = dias.map(dia => {
+
+        const fecha = new Date(dia + "T00:00:00");
+
+        return fecha.toLocaleDateString("es-EC", {
+            day: "2-digit",
+            month: "short"
+        });
+
+    });
+
+    const ctx = document.getElementById("grafico");
+
+    // Si el gráfico ya existe (por una actualización), lo destruimos
+    // antes de crear uno nuevo para que no se dupliquen ni se peguen encima.
+    if (graficoAvance) {
+        graficoAvance.destroy();
+    }
+
+    graficoAvance = new Chart(ctx, {
+
+        type: "bar",
+
+        data: {
+
+            labels: diasFormateados,
+
+            datasets: [{
+
+                label: "Encuestas por día",
+
+                data: cantidades,
+
+                backgroundColor: "#1565C0",
+
+                borderRadius: 4
+
+            }]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            plugins: {
+
+                legend: {
+
+                    display: false
+
+                }
+
+            },
+
+            scales: {
+
+                y: {
+
+                    beginAtZero: true,
+
+                    ticks: {
+
+                        precision: 0
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    });
+
 }
 //=====================================
 // RANKING ENCUESTADORES
