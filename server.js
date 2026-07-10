@@ -29,7 +29,9 @@ app.get("/api/config", (req, res) => {
 
         metaEncuestas: process.env.META_ENCUESTAS || 1600,
 
-        nombreProyecto: process.env.NOMBRE_PROYECTO || "Clima Social"
+        nombreProyecto: process.env.NOMBRE_PROYECTO || "Clima Social",
+
+        campoGenero: process.env.CAMPO_GENERO || ""
 
     });
 
