@@ -47,6 +47,7 @@ setInterval(actualizarHora, 60000);
 // Guardamos aquí los nombres de campo configurados en el .env
 let campoEncuestador = "C_digo_encuestador";
 let campoSupervisor = "C_digo_Supervisor";
+let campoGenero = "";
 
 async function obtenerConfig() {
 
@@ -58,6 +59,7 @@ async function obtenerConfig() {
 
         campoEncuestador = config.campoEncuestador;
         campoSupervisor = config.campoSupervisor;
+        campoGenero = config.campoGenero;
         META_ENCUESTAS = Number(config.metaEncuestas);
 
         // Aplicar el nombre del proyecto al título y a la pestaña del navegador
@@ -168,6 +170,12 @@ function dibujarPuntos(datos) {
     // ===========================
 
     generarGraficoDiario(datos);
+
+    // ===========================
+    // GENERAR GRÁFICO DE DISTRIBUCIÓN (ej. género)
+    // ===========================
+
+    generarGraficoDistribucion(datos, campoGenero, "seccionGenero", "tituloGenero", "graficoGenero", "Distribución por género");
 
 }
 
@@ -413,6 +421,137 @@ function mostrarRanking(objeto,id,tipo){
         </div>
 
         `;
+
+    });
+
+}
+//=====================================
+// GRÁFICO DE DISTRIBUCIÓN (genérico)
+// Sirve para cualquier pregunta cerrada:
+// género, rango de edad, sí/no, etc.
+// Si "campo" viene vacío, la sección se oculta.
+//=====================================
+
+let graficosDistribucion = {};
+
+function generarGraficoDistribucion(datos, campo, idSeccion, idTitulo, idCanvas, tituloDefault) {
+
+    const seccion = document.getElementById(idSeccion);
+
+    // Sin campo configurado -> ocultamos la sección y no hacemos nada más
+    if (!campo) {
+        seccion.style.display = "none";
+        return;
+    }
+
+    const conteo = {};
+
+    datos.resultados.forEach(encuesta => {
+
+        const valor = encuesta[campo];
+
+        if (!valor) return;
+
+        conteo[valor] = (conteo[valor] || 0) + 1;
+
+    });
+
+    const categorias = Object.keys(conteo);
+
+    // Si no hay ningún dato con ese campo, ocultamos también
+    if (categorias.length === 0) {
+        seccion.style.display = "none";
+        return;
+    }
+
+    seccion.style.display = "block";
+
+    document.getElementById(idTitulo).textContent = tituloDefault;
+
+    const cantidades = categorias.map(cat => conteo[cat]);
+
+    const paletaMarca = [
+        "#1e2882", "#bc3246", "#4f7a8c",
+        "#efa000", "#4f8232", "#3c0050"
+    ];
+
+    const colores = categorias.map((_, i) => paletaMarca[i % paletaMarca.length]);
+
+    const ctx = document.getElementById(idCanvas);
+
+    if (graficosDistribucion[idCanvas]) {
+        graficosDistribucion[idCanvas].destroy();
+    }
+
+    graficosDistribucion[idCanvas] = new Chart(ctx, {
+
+        type: "doughnut",
+
+        data: {
+
+            labels: categorias,
+
+            datasets: [{
+
+                data: cantidades,
+
+                backgroundColor: colores,
+
+                borderColor: "#ffffff",
+
+                borderWidth: 2
+
+            }]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            plugins: {
+
+                legend: {
+
+                    position: "bottom",
+
+                    labels: {
+
+                        padding: 14,
+
+                        font: {
+
+                            family: "'Plus Jakarta Sans', sans-serif"
+
+                        }
+
+                    }
+
+                },
+
+                tooltip: {
+
+                    callbacks: {
+
+                        label: function(contexto) {
+
+                            const total = cantidades.reduce((a, b) => a + b, 0);
+
+                            const porcentaje = ((contexto.parsed / total) * 100).toFixed(1);
+
+                            return `${contexto.label}: ${contexto.parsed} (${porcentaje}%)`;
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
 
     });
 

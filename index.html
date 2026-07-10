@@ -10,6 +10,10 @@ content="width=device-width, initial-scale=1.0">
 
 <title>Clima Social</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
 <link rel="stylesheet"
 href="https://unpkg.com/leaflet/dist/leaflet.css">
 
@@ -21,6 +25,12 @@ href="style.css">
 <body>
 
 <header>
+
+<div class="logo-box">
+
+<img src="assets/logo.png" alt="Clima Social" class="logo-img">
+
+</div>
 
 <h1 id="tituloProyecto">Encuesta Línea Base Quito 2026</h1>
 
@@ -81,6 +91,18 @@ href="style.css">
 <div class="grafico-lienzo">
 
 <canvas id="grafico"></canvas>
+
+</div>
+
+</div>
+
+<div class="grafico" id="seccionGenero" style="display:none;">
+
+<h2 id="tituloGenero">Distribución</h2>
+
+<div class="grafico-lienzo grafico-lienzo-pequeno">
+
+<canvas id="graficoGenero"></canvas>
 
 </div>
 
