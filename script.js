@@ -41,6 +41,33 @@ actualizarHora();
 setInterval(actualizarHora, 60000);
 
 // ==========================================
+// PARSEAR MAPA DE ETIQUETAS
+// Convierte "1:Hombre,2:Mujer" en { "1": "Hombre", "2": "Mujer" }
+// ==========================================
+
+function parsearMapa(texto) {
+
+    const mapa = {};
+
+    if (!texto) return mapa;
+
+    texto.split(",").forEach(par => {
+
+        const [codigo, etiqueta] = par.split(":");
+
+        if (codigo && etiqueta) {
+
+            mapa[codigo.trim()] = etiqueta.trim();
+
+        }
+
+    });
+
+    return mapa;
+
+}
+
+// ==========================================
 // LEER DATOS DEL SERVIDOR
 // ==========================================
 
@@ -48,6 +75,7 @@ setInterval(actualizarHora, 60000);
 let campoEncuestador = "C_digo_encuestador";
 let campoSupervisor = "C_digo_Supervisor";
 let campoGenero = "";
+let mapaGenero = {};
 
 async function obtenerConfig() {
 
@@ -60,6 +88,7 @@ async function obtenerConfig() {
         campoEncuestador = config.campoEncuestador;
         campoSupervisor = config.campoSupervisor;
         campoGenero = config.campoGenero;
+        mapaGenero = parsearMapa(config.mapaGenero);
         META_ENCUESTAS = Number(config.metaEncuestas);
 
         // Aplicar el nombre del proyecto al título y a la pestaña del navegador
@@ -470,6 +499,10 @@ function generarGraficoDistribucion(datos, campo, idSeccion, idTitulo, idCanvas,
 
     const cantidades = categorias.map(cat => conteo[cat]);
 
+    // Traducir códigos crudos (ej. "1", "2") a etiquetas legibles
+    // (ej. "Hombre", "Mujer") si hay un mapa configurado.
+    const etiquetas = categorias.map(cat => mapaGenero[cat] || cat);
+
     const paletaMarca = [
         "#1e2882", "#bc3246", "#4f7a8c",
         "#efa000", "#4f8232", "#3c0050"
@@ -489,7 +522,7 @@ function generarGraficoDistribucion(datos, campo, idSeccion, idTitulo, idCanvas,
 
         data: {
 
-            labels: categorias,
+            labels: etiquetas,
 
             datasets: [{
 

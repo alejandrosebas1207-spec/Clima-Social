@@ -31,7 +31,9 @@ app.get("/api/config", (req, res) => {
 
         nombreProyecto: process.env.NOMBRE_PROYECTO || "Clima Social",
 
-        campoGenero: process.env.CAMPO_GENERO || ""
+        campoGenero: process.env.CAMPO_GENERO || "",
+
+        mapaGenero: process.env.MAPA_GENERO || ""
 
     });
 
