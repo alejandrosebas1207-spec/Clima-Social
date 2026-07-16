@@ -434,14 +434,6 @@ function mostrarRanking(objeto,id,tipo){
 
     ranking.forEach((item,index)=>{
 
-        let puesto=index+1;
-
-        let icono=puesto+"°";
-
-        if(puesto===1) icono="🥇";
-        if(puesto===2) icono="🥈";
-        if(puesto===3) icono="🥉";
-
         const porcentaje=(item[1]/maximo)*100;
 
         contenedor.innerHTML+=`
@@ -450,7 +442,7 @@ function mostrarRanking(objeto,id,tipo){
 
             <div class="ranking-top">
 
-                <span>${icono} ${tipo} ${item[0]}</span>
+                <span>${tipo} ${item[0]}</span>
 
                 <span>${item[1]}</span>
 
@@ -531,9 +523,44 @@ function generarGraficoDistribucion(datos, campo, idSeccion, idTitulo, idCanvas,
         graficosDistribucion[idCanvas].destroy();
     }
 
+    const totalGeneral = cantidades.reduce((a, b) => a + b, 0);
+
+    // Plugin que dibuja el total en el centro de la dona
+    const textoCentral = {
+
+        id: "textoCentral",
+
+        beforeDraw(chart) {
+
+            const { ctx, chartArea: { width, height, left, top } } = chart;
+
+            const centroX = left + width / 2;
+            const centroY = top + height / 2;
+
+            ctx.save();
+
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            ctx.font = "700 26px 'Plus Jakarta Sans', sans-serif";
+            ctx.fillStyle = "#3c3c3c";
+            ctx.fillText(totalGeneral, centroX, centroY - 8);
+
+            ctx.font = "500 11px 'Plus Jakarta Sans', sans-serif";
+            ctx.fillStyle = "#6b6b6b";
+            ctx.fillText("encuestas", centroX, centroY + 14);
+
+            ctx.restore();
+
+        }
+
+    };
+
     graficosDistribucion[idCanvas] = new Chart(ctx, {
 
         type: "doughnut",
+
+        plugins: [textoCentral],
 
         data: {
 
