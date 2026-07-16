@@ -76,6 +76,8 @@ let campoEncuestador = "C_digo_encuestador";
 let campoSupervisor = "C_digo_Supervisor";
 let campoGenero = "";
 let mapaGenero = {};
+let campoParroquia = "";
+let mapaParroquia = {};
 
 async function obtenerConfig() {
 
@@ -89,6 +91,9 @@ async function obtenerConfig() {
         campoSupervisor = config.campoSupervisor;
         campoGenero = config.campoGenero;
         mapaGenero = parsearMapa(config.mapaGenero);
+
+        campoParroquia = config.campoParroquia;
+        mapaParroquia = parsearMapa(config.mapaParroquia);
         META_ENCUESTAS = Number(config.metaEncuestas);
 
         // Aplicar el nombre del proyecto al título y a la pestaña del navegador
@@ -158,6 +163,10 @@ function dibujarPuntos(datos) {
         const lat = encuesta._geolocation[0];
         const lon = encuesta._geolocation[1];
 
+        // Algunas encuestas traen el campo _geolocation pero con
+        // coordenadas vacías (null) — las ignoramos para no romper el mapa.
+        if (lat === null || lon === null || isNaN(lat) || isNaN(lon)) return;
+
         limites.push([lat, lon]);
 
         const punto = L.circleMarker([lat, lon], {
@@ -205,6 +214,12 @@ function dibujarPuntos(datos) {
     // ===========================
 
     generarGraficoDistribucion(datos, campoGenero, "seccionGenero", "tituloGenero", "graficoGenero", "Distribución por género");
+
+    // ===========================
+    // TABLA DE AVANCE POR PARROQUIA
+    // ===========================
+
+    generarTablaConteo(datos, campoParroquia, mapaParroquia, "seccionParroquia", "tablaParroquia");
 
 }
 
@@ -587,5 +602,94 @@ function generarGraficoDistribucion(datos, campo, idSeccion, idTitulo, idCanvas,
         }
 
     });
+
+}
+
+//=====================================
+// TABLA DE CONTEO (genérica)
+// Sirve para cualquier pregunta cerrada con muchas
+// categorías (parroquia, barrio, nivel educativo, etc.)
+// Muestra una tabla ordenada de mayor a menor, que va
+// "creciendo" a medida que aparecen categorías en los datos.
+// Si "campo" viene vacío, la sección se oculta.
+//=====================================
+
+function generarTablaConteo(datos, campo, mapa, idSeccion, idContenedor) {
+
+    const seccion = document.getElementById(idSeccion);
+
+    if (!campo) {
+        seccion.style.display = "none";
+        return;
+    }
+
+    const conteo = {};
+
+    datos.resultados.forEach(encuesta => {
+
+        const valorCrudo = encuesta[campo];
+
+        if (!valorCrudo) return;
+
+        // Traduce el código (ej. "3") a su etiqueta legible
+        // (ej. "EL PARAISO / LA 14") si hay un mapa configurado.
+        const etiqueta = mapa[valorCrudo] || valorCrudo;
+
+        conteo[etiqueta] = (conteo[etiqueta] || 0) + 1;
+
+    });
+
+    const filas = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
+
+    if (filas.length === 0) {
+        seccion.style.display = "none";
+        return;
+    }
+
+    seccion.style.display = "block";
+
+    const total = filas.reduce((suma, fila) => suma + fila[1], 0);
+
+    const contenedor = document.getElementById(idContenedor);
+
+    let html = `
+        <table class="tabla-datos">
+            <thead>
+                <tr>
+                    <th>Parroquia</th>
+                    <th>Encuestas</th>
+                    <th>%</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    filas.forEach(([nombre, cantidad]) => {
+
+        const porcentaje = ((cantidad / total) * 100).toFixed(1);
+
+        html += `
+            <tr>
+                <td>${nombre}</td>
+                <td>${cantidad}</td>
+                <td>
+                    <div class="celda-porcentaje">
+                        <div class="mini-barra">
+                            <div class="mini-progreso" style="width:${porcentaje}%"></div>
+                        </div>
+                        <span>${porcentaje}%</span>
+                    </div>
+                </td>
+            </tr>
+        `;
+
+    });
+
+    html += `
+            </tbody>
+        </table>
+    `;
+
+    contenedor.innerHTML = html;
 
 }

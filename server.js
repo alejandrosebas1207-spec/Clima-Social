@@ -33,7 +33,11 @@ app.get("/api/config", (req, res) => {
 
         campoGenero: process.env.CAMPO_GENERO || "",
 
-        mapaGenero: process.env.MAPA_GENERO || ""
+        mapaGenero: process.env.MAPA_GENERO || "",
+
+        campoParroquia: process.env.CAMPO_PARROQUIA || "",
+
+        mapaParroquia: process.env.MAPA_PARROQUIA || ""
 
     });
 

@@ -361,3 +361,93 @@ header h1{
     }
 
 }
+
+/*==========================
+TABLA DE CONTEO (parroquias, etc.)
+==========================*/
+
+.tabla-conteo{
+
+    overflow-x:auto;
+
+}
+
+.tabla-datos{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+}
+
+.tabla-datos thead th{
+
+    text-align:left;
+
+    padding:10px 12px;
+
+    font-size:13px;
+
+    text-transform:uppercase;
+
+    letter-spacing:.4px;
+
+    color:var(--texto-suave);
+
+    border-bottom:2px solid #e8e8e8;
+
+}
+
+.tabla-datos tbody td{
+
+    padding:12px;
+
+    font-size:14px;
+
+    color:var(--gris-carbon);
+
+    border-bottom:1px solid #f0f0f0;
+
+}
+
+.tabla-datos tbody tr:hover{
+
+    background:#fafafa;
+
+}
+
+.celda-porcentaje{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+}
+
+.mini-barra{
+
+    flex:1;
+
+    height:6px;
+
+    background:#e8e8e8;
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+    min-width:60px;
+
+}
+
+.mini-progreso{
+
+    height:100%;
+
+    background:linear-gradient(90deg, var(--azul-marino), var(--dorado));
+
+    border-radius:20px;
+
+}
