@@ -131,6 +131,8 @@ header h1{
 
     transition:.25s;
 
+    text-align:center;
+
 }
 
 .card:hover{
