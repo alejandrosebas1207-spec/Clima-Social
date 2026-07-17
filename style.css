@@ -89,6 +89,38 @@ header h1{
     font-size:inherit;
     font-weight:inherit;
 
+    flex:1;
+
+}
+
+.boton-modo-oscuro{
+
+    background:rgba(255,255,255,.12);
+
+    border:none;
+
+    color:#ffffff;
+
+    width:36px;
+
+    height:36px;
+
+    border-radius:8px;
+
+    font-size:16px;
+
+    cursor:pointer;
+
+    flex-shrink:0;
+
+    transition:.2s;
+
+}
+
+.boton-modo-oscuro:hover{
+
+    background:rgba(255,255,255,.22);
+
 }
 
 /* ======== CONTENEDOR ======== */
@@ -663,5 +695,85 @@ FOOTER
     width:auto;
 
     opacity:.7;
+
+}
+
+/*==========================
+MODO OSCURO
+==========================*/
+
+body.modo-oscuro{
+
+    background:#15181f;
+
+}
+
+body.modo-oscuro .card,
+body.modo-oscuro .grafico,
+body.modo-oscuro .ranking-card,
+body.modo-oscuro #map{
+
+    background:#1f232c;
+
+    box-shadow:0 4px 12px rgba(0,0,0,.35);
+
+}
+
+body.modo-oscuro .card h3,
+body.modo-oscuro .grafico h2,
+body.modo-oscuro .ranking-card h3{
+
+    color:#c7cbd4;
+
+}
+
+body.modo-oscuro .card p,
+body.modo-oscuro .ranking-top,
+body.modo-oscuro .tabla-datos tbody td{
+
+    color:#f2f3f5;
+
+}
+
+body.modo-oscuro .tabla-datos thead th{
+
+    color:#9aa0ab;
+
+    border-bottom-color:#2c313c;
+
+}
+
+body.modo-oscuro .tabla-datos tbody td{
+
+    border-bottom-color:#2a2e38;
+
+}
+
+body.modo-oscuro .tabla-datos tbody tr:hover{
+
+    background:#252a34;
+
+}
+
+body.modo-oscuro .barra,
+body.modo-oscuro .mini-barra,
+body.modo-oscuro .anillo-fondo{
+
+    stroke:#2c313c;
+
+    background:#2c313c;
+
+}
+
+body.modo-oscuro .duracion-item,
+body.modo-oscuro .pie-pagina{
+
+    color:#8b909b;
+
+}
+
+body.modo-oscuro .carga-overlay{
+
+    background:#15181f;
 
 }

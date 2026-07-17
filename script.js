@@ -179,7 +179,7 @@ obtenerDatos();
 function dibujarPuntos(datos) {
 
     // Actualizar tarjetas
-    document.getElementById("encuestas").textContent = datos.total;
+    animarNumero("encuestas", datos.total);
 
     document.getElementById("meta").textContent = META_ENCUESTAS;
 
@@ -190,7 +190,7 @@ function dibujarPuntos(datos) {
 
     const avance = ((datos.total / META_ENCUESTAS) * 100).toFixed(1);
 
-    document.getElementById("avance").textContent = avance + "%";
+    animarNumero("avance", Number(avance), "%");
 
     actualizarAnilloProgreso(avance);
 
@@ -307,7 +307,7 @@ function generarGraficoDiario(datos) {
     // Actualizar tarjeta "Hoy"
     const hoyTexto = new Date().toISOString().split("T")[0];
 
-    document.getElementById("hoy").textContent = conteoPorDia[hoyTexto] || 0;
+    animarNumero("hoy", conteoPorDia[hoyTexto] || 0);
 
     // Formatear fechas para que se vean como "09 jul" en vez de "2026-07-09"
     const diasFormateados = dias.map(dia => {
@@ -909,5 +909,64 @@ function actualizarAnilloProgreso(porcentaje) {
 
     circulo.style.strokeDasharray = circunferencia;
     circulo.style.strokeDashoffset = offset;
+
+}
+
+//=====================================
+// MODO OSCURO
+//=====================================
+
+const botonModoOscuro = document.getElementById("botonModoOscuro");
+
+if (botonModoOscuro) {
+
+    botonModoOscuro.addEventListener("click", () => {
+
+        document.body.classList.toggle("modo-oscuro");
+
+        const activo = document.body.classList.contains("modo-oscuro");
+
+        botonModoOscuro.textContent = activo ? "☀️" : "🌙";
+        botonModoOscuro.title = activo ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
+
+    });
+
+}
+
+//=====================================
+// ANIMAR NÚMEROS
+// Anima el conteo de un valor viejo a uno nuevo,
+// en vez de que el número salte de golpe.
+//=====================================
+
+function animarNumero(idElemento, valorNuevo, sufijo = "") {
+
+    const elemento = document.getElementById(idElemento);
+
+    if (!elemento) return;
+
+    const valorViejo = parseFloat(elemento.textContent) || 0;
+
+    const esEntero = Number.isInteger(valorNuevo);
+
+    const duracionMs = 600;
+    const inicio = performance.now();
+
+    function paso(ahora) {
+
+        const progreso = Math.min((ahora - inicio) / duracionMs, 1);
+
+        const valorActual = valorViejo + (valorNuevo - valorViejo) * progreso;
+
+        elemento.textContent =
+            (esEntero ? Math.round(valorActual) : valorActual.toFixed(1)) + sufijo;
+
+        if (progreso < 1) {
+            requestAnimationFrame(paso);
+        }
+
+    }
+
+    requestAnimationFrame(paso);
 
 }
