@@ -129,11 +129,44 @@ async function obtenerDatos() {
 
         dibujarPuntos(datos);
 
+        // Todo salió bien: ocultamos overlay de carga y banner de error
+        ocultarCarga();
+        ocultarError();
+
     } catch (error) {
 
         console.error(error);
 
+        // Ocultamos el overlay (para no dejar al usuario viendo
+        // el spinner para siempre) y mostramos el aviso de error.
+        ocultarCarga();
+        mostrarError();
+
     }
+
+}
+
+function ocultarCarga() {
+
+    const overlay = document.getElementById("cargaOverlay");
+
+    if (overlay) overlay.classList.add("oculto");
+
+}
+
+function mostrarError() {
+
+    const banner = document.getElementById("errorBanner");
+
+    if (banner) banner.style.display = "block";
+
+}
+
+function ocultarError() {
+
+    const banner = document.getElementById("errorBanner");
+
+    if (banner) banner.style.display = "none";
 
 }
 
@@ -158,6 +191,8 @@ function dibujarPuntos(datos) {
     const avance = ((datos.total / META_ENCUESTAS) * 100).toFixed(1);
 
     document.getElementById("avance").textContent = avance + "%";
+
+    actualizarAnilloProgreso(avance);
 
     const limites = [];
 
@@ -850,5 +885,29 @@ function formatearDuracion(minutosDecimal) {
     const segundos = Math.round((minutosDecimal - minutos) * 60);
 
     return `${minutos}m ${segundos}s`;
+
+}
+
+//=====================================
+// ANILLO DE PROGRESO (tarjeta Avance)
+//=====================================
+
+function actualizarAnilloProgreso(porcentaje) {
+
+    const circulo = document.getElementById("anilloProgreso");
+
+    if (!circulo) return;
+
+    const radio = 52;
+    const circunferencia = 2 * Math.PI * radio;
+
+    // Si se pasa de 100%, lo topamos visualmente en el anillo (pero
+    // el texto sigue mostrando el número real, ej. "104%")
+    const porcentajeVisual = Math.min(Number(porcentaje), 100);
+
+    const offset = circunferencia - (porcentajeVisual / 100) * circunferencia;
+
+    circulo.style.strokeDasharray = circunferencia;
+    circulo.style.strokeDashoffset = offset;
 
 }

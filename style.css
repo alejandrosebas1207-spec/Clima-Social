@@ -463,3 +463,203 @@ TABLA DE CONTEO (parroquias, etc.)
     border-radius:20px;
 
 }
+
+/*==========================
+OVERLAY DE CARGA
+==========================*/
+
+.carga-overlay{
+
+    position:fixed;
+
+    inset:0;
+
+    background:var(--fondo);
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:16px;
+
+    z-index:9999;
+
+    transition:opacity .35s ease;
+
+}
+
+.carga-overlay.oculto{
+
+    opacity:0;
+
+    pointer-events:none;
+
+}
+
+.spinner{
+
+    width:44px;
+
+    height:44px;
+
+    border:4px solid #e0e0e0;
+
+    border-top-color:var(--azul-marino);
+
+    border-radius:50%;
+
+    animation:girar 0.8s linear infinite;
+
+}
+
+@keyframes girar{
+
+    to{ transform:rotate(360deg); }
+
+}
+
+.carga-overlay p{
+
+    color:var(--texto-suave);
+
+    font-size:14px;
+
+}
+
+/*==========================
+BANNER DE ERROR
+==========================*/
+
+.error-banner{
+
+    background:#fdecea;
+
+    color:#8a2c22;
+
+    text-align:center;
+
+    padding:10px;
+
+    font-size:14px;
+
+    font-weight:600;
+
+}
+
+/*==========================
+ANILLO DE PROGRESO (tarjeta Avance)
+==========================*/
+
+.card-avance{
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    text-align:center;
+
+}
+
+.anillo-contenedor{
+
+    position:relative;
+
+    width:110px;
+
+    height:110px;
+
+    margin-top:8px;
+
+}
+
+.anillo-svg{
+
+    width:100%;
+
+    height:100%;
+
+    transform:rotate(-90deg);
+
+}
+
+.anillo-fondo{
+
+    fill:none;
+
+    stroke:#eceef1;
+
+    stroke-width:10;
+
+}
+
+.anillo-progreso{
+
+    fill:none;
+
+    stroke:var(--dorado);
+
+    stroke-width:10;
+
+    stroke-linecap:round;
+
+    stroke-dasharray:326.7;
+
+    stroke-dashoffset:326.7;
+
+    transition:stroke-dashoffset .6s ease;
+
+}
+
+.anillo-texto{
+
+    position:absolute;
+
+    top:50%;
+
+    left:50%;
+
+    transform:translate(-50%,-50%);
+
+    font-size:22px !important;
+
+    margin:0 !important;
+
+}
+
+/*==========================
+FOOTER
+==========================*/
+
+.pie-pagina{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:10px;
+
+    padding:22px 16px 30px;
+
+    color:var(--texto-suave);
+
+    font-size:12px;
+
+}
+
+.pie-logo{
+
+    height:16px;
+
+    width:auto;
+
+    opacity:.7;
+
+}

@@ -24,6 +24,20 @@ href="style.css">
 
 <body>
 
+<div id="cargaOverlay" class="carga-overlay">
+
+    <div class="spinner"></div>
+
+    <p>Cargando datos de la encuesta...</p>
+
+</div>
+
+<div id="errorBanner" class="error-banner" style="display:none;">
+
+    ⚠️ No se pudieron cargar los datos. Reintentando automáticamente...
+
+</div>
+
 <header>
 
 <div class="logo-box">
@@ -56,11 +70,23 @@ href="style.css">
 
 </div>
 
-<div class="card">
+<div class="card card-avance">
 
 <h3>Avance</h3>
 
-<p id="avance">0%</p>
+<div class="anillo-contenedor">
+
+    <svg class="anillo-svg" viewBox="0 0 120 120">
+
+        <circle class="anillo-fondo" cx="60" cy="60" r="52"></circle>
+
+        <circle id="anilloProgreso" class="anillo-progreso" cx="60" cy="60" r="52"></circle>
+
+    </svg>
+
+    <p id="avance" class="anillo-texto">0%</p>
+
+</div>
 
 </div>
 
@@ -145,6 +171,14 @@ href="style.css">
 </div>
 
 </div>
+
+<footer class="pie-pagina">
+
+    <img src="assets/logo.png" alt="Clima Social" class="pie-logo">
+
+    <span>Panel actualizado automáticamente con cada visita · Clima Social</span>
+
+</footer>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
