@@ -777,3 +777,25 @@ body.modo-oscuro .carga-overlay{
     background:#15181f;
 
 }
+
+/*==========================
+ETIQUETAS DE PARROQUIA EN EL MAPA
+==========================*/
+
+.etiqueta-parroquia{
+
+    background:var(--gris-carbon);
+
+    color:#ffffff;
+
+    border:none;
+
+    border-radius:6px;
+
+    font-size:12px;
+
+    font-weight:600;
+
+    padding:4px 10px;
+
+}

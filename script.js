@@ -21,6 +21,57 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 }).addTo(mapa);
 
 // ==========================================
+// LÍMITES PARROQUIALES
+// ==========================================
+
+fetch("assets/limites_parroquias.geojson")
+
+    .then(respuesta => respuesta.json())
+
+    .then(datosGeojson => {
+
+        const capaLimites = L.geoJSON(datosGeojson, {
+
+            style: {
+
+                color: "#1e2882",
+                weight: 2,
+                fillColor: "#1e2882",
+                fillOpacity: 0.04
+
+            }
+
+        });
+
+        capaLimites.eachLayer(capa => {
+
+            const nombre = capa.feature.properties.name;
+
+            capa.bindTooltip(nombre, {
+
+                sticky: true,
+                className: "etiqueta-parroquia"
+
+            });
+
+        });
+
+        capaLimites.addTo(mapa);
+
+        // Encuadramos el mapa a los límites mientras llegan los datos reales
+        mapa.fitBounds(capaLimites.getBounds(), { padding: [20, 20] });
+
+    })
+
+    .catch(error => {
+
+        // Si no encuentra el archivo (ej. otro proyecto sin límites
+        // configurados), no rompe el mapa, solo lo omite.
+        console.log("No se cargaron límites parroquiales:", error.message);
+
+    });
+
+// ==========================================
 // ACTUALIZAR HORA
 // ==========================================
 
