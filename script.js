@@ -376,9 +376,11 @@ function generarRanking(datos){
 
     const supervisores={};
 
-    // Para calcular la duración promedio por encuestador
+    // Para calcular la duración promedio, máxima y mínima por encuestador
     const duracionSuma={};
     const duracionConteo={};
+    const duracionMax={};
+    const duracionMin={};
 
     datos.resultados.forEach(encuesta=>{
 
@@ -407,6 +409,14 @@ function generarRanking(datos){
 
                         duracionSuma[enc] = (duracionSuma[enc] || 0) + minutos;
                         duracionConteo[enc] = (duracionConteo[enc] || 0) + 1;
+
+                        if (duracionMax[enc] === undefined || minutos > duracionMax[enc]) {
+                            duracionMax[enc] = minutos;
+                        }
+
+                        if (duracionMin[enc] === undefined || minutos < duracionMin[enc]) {
+                            duracionMin[enc] = minutos;
+                        }
 
                     }
 
@@ -439,7 +449,9 @@ function generarRanking(datos){
     encuestadores,
     "rankingEncuestadores",
     "Encuestador",
-    duracionPorEncuestador
+    duracionPorEncuestador,
+    duracionMax,
+    duracionMin
 );
 
 mostrarRanking(
@@ -454,7 +466,7 @@ mostrarRanking(
 // MOSTRAR RANKING
 //=====================================
 
-function mostrarRanking(objeto,id,tipo,duraciones){
+function mostrarRanking(objeto,id,tipo,duraciones,duracionesMax,duracionesMin){
 
     const contenedor=document.getElementById(id);
 
@@ -487,7 +499,21 @@ function mostrarRanking(objeto,id,tipo,duraciones){
 
         if (duraciones && duraciones[item[0]] !== undefined) {
 
-            textoDuracion = `<span class="duracion-item">⏱ ${formatearDuracion(duraciones[item[0]])} promedio</span>`;
+            textoDuracion = `<span class="duracion-item">⏱ ${formatearDuracion(duraciones[item[0]])} promedio`;
+
+            if (duracionesMax && duracionesMax[item[0]] !== undefined) {
+
+                textoDuracion += ` &nbsp;·&nbsp; máx ${formatearDuracion(duracionesMax[item[0]])}`;
+
+            }
+
+            if (duracionesMin && duracionesMin[item[0]] !== undefined) {
+
+                textoDuracion += ` &nbsp;·&nbsp; mín ${formatearDuracion(duracionesMin[item[0]])}`;
+
+            }
+
+            textoDuracion += `</span>`;
 
         }
 
