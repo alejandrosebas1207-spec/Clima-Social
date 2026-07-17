@@ -150,6 +150,11 @@ function dibujarPuntos(datos) {
 
     document.getElementById("meta").textContent = META_ENCUESTAS;
 
+    const duracionProm = calcularDuracionPromedio(datos);
+
+    document.getElementById("duracion").textContent =
+        duracionProm !== null ? formatearDuracion(duracionProm) : "--";
+
     const avance = ((datos.total / META_ENCUESTAS) * 100).toFixed(1);
 
     document.getElementById("avance").textContent = avance + "%";
@@ -371,6 +376,10 @@ function generarRanking(datos){
 
     const supervisores={};
 
+    // Para calcular la duración promedio por encuestador
+    const duracionSuma={};
+    const duracionConteo={};
+
     datos.resultados.forEach(encuesta=>{
 
         const enc=encuesta[campoEncuestador];
@@ -380,6 +389,30 @@ function generarRanking(datos){
         if(enc){
 
             encuestadores[enc]=(encuestadores[enc]||0)+1;
+
+            const inicio = encuesta["start"];
+            const fin = encuesta["end"];
+
+            if (inicio && fin) {
+
+                const t1 = new Date(inicio).getTime();
+                const t2 = new Date(fin).getTime();
+
+                if (!isNaN(t1) && !isNaN(t2) && t2 > t1) {
+
+                    const minutos = (t2 - t1) / 60000;
+
+                    // Ignoramos valores absurdos (encuestas dejadas abiertas)
+                    if (minutos <= 180) {
+
+                        duracionSuma[enc] = (duracionSuma[enc] || 0) + minutos;
+                        duracionConteo[enc] = (duracionConteo[enc] || 0) + 1;
+
+                    }
+
+                }
+
+            }
 
         }
 
@@ -391,10 +424,22 @@ function generarRanking(datos){
 
     });
 
+    // Armar el objeto de duración promedio por encuestador
+    const duracionPorEncuestador = {};
+
+    Object.keys(encuestadores).forEach(enc => {
+
+        if (duracionConteo[enc]) {
+            duracionPorEncuestador[enc] = duracionSuma[enc] / duracionConteo[enc];
+        }
+
+    });
+
    mostrarRanking(
     encuestadores,
     "rankingEncuestadores",
-    "Encuestador"
+    "Encuestador",
+    duracionPorEncuestador
 );
 
 mostrarRanking(
@@ -409,7 +454,7 @@ mostrarRanking(
 // MOSTRAR RANKING
 //=====================================
 
-function mostrarRanking(objeto,id,tipo){
+function mostrarRanking(objeto,id,tipo,duraciones){
 
     const contenedor=document.getElementById(id);
 
@@ -436,6 +481,16 @@ function mostrarRanking(objeto,id,tipo){
 
         const porcentaje=(item[1]/maximo)*100;
 
+        // Si nos pasaron duraciones (solo aplica a encuestadores),
+        // armamos el texto de duración promedio de esa persona.
+        let textoDuracion = "";
+
+        if (duraciones && duraciones[item[0]] !== undefined) {
+
+            textoDuracion = `<span class="duracion-item">⏱ ${formatearDuracion(duraciones[item[0]])} promedio</span>`;
+
+        }
+
         contenedor.innerHTML+=`
 
         <div class="ranking-item">
@@ -453,6 +508,8 @@ function mostrarRanking(objeto,id,tipo){
                 <div class="progreso" style="width:${porcentaje}%"></div>
 
             </div>
+
+            ${textoDuracion}
 
         </div>
 
@@ -718,5 +775,54 @@ function generarTablaConteo(datos, campo, mapa, idSeccion, idContenedor) {
     `;
 
     contenedor.innerHTML = html;
+
+}
+
+//=====================================
+// DURACIÓN PROMEDIO POR ENCUESTA
+// Usa los campos "start" y "end" que Kobo
+// guarda automáticamente en cada envío.
+//=====================================
+
+function calcularDuracionPromedio(datos) {
+
+    let sumaMinutos = 0;
+    let contador = 0;
+
+    datos.resultados.forEach(encuesta => {
+
+        const inicio = encuesta["start"];
+        const fin = encuesta["end"];
+
+        if (!inicio || !fin) return;
+
+        const t1 = new Date(inicio).getTime();
+        const t2 = new Date(fin).getTime();
+
+        if (isNaN(t1) || isNaN(t2) || t2 <= t1) return;
+
+        const minutos = (t2 - t1) / 60000;
+
+        // Ignoramos valores absurdos (ej. una encuesta dejada
+        // abierta por horas sin cerrarla) para no distorsionar el promedio.
+        if (minutos > 180) return;
+
+        sumaMinutos += minutos;
+        contador++;
+
+    });
+
+    if (contador === 0) return null;
+
+    return sumaMinutos / contador;
+
+}
+
+function formatearDuracion(minutosDecimal) {
+
+    const minutos = Math.floor(minutosDecimal);
+    const segundos = Math.round((minutosDecimal - minutos) * 60);
+
+    return `${minutos}m ${segundos}s`;
 
 }

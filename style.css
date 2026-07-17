@@ -283,6 +283,18 @@ header h1{
 
 }
 
+.duracion-item{
+
+    display:block;
+
+    margin-top:6px;
+
+    font-size:12px;
+
+    color:var(--texto-suave);
+
+}
+
 .ranking-top{
 
     display:flex;
