@@ -126,6 +126,14 @@ function parsearMapa(texto) {
 // ==========================================
 
 // Guardamos aquí los nombres de campo configurados en el .env
+// Guardamos los últimos datos cargados para poder redibujar
+// los gráficos (con los colores correctos) al cambiar de modo oscuro/claro
+let ultimosDatosCargados = null;
+
+function esModoOscuro() {
+    return document.body.classList.contains("modo-oscuro");
+}
+
 let campoEncuestador = "C_digo_encuestador";
 let campoSupervisor = "C_digo_Supervisor";
 let campoGenero = "";
@@ -236,6 +244,8 @@ obtenerDatos();
 // ==========================================
 
 function dibujarPuntos(datos) {
+
+    ultimosDatosCargados = datos;
 
     // Si hay campo de consentimiento configurado, separamos las encuestas
     // válidas (consentimiento afirmativo) de las que no lo fueron.
@@ -451,6 +461,10 @@ function generarGraficoDiario(datos) {
 
     const coloresBarras = dias.map((_, i) => paletaMarca[i % paletaMarca.length]);
 
+    // Colores de texto/líneas del gráfico según el modo actual
+    const colorTexto = esModoOscuro() ? "#c7cbd4" : "#6b6b6b";
+    const colorGrid = esModoOscuro() ? "rgba(255,255,255,0.08)" : "#eceef1";
+
     // Si el gráfico ya existe (por una actualización), lo destruimos
     // antes de crear uno nuevo para que no se dupliquen ni se peguen encima.
     if (graficoAvance) {
@@ -503,7 +517,31 @@ function generarGraficoDiario(datos) {
 
                     ticks: {
 
-                        precision: 0
+                        precision: 0,
+
+                        color: colorTexto
+
+                    },
+
+                    grid: {
+
+                        color: colorGrid
+
+                    }
+
+                },
+
+                x: {
+
+                    ticks: {
+
+                        color: colorTexto
+
+                    },
+
+                    grid: {
+
+                        display: false
 
                     }
 
@@ -761,6 +799,10 @@ function generarGraficoDistribucion(datos, campo, idSeccion, idTitulo, idCanvas,
 
     const totalGeneral = cantidades.reduce((a, b) => a + b, 0);
 
+    // Colores de texto según el modo actual
+    const colorTextoPrincipal = esModoOscuro() ? "#f2f3f5" : "#3c3c3c";
+    const colorTextoSecundario = esModoOscuro() ? "#9aa0ab" : "#6b6b6b";
+
     // Plugin que dibuja el total en el centro de la dona
     const textoCentral = {
 
@@ -779,11 +821,11 @@ function generarGraficoDistribucion(datos, campo, idSeccion, idTitulo, idCanvas,
             ctx.textBaseline = "middle";
 
             ctx.font = "700 26px 'Plus Jakarta Sans', sans-serif";
-            ctx.fillStyle = "#3c3c3c";
+            ctx.fillStyle = colorTextoPrincipal;
             ctx.fillText(totalGeneral, centroX, centroY - 8);
 
             ctx.font = "500 11px 'Plus Jakarta Sans', sans-serif";
-            ctx.fillStyle = "#6b6b6b";
+            ctx.fillStyle = colorTextoSecundario;
             ctx.fillText("encuestas", centroX, centroY + 14);
 
             ctx.restore();
@@ -831,6 +873,8 @@ function generarGraficoDistribucion(datos, campo, idSeccion, idTitulo, idCanvas,
                     labels: {
 
                         padding: 14,
+
+                        color: colorTextoSecundario,
 
                         font: {
 
@@ -1052,6 +1096,21 @@ if (botonModoOscuro) {
 
         botonModoOscuro.textContent = activo ? "☀️" : "🌙";
         botonModoOscuro.title = activo ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
+
+        // Los gráficos (Chart.js) dibujan su texto directamente sobre el
+        // canvas, así que el CSS no los alcanza — hay que redibujarlos
+        // con los colores correctos para el modo que se acaba de activar.
+        if (ultimosDatosCargados) {
+
+            generarGraficoDiario(ultimosDatosCargados);
+
+            generarGraficoDistribucion(
+                ultimosDatosCargados, campoGenero,
+                "seccionGenero", "tituloGenero", "graficoGenero",
+                "Distribución por género"
+            );
+
+        }
 
     });
 
