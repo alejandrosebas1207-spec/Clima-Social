@@ -195,12 +195,14 @@ header h1{
 
 }
 
-/* Cada tarjeta toma un color distinto de la paleta de la marca */
+/* Cada tarjeta toma un color distinto de la paleta de la marca (cíclico) */
 .card:nth-child(1){ border-top-color:var(--morado); }
 .card:nth-child(2){ border-top-color:var(--azul-marino); }
 .card:nth-child(3){ border-top-color:var(--verde); }
 .card:nth-child(4){ border-top-color:var(--dorado); }
 .card:nth-child(5){ border-top-color:var(--rojo); }
+.card:nth-child(6){ border-top-color:var(--azul-acero); }
+.card:nth-child(7){ border-top-color:var(--morado); }
 
 .card h3{
 
@@ -220,11 +222,21 @@ header h1{
 
     margin-top:12px;
 
-    font-size:32px;
+    font-size:27px;
 
     font-weight:bold;
 
     color:var(--gris-carbon);
+
+    min-height:64px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    line-height:1.15;
 
 }
 
@@ -683,6 +695,10 @@ ANILLO DE PROGRESO (tarjeta Avance)
     font-size:22px !important;
 
     margin:0 !important;
+
+    min-height:auto !important;
+
+    display:block !important;
 
 }
 
