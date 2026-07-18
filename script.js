@@ -129,6 +129,8 @@ let campoGenero = "";
 let mapaGenero = {};
 let campoParroquia = "";
 let mapaParroquia = {};
+let campoConsentimiento = "";
+let valorConsentimientoSi = "1";
 
 async function obtenerConfig() {
 
@@ -145,6 +147,9 @@ async function obtenerConfig() {
 
         campoParroquia = config.campoParroquia;
         mapaParroquia = parsearMapa(config.mapaParroquia);
+
+        campoConsentimiento = config.campoConsentimiento;
+        valorConsentimientoSi = config.valorConsentimientoSi;
         META_ENCUESTAS = Number(config.metaEncuestas);
 
         // Aplicar el nombre del proyecto al título y a la pestaña del navegador
@@ -239,6 +244,30 @@ function dibujarPuntos(datos) {
     document.getElementById("duracion").textContent =
         duracionProm !== null ? formatearDuracion(duracionProm) : "--";
 
+    // Porcentaje de aceptación (solo si hay campo de consentimiento configurado)
+    const cardAceptacion = document.getElementById("cardAceptacion");
+
+    if (campoConsentimiento) {
+
+        const porcentajeAceptacion = calcularPorcentajeAceptacion(datos);
+
+        if (porcentajeAceptacion !== null) {
+
+            cardAceptacion.style.display = "block";
+            animarNumero("aceptacion", porcentajeAceptacion, "%");
+
+        } else {
+
+            cardAceptacion.style.display = "none";
+
+        }
+
+    } else {
+
+        cardAceptacion.style.display = "none";
+
+    }
+
     const avance = ((datos.total / META_ENCUESTAS) * 100).toFixed(1);
 
     animarNumero("avance", Number(avance), "%");
@@ -260,25 +289,29 @@ function dibujarPuntos(datos) {
 
         limites.push([lat, lon]);
 
+        const codigoEnc = encuesta[campoEncuestador];
+
         const punto = L.circleMarker([lat, lon], {
 
-            radius: 3,
+            radius: 4,
             color: "#ffffff",
-            weight: 0.5,
-            fillColor: "#1e2882",
-            fillOpacity: 0.75
+            weight: 0.6,
+            fillColor: obtenerColorEncuestador(codigoEnc),
+            fillOpacity: 0.85
 
         }).addTo(mapa);
 
         punto.bindPopup(`
             <b>Encuesta:</b> ${encuesta._id}<br>
             <b>Barrio:</b> ${encuesta["Localizacion/NOMBRE_DEL_BARRIO_O_SECTOR_Abierta"] || "Sin dato"}<br>
-            <b>Encuestador:</b> ${encuesta["C_digo_encuestador"] || "Sin dato"}<br>
-            <b>Supervisor:</b> ${encuesta["C_digo_Supervisor"] || "Sin dato"}<br>
+            <b>Encuestador:</b> ${codigoEnc || "Sin dato"}<br>
+            <b>Supervisor:</b> ${encuesta[campoSupervisor] || "Sin dato"}<br>
             <b>Fecha:</b> ${encuesta["_submission_time"] || ""}
         `);
 
     });
+
+    generarLeyendaEncuestadores(datos);
 
     if (limites.length > 0) {
 
@@ -481,7 +514,10 @@ function generarRanking(datos){
             const inicio = encuesta["start"];
             const fin = encuesta["end"];
 
-            if (inicio && fin) {
+            const consintio = !campoConsentimiento ||
+                encuesta[campoConsentimiento] === valorConsentimientoSi;
+
+            if (inicio && fin && consintio) {
 
                 const t1 = new Date(inicio).getTime();
                 const t2 = new Date(fin).getTime();
@@ -903,6 +939,12 @@ function calcularDuracionPromedio(datos) {
 
     datos.resultados.forEach(encuesta => {
 
+        // Si hay un campo de consentimiento configurado, solo contamos
+        // las encuestas donde la respuesta fue afirmativa.
+        if (campoConsentimiento && encuesta[campoConsentimiento] !== valorConsentimientoSi) {
+            return;
+        }
+
         const inicio = encuesta["start"];
         const fin = encuesta["end"];
 
@@ -1019,5 +1061,99 @@ function animarNumero(idElemento, valorNuevo, sufijo = "") {
     }
 
     requestAnimationFrame(paso);
+
+}
+
+//=====================================
+// COLOR CONSISTENTE POR ENCUESTADOR
+// Usa un "hash" del código para siempre asignarle
+// el mismo color, sin importar el orden de los datos.
+//=====================================
+
+function obtenerColorEncuestador(codigo) {
+
+    const paletaMarca = [
+        "#1e2882", "#bc3246", "#4f7a8c",
+        "#efa000", "#4f8232", "#3c0050"
+    ];
+
+    if (!codigo) return "#9aa0ab";
+
+    const texto = String(codigo);
+
+    let hash = 0;
+
+    for (let i = 0; i < texto.length; i++) {
+        hash = texto.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    const indice = Math.abs(hash) % paletaMarca.length;
+
+    return paletaMarca[indice];
+
+}
+
+//=====================================
+// LEYENDA DE COLORES POR ENCUESTADOR
+//=====================================
+
+function generarLeyendaEncuestadores(datos) {
+
+    const contenedor = document.getElementById("leyendaEncuestadores");
+
+    if (!contenedor) return;
+
+    const codigos = new Set();
+
+    datos.resultados.forEach(encuesta => {
+
+        const codigo = encuesta[campoEncuestador];
+
+        if (codigo) codigos.add(codigo);
+
+    });
+
+    if (codigos.size === 0) {
+        contenedor.innerHTML = "";
+        return;
+    }
+
+    const codigosOrdenados = Array.from(codigos).sort();
+
+    contenedor.innerHTML = codigosOrdenados.map(codigo => `
+        <span class="leyenda-item">
+            <span class="leyenda-punto" style="background:${obtenerColorEncuestador(codigo)}"></span>
+            Encuestador ${codigo}
+        </span>
+    `).join("");
+
+}
+
+//=====================================
+// PORCENTAJE DE ACEPTACIÓN
+// % de personas que respondieron "Sí" a la pregunta
+// de consentimiento, sobre el total que respondió esa pregunta.
+//=====================================
+
+function calcularPorcentajeAceptacion(datos) {
+
+    let totalRespondio = 0;
+    let totalAcepto = 0;
+
+    datos.resultados.forEach(encuesta => {
+
+        const valor = encuesta[campoConsentimiento];
+
+        if (valor === undefined || valor === null || valor === "") return;
+
+        totalRespondio++;
+
+        if (valor === valorConsentimientoSi) totalAcepto++;
+
+    });
+
+    if (totalRespondio === 0) return null;
+
+    return Number(((totalAcepto / totalRespondio) * 100).toFixed(1));
 
 }

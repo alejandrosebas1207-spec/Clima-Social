@@ -37,7 +37,11 @@ app.get("/api/config", (req, res) => {
 
         campoParroquia: process.env.CAMPO_PARROQUIA || "",
 
-        mapaParroquia: process.env.MAPA_PARROQUIA || ""
+        mapaParroquia: process.env.MAPA_PARROQUIA || "",
+
+        campoConsentimiento: process.env.CAMPO_CONSENTIMIENTO || "",
+
+        valorConsentimientoSi: process.env.VALOR_CONSENTIMIENTO_SI || "1"
 
     });
 

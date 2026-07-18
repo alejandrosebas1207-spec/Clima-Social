@@ -37,73 +37,93 @@ body{
 
 header{
 
-    background:var(--gris-carbon);
-    color:#ffffff;
+    background:#ffffff;
 
-    padding:16px 24px;
+    padding:14px 24px;
 
     display:flex;
 
     align-items:center;
+
+    justify-content:space-between;
 
     gap:18px;
 
-    font-size:22px;
+    box-shadow:0 2px 10px rgba(0,0,0,.06);
 
-    font-weight:700;
+    border-bottom:4px solid transparent;
 
-    letter-spacing:.2px;
-
-    box-shadow:0 2px 10px rgba(0,0,0,.2);
-
-    border-bottom:4px solid var(--dorado);
+    border-image:linear-gradient(90deg,
+        var(--verde), var(--rojo), var(--azul-acero),
+        var(--dorado), var(--morado), var(--azul-marino)) 1;
 
 }
 
-.logo-box{
-
-    background:#ffffff;
-
-    border-radius:8px;
-
-    padding:8px 14px;
+.header-contenido{
 
     display:flex;
 
     align-items:center;
 
-    flex-shrink:0;
+    gap:14px;
 
 }
 
-.logo-img{
+.header-icono{
 
-    height:28px;
+    height:44px;
     width:auto;
     display:block;
 
 }
 
+.header-textos{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:2px;
+
+}
+
+.header-marca{
+
+    font-size:11px;
+
+    font-weight:700;
+
+    letter-spacing:1.2px;
+
+    text-transform:uppercase;
+
+    color:var(--azul-acero);
+
+}
+
 header h1{
 
-    font-size:inherit;
-    font-weight:inherit;
+    font-size:20px;
 
-    flex:1;
+    font-weight:700;
+
+    color:var(--gris-carbon);
+
+    line-height:1.1;
 
 }
 
 .boton-modo-oscuro{
 
-    background:rgba(255,255,255,.12);
+    background:var(--fondo);
 
     border:none;
 
-    color:#ffffff;
+    color:var(--gris-carbon);
 
-    width:36px;
+    width:38px;
 
-    height:36px;
+    height:38px;
 
     border-radius:8px;
 
@@ -119,7 +139,7 @@ header h1{
 
 .boton-modo-oscuro:hover{
 
-    background:rgba(255,255,255,.22);
+    background:#e8eaed;
 
 }
 
@@ -772,6 +792,25 @@ body.modo-oscuro .pie-pagina{
 
 }
 
+body.modo-oscuro header{
+
+    background:#1f232c;
+
+}
+
+body.modo-oscuro header h1{
+
+    color:#f2f3f5;
+
+}
+
+body.modo-oscuro .boton-modo-oscuro{
+
+    background:#2c313c;
+    color:#f2f3f5;
+
+}
+
 body.modo-oscuro .carga-overlay{
 
     background:#15181f;
@@ -797,5 +836,47 @@ ETIQUETAS DE PARROQUIA EN EL MAPA
     font-weight:600;
 
     padding:4px 10px;
+
+}
+
+/*==========================
+LEYENDA DE COLORES EN EL MAPA
+==========================*/
+
+.leyenda-mapa{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:12px 18px;
+
+    padding:12px 4px 0;
+
+}
+
+.leyenda-item{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    font-size:12px;
+
+    color:var(--texto-suave);
+
+}
+
+.leyenda-punto{
+
+    width:10px;
+
+    height:10px;
+
+    border-radius:50%;
+
+    display:inline-block;
 
 }
