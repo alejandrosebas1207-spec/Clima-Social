@@ -896,3 +896,21 @@ LEYENDA DE COLORES EN EL MAPA
     display:inline-block;
 
 }
+
+/*==========================
+SUBTÍTULO DE TARJETA (ej. encuestas no válidas)
+==========================*/
+
+.subtitulo-tarjeta{
+
+    display:block;
+
+    margin-top:-6px;
+
+    font-size:12px;
+
+    font-weight:600;
+
+    color:var(--rojo);
+
+}

@@ -234,8 +234,35 @@ obtenerDatos();
 
 function dibujarPuntos(datos) {
 
+    // Si hay campo de consentimiento configurado, separamos las encuestas
+    // válidas (consentimiento afirmativo) de las que no lo fueron.
+    let totalValidas = datos.total;
+    let totalNoValidas = 0;
+
+    if (campoConsentimiento) {
+
+        const conteoConsentimiento = calcularConteoConsentimiento(datos);
+
+        totalValidas = conteoConsentimiento.validas;
+        totalNoValidas = conteoConsentimiento.noValidas;
+
+    }
+
     // Actualizar tarjetas
-    animarNumero("encuestas", datos.total);
+    animarNumero("encuestas", totalValidas);
+
+    const subtituloEncuestas = document.getElementById("subtituloEncuestas");
+
+    if (campoConsentimiento && totalNoValidas > 0) {
+
+        subtituloEncuestas.textContent = `+${totalNoValidas} no aceptaron`;
+        subtituloEncuestas.style.display = "inline-block";
+
+    } else {
+
+        subtituloEncuestas.style.display = "none";
+
+    }
 
     document.getElementById("meta").textContent = META_ENCUESTAS;
 
@@ -268,7 +295,8 @@ function dibujarPuntos(datos) {
 
     }
 
-    const avance = ((datos.total / META_ENCUESTAS) * 100).toFixed(1);
+    // El avance hacia la meta se mide sobre las encuestas válidas
+    const avance = ((totalValidas / META_ENCUESTAS) * 100).toFixed(1);
 
     animarNumero("avance", Number(avance), "%");
 
@@ -1155,5 +1183,33 @@ function calcularPorcentajeAceptacion(datos) {
     if (totalRespondio === 0) return null;
 
     return Number(((totalAcepto / totalRespondio) * 100).toFixed(1));
+
+}
+
+//=====================================
+// CONTEO DE ENCUESTAS VÁLIDAS / NO VÁLIDAS
+// Según la respuesta a la pregunta de consentimiento.
+//=====================================
+
+function calcularConteoConsentimiento(datos) {
+
+    let validas = 0;
+    let noValidas = 0;
+
+    datos.resultados.forEach(encuesta => {
+
+        const valor = encuesta[campoConsentimiento];
+
+        if (valor === undefined || valor === null || valor === "") return;
+
+        if (valor === valorConsentimientoSi) {
+            validas++;
+        } else {
+            noValidas++;
+        }
+
+    });
+
+    return { validas, noValidas };
 
 }
