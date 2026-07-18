@@ -914,3 +914,13 @@ SUBTÍTULO DE TARJETA (ej. encuestas no válidas)
     color:var(--rojo);
 
 }
+
+/* La hora de actualización es más larga que los demás valores,
+   así que le damos un poco menos de tamaño para que quepa en una línea */
+#hora{
+
+    font-size:22px;
+
+    white-space:nowrap;
+
+}

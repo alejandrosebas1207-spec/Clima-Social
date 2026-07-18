@@ -79,11 +79,14 @@ function actualizarHora() {
 
     const ahora = new Date();
 
-    document.getElementById("hora").textContent =
-        ahora.toLocaleTimeString("es-EC", {
-            hour: "2-digit",
-            minute: "2-digit"
-        });
+    const horaTexto = ahora.toLocaleTimeString("es-EC", {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
+    // Reemplazamos los espacios normales por espacios "duros" (non-breaking)
+    // para que el navegador nunca corte "08:27 p. m." en dos líneas.
+    document.getElementById("hora").textContent = horaTexto.replace(/ /g, "\u00A0");
 
 }
 
