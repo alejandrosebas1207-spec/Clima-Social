@@ -22,7 +22,6 @@
     --texto-suave:#736c63;
     --linea:#e7e0d3;
 
-    --fuente-display:"Fraunces", "Georgia", serif;
     --fuente-cuerpo:"Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
 
     --sombra: 0 6px 20px rgba(60,0,80,.07);
@@ -120,13 +119,13 @@ header{
 
 header h1{
 
-    font-family:var(--fuente-display);
+    font-family:var(--fuente-cuerpo);
 
-    font-size:24px;
+    font-size:22px;
 
-    font-weight:600;
+    font-weight:800;
 
-    font-style:italic;
+    letter-spacing:-.2px;
 
     color:var(--tinta);
 
@@ -273,11 +272,11 @@ header h1{
 
     margin-top:12px;
 
-    font-family:var(--fuente-display);
+    font-family:var(--fuente-cuerpo);
 
-    font-size:30px;
+    font-size:28px;
 
-    font-weight:600;
+    font-weight:800;
 
     color:var(--tinta);
 
@@ -293,22 +292,13 @@ header h1{
 
 }
 
-/* ======== SEPARADOR DE SECCIÓN ("Acto") ======== */
-/* Cada bloque grande del tablero (Trabajadores / Graduados) se presenta
-   como un acto de un programa cultural — la numeración es real: son
-   los dos tramos secuenciales de la encuesta, no un adorno. */
+/* ======== TÍTULO DE SECCIÓN ======== */
 
-.separador-acto{
-
-    display:flex;
-
-    align-items:baseline;
-
-    gap:18px;
+.titulo-seccion{
 
     margin-top:44px;
 
-    margin-bottom:22px;
+    margin-bottom:18px;
 
     padding-bottom:14px;
 
@@ -316,57 +306,19 @@ header h1{
 
 }
 
-.separador-numero{
+.titulo-seccion h2{
 
-    font-family:var(--fuente-display);
+    font-family:var(--fuente-cuerpo);
 
-    font-size:44px;
+    font-size:20px;
 
-    font-weight:600;
-
-    color:var(--dorado);
-
-    line-height:1;
-
-    flex-shrink:0;
-
-}
-
-.separador-textos{
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:2px;
-
-}
-
-.separador-eyebrow{
-
-    font-size:11px;
-
-    font-weight:700;
-
-    letter-spacing:2px;
-
-    text-transform:uppercase;
-
-    color:var(--texto-suave);
-
-}
-
-.separador-acto h2{
-
-    font-family:var(--fuente-display);
-
-    font-style:italic;
-
-    font-size:26px;
-
-    font-weight:600;
+    font-weight:800;
 
     color:var(--tinta);
+
+    border-left:4px solid var(--dorado);
+
+    padding-left:12px;
 
 }
 
@@ -388,9 +340,9 @@ header h1{
 
 .grafico h2{
 
-    font-family:var(--fuente-display);
+    font-family:var(--fuente-cuerpo);
 
-    font-weight:600;
+    font-weight:800;
 
     color:var(--tinta);
 
@@ -542,12 +494,8 @@ header h1{
         font-size:19px;
     }
 
-    .separador-numero{
-        font-size:32px;
-    }
-
-    .separador-acto h2{
-        font-size:21px;
+    .titulo-seccion h2{
+        font-size:17px;
     }
 
 }
@@ -704,12 +652,12 @@ OVERLAY DE CARGA
 
 .carga-overlay p{
 
-    font-family:var(--fuente-display);
-    font-style:italic;
+    font-family:var(--fuente-cuerpo);
+    font-weight:600;
 
     color:var(--texto-suave);
 
-    font-size:15px;
+    font-size:14px;
 
 }
 
@@ -829,11 +777,11 @@ ANILLO DE PROGRESO (tarjeta Avance)
 
     transform:translate(-50%,-50%);
 
-    font-family:var(--fuente-display) !important;
+    font-family:var(--fuente-cuerpo) !important;
 
-    font-size:24px !important;
+    font-size:22px !important;
 
-    font-weight:600 !important;
+    font-weight:800 !important;
 
     margin:0 !important;
 
@@ -909,7 +857,7 @@ body.modo-oscuro .ranking-card h3{
 }
 
 body.modo-oscuro .grafico h2,
-body.modo-oscuro .separador-acto h2{
+body.modo-oscuro .titulo-seccion h2{
 
     color:#f2f0f5;
 
@@ -954,14 +902,13 @@ body.modo-oscuro .anillo-fondo{
 }
 
 body.modo-oscuro .duracion-item,
-body.modo-oscuro .pie-pagina,
-body.modo-oscuro .separador-eyebrow{
+body.modo-oscuro .pie-pagina{
 
     color:#a89fb4;
 
 }
 
-body.modo-oscuro .separador-acto{
+body.modo-oscuro .titulo-seccion{
 
     border-bottom-color:#3a3346;
 
