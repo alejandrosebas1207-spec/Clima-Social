@@ -1,10 +1,12 @@
 /* ==========================================
-   VARIABLES DE MARCA — Clima Social
-   Colores extraídos directamente del logo
+   VARIABLES — Clima Social × Artes y Cultura
+   Paleta de marca + tokens editoriales
+   (papel/tinta en vez de gris corporativo plano)
 ========================================== */
 
 :root{
 
+    /* Marca Clima Social */
     --gris-carbon:#3c3c3c;
     --morado:#3c0050;
     --azul-acero:#4f7a8c;
@@ -13,8 +15,18 @@
     --verde:#4f8232;
     --azul-marino:#1e2882;
 
-    --fondo:#f4f5f7;
-    --texto-suave:#6b6b6b;
+    /* Tokens editoriales — modo claro */
+    --papel:#f7f3ec;
+    --papel-tarjeta:#fffdf9;
+    --tinta:#241f2e;
+    --texto-suave:#736c63;
+    --linea:#e7e0d3;
+
+    --fuente-display:"Fraunces", "Georgia", serif;
+    --fuente-cuerpo:"Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
+
+    --sombra: 0 6px 20px rgba(60,0,80,.07);
+    --sombra-hover: 0 10px 28px rgba(60,0,80,.12);
 
 }
 
@@ -24,12 +36,17 @@
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:"Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
+    font-family:var(--fuente-cuerpo);
 }
 
 body{
 
-    background:var(--fondo);
+    background:var(--papel);
+    color:var(--tinta);
+    background-image:
+        radial-gradient(circle at 100% 0%, rgba(239,160,0,.06), transparent 40%),
+        radial-gradient(circle at 0% 100%, rgba(60,0,80,.05), transparent 40%);
+    background-attachment:fixed;
 
 }
 
@@ -37,9 +54,9 @@ body{
 
 header{
 
-    background:#ffffff;
+    background:var(--papel-tarjeta);
 
-    padding:14px 24px;
+    padding:16px 28px;
 
     display:flex;
 
@@ -49,9 +66,9 @@ header{
 
     gap:18px;
 
-    box-shadow:0 2px 10px rgba(0,0,0,.06);
+    box-shadow:0 2px 10px rgba(36,31,46,.05);
 
-    border-bottom:4px solid transparent;
+    border-bottom:5px solid transparent;
 
     border-image:linear-gradient(90deg,
         var(--verde), var(--rojo), var(--azul-acero),
@@ -83,7 +100,7 @@ header{
 
     flex-direction:column;
 
-    gap:2px;
+    gap:3px;
 
 }
 
@@ -93,7 +110,7 @@ header{
 
     font-weight:700;
 
-    letter-spacing:1.2px;
+    letter-spacing:2px;
 
     text-transform:uppercase;
 
@@ -103,29 +120,62 @@ header{
 
 header h1{
 
-    font-size:20px;
+    font-family:var(--fuente-display);
 
-    font-weight:700;
+    font-size:24px;
 
-    color:var(--gris-carbon);
+    font-weight:600;
 
-    line-height:1.1;
+    font-style:italic;
+
+    color:var(--tinta);
+
+    line-height:1.15;
+
+}
+
+.header-derecha{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+}
+
+/* Reloj — antes heredaba color negro por defecto y quedaba
+   ilegible en modo oscuro. Ahora es un badge con color propio
+   que se adapta explícitamente en ambos modos. */
+.reloj{
+
+    font-family:var(--fuente-cuerpo);
+    font-variant-numeric:tabular-nums;
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:.3px;
+    color:var(--texto-suave);
+    background:var(--papel);
+    border:1px solid var(--linea);
+    padding:7px 12px;
+    border-radius:20px;
+    white-space:nowrap;
 
 }
 
 .boton-modo-oscuro{
 
-    background:var(--fondo);
+    background:var(--papel);
 
-    border:none;
+    border:1px solid var(--linea);
 
-    color:var(--gris-carbon);
+    color:var(--tinta);
 
     width:38px;
 
     height:38px;
 
-    border-radius:8px;
+    border-radius:50%;
 
     font-size:16px;
 
@@ -139,7 +189,8 @@ header h1{
 
 .boton-modo-oscuro:hover{
 
-    background:#e8eaed;
+    background:var(--dorado);
+    border-color:var(--dorado);
 
 }
 
@@ -150,7 +201,7 @@ header h1{
     width:95%;
     max-width:1400px;
     margin:auto;
-    margin-top:24px;
+    margin-top:28px;
     padding-bottom:40px;
 
 }
@@ -171,15 +222,15 @@ header h1{
 
 .card{
 
-    background:white;
+    background:var(--papel-tarjeta);
 
-    border-radius:12px;
+    border-radius:14px;
 
-    padding:18px;
+    padding:20px;
 
-    box-shadow:0 4px 12px rgba(0,0,0,.08);
+    box-shadow:var(--sombra);
 
-    border-top:4px solid var(--azul-acero);
+    border-top:3px solid var(--azul-acero);
 
     transition:.25s;
 
@@ -191,7 +242,7 @@ header h1{
 
     transform:translateY(-4px);
 
-    box-shadow:0 8px 18px rgba(0,0,0,.12);
+    box-shadow:var(--sombra-hover);
 
 }
 
@@ -208,13 +259,13 @@ header h1{
 
     color:var(--texto-suave);
 
-    font-size:14px;
+    font-size:11px;
 
     text-transform:uppercase;
 
-    letter-spacing:.5px;
+    letter-spacing:1px;
 
-    font-weight:600;
+    font-weight:700;
 
 }
 
@@ -222,11 +273,13 @@ header h1{
 
     margin-top:12px;
 
-    font-size:27px;
+    font-family:var(--fuente-display);
 
-    font-weight:bold;
+    font-size:30px;
 
-    color:var(--gris-carbon);
+    font-weight:600;
+
+    color:var(--tinta);
 
     min-height:64px;
 
@@ -240,21 +293,80 @@ header h1{
 
 }
 
-/* ======== MAPA ======== */
+/* ======== SEPARADOR DE SECCIÓN ("Acto") ======== */
+/* Cada bloque grande del tablero (Trabajadores / Graduados) se presenta
+   como un acto de un programa cultural — la numeración es real: son
+   los dos tramos secuenciales de la encuesta, no un adorno. */
 
-#map{
+.separador-acto{
 
-    width:100%;
+    display:flex;
 
-    height:550px;
+    align-items:baseline;
 
-    background:white;
+    gap:18px;
 
-    border-radius:12px;
+    margin-top:44px;
 
-    overflow:hidden;
+    margin-bottom:22px;
 
-    box-shadow:0 4px 12px rgba(0,0,0,.08);
+    padding-bottom:14px;
+
+    border-bottom:1px solid var(--linea);
+
+}
+
+.separador-numero{
+
+    font-family:var(--fuente-display);
+
+    font-size:44px;
+
+    font-weight:600;
+
+    color:var(--dorado);
+
+    line-height:1;
+
+    flex-shrink:0;
+
+}
+
+.separador-textos{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:2px;
+
+}
+
+.separador-eyebrow{
+
+    font-size:11px;
+
+    font-weight:700;
+
+    letter-spacing:2px;
+
+    text-transform:uppercase;
+
+    color:var(--texto-suave);
+
+}
+
+.separador-acto h2{
+
+    font-family:var(--fuente-display);
+
+    font-style:italic;
+
+    font-size:26px;
+
+    font-weight:600;
+
+    color:var(--tinta);
 
 }
 
@@ -262,29 +374,33 @@ header h1{
 
 .grafico{
 
-    background:white;
+    background:var(--papel-tarjeta);
 
     margin-top:20px;
 
-    border-radius:12px;
+    border-radius:14px;
 
     padding:24px;
 
-    box-shadow:0 4px 12px rgba(0,0,0,.08);
+    box-shadow:var(--sombra);
 
 }
 
 .grafico h2{
 
-    color:var(--gris-carbon);
+    font-family:var(--fuente-display);
+
+    font-weight:600;
+
+    color:var(--tinta);
 
     margin-bottom:20px;
 
     font-size:19px;
 
-    border-left:4px solid var(--dorado);
+    border-left:3px solid var(--dorado);
 
-    padding-left:10px;
+    padding-left:12px;
 
 }
 
@@ -307,7 +423,7 @@ header h1{
 
 }
 
-/* ======== RANKING ======== */
+/* ======== RANKING / GRILLA DE GRÁFICOS ======== */
 
 .ranking-container{
 
@@ -323,13 +439,13 @@ header h1{
 
 .ranking-card{
 
-    background:#fff;
+    background:var(--papel-tarjeta);
 
-    border-radius:12px;
+    border-radius:14px;
 
     padding:20px;
 
-    box-shadow:0 4px 12px rgba(0,0,0,.08);
+    box-shadow:var(--sombra);
 
 }
 
@@ -337,7 +453,7 @@ header h1{
 
     margin-bottom:20px;
 
-    color:var(--gris-carbon);
+    color:var(--tinta);
 
     font-size:16px;
 
@@ -371,7 +487,7 @@ header h1{
 
     margin-bottom:6px;
 
-    color:var(--gris-carbon);
+    color:var(--tinta);
 
     font-size:14px;
 
@@ -383,7 +499,7 @@ header h1{
 
     height:8px;
 
-    background:#e8e8e8;
+    background:var(--linea);
 
     border-radius:20px;
 
@@ -401,23 +517,12 @@ header h1{
 
 }
 
-/* El ranking de supervisores usa un degradado distinto para diferenciarlo */
-#rankingSupervisores .progreso{
-
-    background:linear-gradient(90deg, var(--morado), var(--rojo));
-
-}
-
 /* ======== RESPONSIVE ======== */
 
 @media(max-width:700px){
 
     .card p{
         font-size:25px;
-    }
-
-    #map{
-        height:420px;
     }
 
     .ranking-container{
@@ -430,18 +535,25 @@ header h1{
 
     header{
         flex-wrap:wrap;
-        font-size:17px;
         padding:14px 16px;
     }
 
-    .logo-img{
-        height:22px;
+    header h1{
+        font-size:19px;
+    }
+
+    .separador-numero{
+        font-size:32px;
+    }
+
+    .separador-acto h2{
+        font-size:21px;
     }
 
 }
 
 /*==========================
-TABLA DE CONTEO (parroquias, etc.)
+TABLA DE CONTEO (actividad cultural, etc.)
 ==========================*/
 
 .tabla-conteo{
@@ -464,15 +576,17 @@ TABLA DE CONTEO (parroquias, etc.)
 
     padding:10px 12px;
 
-    font-size:13px;
+    font-size:12px;
 
     text-transform:uppercase;
 
-    letter-spacing:.4px;
+    letter-spacing:.6px;
+
+    font-weight:700;
 
     color:var(--texto-suave);
 
-    border-bottom:2px solid #e8e8e8;
+    border-bottom:2px solid var(--linea);
 
 }
 
@@ -482,15 +596,15 @@ TABLA DE CONTEO (parroquias, etc.)
 
     font-size:14px;
 
-    color:var(--gris-carbon);
+    color:var(--tinta);
 
-    border-bottom:1px solid #f0f0f0;
+    border-bottom:1px solid var(--linea);
 
 }
 
 .tabla-datos tbody tr:hover{
 
-    background:#fafafa;
+    background:rgba(239,160,0,.06);
 
 }
 
@@ -510,7 +624,7 @@ TABLA DE CONTEO (parroquias, etc.)
 
     height:6px;
 
-    background:#e8e8e8;
+    background:var(--linea);
 
     border-radius:20px;
 
@@ -540,7 +654,7 @@ OVERLAY DE CARGA
 
     inset:0;
 
-    background:var(--fondo);
+    background:var(--papel);
 
     display:flex;
 
@@ -572,9 +686,9 @@ OVERLAY DE CARGA
 
     height:44px;
 
-    border:4px solid #e0e0e0;
+    border:4px solid var(--linea);
 
-    border-top-color:var(--azul-marino);
+    border-top-color:var(--dorado);
 
     border-radius:50%;
 
@@ -590,9 +704,12 @@ OVERLAY DE CARGA
 
 .carga-overlay p{
 
+    font-family:var(--fuente-display);
+    font-style:italic;
+
     color:var(--texto-suave);
 
-    font-size:14px;
+    font-size:15px;
 
 }
 
@@ -630,6 +747,26 @@ ANILLO DE PROGRESO (tarjeta Avance)
 
     text-align:center;
 
+    position:relative;
+
+    overflow:hidden;
+
+}
+
+/* Momento de riesgo único del diseño: un leve "reflector de escenario"
+   detrás del anillo de avance general. */
+.card-avance::before{
+
+    content:"";
+    position:absolute;
+    top:-40%;
+    left:50%;
+    width:220px;
+    height:220px;
+    transform:translateX(-50%);
+    background:radial-gradient(circle, rgba(239,160,0,.16), transparent 68%);
+    pointer-events:none;
+
 }
 
 .anillo-contenedor{
@@ -658,7 +795,7 @@ ANILLO DE PROGRESO (tarjeta Avance)
 
     fill:none;
 
-    stroke:#eceef1;
+    stroke:var(--linea);
 
     stroke-width:10;
 
@@ -692,7 +829,11 @@ ANILLO DE PROGRESO (tarjeta Avance)
 
     transform:translate(-50%,-50%);
 
-    font-size:22px !important;
+    font-family:var(--fuente-display) !important;
+
+    font-size:24px !important;
+
+    font-weight:600 !important;
 
     margin:0 !important;
 
@@ -716,11 +857,13 @@ FOOTER
 
     gap:10px;
 
-    padding:22px 16px 30px;
+    padding:26px 16px 34px;
 
     color:var(--texto-suave);
 
     font-size:12px;
+
+    letter-spacing:.3px;
 
 }
 
@@ -740,26 +883,35 @@ MODO OSCURO
 
 body.modo-oscuro{
 
-    background:#15181f;
+    background:#1b1622;
+    background-image:
+        radial-gradient(circle at 100% 0%, rgba(239,160,0,.05), transparent 40%),
+        radial-gradient(circle at 0% 100%, rgba(79,122,140,.08), transparent 40%);
+    color:#f2f0f5;
 
 }
 
 body.modo-oscuro .card,
 body.modo-oscuro .grafico,
-body.modo-oscuro .ranking-card,
-body.modo-oscuro #map{
+body.modo-oscuro .ranking-card{
 
-    background:#1f232c;
+    background:#26202f;
 
-    box-shadow:0 4px 12px rgba(0,0,0,.35);
+    box-shadow:0 6px 20px rgba(0,0,0,.35);
 
 }
 
 body.modo-oscuro .card h3,
-body.modo-oscuro .grafico h2,
 body.modo-oscuro .ranking-card h3{
 
-    color:#c7cbd4;
+    color:#b7aec2;
+
+}
+
+body.modo-oscuro .grafico h2,
+body.modo-oscuro .separador-acto h2{
+
+    color:#f2f0f5;
 
 }
 
@@ -767,27 +919,27 @@ body.modo-oscuro .card p,
 body.modo-oscuro .ranking-top,
 body.modo-oscuro .tabla-datos tbody td{
 
-    color:#f2f3f5;
+    color:#f8f6fb;
 
 }
 
 body.modo-oscuro .tabla-datos thead th{
 
-    color:#9aa0ab;
+    color:#a89fb4;
 
-    border-bottom-color:#2c313c;
+    border-bottom-color:#3a3346;
 
 }
 
 body.modo-oscuro .tabla-datos tbody td{
 
-    border-bottom-color:#2a2e38;
+    border-bottom-color:#352e40;
 
 }
 
 body.modo-oscuro .tabla-datos tbody tr:hover{
 
-    background:#252a34;
+    background:rgba(239,160,0,.08);
 
 }
 
@@ -795,105 +947,65 @@ body.modo-oscuro .barra,
 body.modo-oscuro .mini-barra,
 body.modo-oscuro .anillo-fondo{
 
-    stroke:#2c313c;
+    stroke:#3a3346;
 
-    background:#2c313c;
+    background:#3a3346;
 
 }
 
 body.modo-oscuro .duracion-item,
-body.modo-oscuro .pie-pagina{
+body.modo-oscuro .pie-pagina,
+body.modo-oscuro .separador-eyebrow{
 
-    color:#8b909b;
+    color:#a89fb4;
+
+}
+
+body.modo-oscuro .separador-acto{
+
+    border-bottom-color:#3a3346;
 
 }
 
 body.modo-oscuro header{
 
-    background:#1f232c;
+    background:#26202f;
 
 }
 
 body.modo-oscuro header h1{
 
-    color:#f2f3f5;
+    color:#f8f6fb;
+
+}
+
+body.modo-oscuro .reloj{
+
+    background:#1b1622;
+    border-color:#3a3346;
+    color:#d8d2e0;
 
 }
 
 body.modo-oscuro .boton-modo-oscuro{
 
-    background:#2c313c;
-    color:#f2f3f5;
+    background:#1b1622;
+    border-color:#3a3346;
+    color:#f8f6fb;
+
+}
+
+body.modo-oscuro .boton-modo-oscuro:hover{
+
+    background:var(--dorado);
+    color:#1b1622;
+    border-color:var(--dorado);
 
 }
 
 body.modo-oscuro .carga-overlay{
 
-    background:#15181f;
-
-}
-
-/*==========================
-ETIQUETAS DE PARROQUIA EN EL MAPA
-==========================*/
-
-.etiqueta-parroquia{
-
-    background:var(--gris-carbon);
-
-    color:#ffffff;
-
-    border:none;
-
-    border-radius:6px;
-
-    font-size:12px;
-
-    font-weight:600;
-
-    padding:4px 10px;
-
-}
-
-/*==========================
-LEYENDA DE COLORES EN EL MAPA
-==========================*/
-
-.leyenda-mapa{
-
-    display:flex;
-
-    flex-wrap:wrap;
-
-    gap:12px 18px;
-
-    padding:12px 4px 0;
-
-}
-
-.leyenda-item{
-
-    display:inline-flex;
-
-    align-items:center;
-
-    gap:6px;
-
-    font-size:12px;
-
-    color:var(--texto-suave);
-
-}
-
-.leyenda-punto{
-
-    width:10px;
-
-    height:10px;
-
-    border-radius:50%;
-
-    display:inline-block;
+    background:#1b1622;
 
 }
 
@@ -905,22 +1017,12 @@ SUBTÍTULO DE TARJETA (ej. encuestas no válidas)
 
     display:block;
 
-    margin-top:-6px;
+    margin-top:6px;
 
     font-size:12px;
 
     font-weight:600;
 
     color:var(--rojo);
-
-}
-
-/* La hora de actualización es más larga que los demás valores,
-   así que le damos un poco menos de tamaño para que quepa en una línea */
-#hora{
-
-    font-size:22px;
-
-    white-space:nowrap;
 
 }
