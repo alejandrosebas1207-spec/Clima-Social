@@ -16,31 +16,24 @@ app.use(express.static(path.join(__dirname)));
 const PORT = process.env.PORT || 3000;
 
 //=======================================
-// Ruta de configuración (nombres de campo)
+// Ruta de configuración
+// Esta encuesta (Condiciones Laborales - Artes y Cultura) no tiene
+// campos de encuestador/supervisor ni geolocalización: se aplica vía
+// callcenter y de forma autoadministrada. Por eso la config se reduce
+// a lo que sí varía entre despliegues: nombre del proyecto y metas.
 //=======================================
 
 app.get("/api/config", (req, res) => {
 
     res.json({
 
-        campoEncuestador: process.env.CAMPO_ENCUESTADOR || "C_digo_encuestador",
+        nombreProyecto: process.env.NOMBRE_PROYECTO || "Encuesta Artes y Cultura",
 
-        campoSupervisor: process.env.CAMPO_SUPERVISOR || "C_digo_Supervisor",
+        // Meta general de encuestas (no se distingue por segmento).
+        metaEncuestas: process.env.META_ENCUESTAS || 1100,
 
-        metaEncuestas: process.env.META_ENCUESTAS || 1600,
-
-        nombreProyecto: process.env.NOMBRE_PROYECTO || "Clima Social",
-
-        campoGenero: process.env.CAMPO_GENERO || "",
-
-        mapaGenero: process.env.MAPA_GENERO || "",
-
-        campoParroquia: process.env.CAMPO_PARROQUIA || "",
-
-        mapaParroquia: process.env.MAPA_PARROQUIA || "",
-
-        campoConsentimiento: process.env.CAMPO_CONSENTIMIENTO || "",
-
+        // Valor que representa una respuesta afirmativa en las preguntas
+        // de consentimiento (consent, consentuartes, grad).
         valorConsentimientoSi: process.env.VALOR_CONSENTIMIENTO_SI || "1"
 
     });
@@ -57,37 +50,37 @@ app.get("/api/encuestas", async (req, res) => {
 
         let url = `https://kf.kobotoolbox.org/api/v2/assets/${process.env.ASSET_ID}/data/?limit=500`;
 
-let resultados = [];
+        let resultados = [];
 
-let total = 0;
+        let total = 0;
 
-while(url){
+        while (url) {
 
-    const respuesta = await axios.get(url,{
+            const respuesta = await axios.get(url, {
 
-        headers:{
+                headers: {
 
-            Authorization:`Token ${process.env.API_TOKEN}`
+                    Authorization: `Token ${process.env.API_TOKEN}`
+
+                }
+
+            });
+
+            total = respuesta.data.count;
+
+            resultados.push(...respuesta.data.results);
+
+            url = respuesta.data.next;
 
         }
 
-    });
+        res.json({
 
-    total = respuesta.data.count;
+            total,
 
-    resultados.push(...respuesta.data.results);
+            resultados
 
-    url = respuesta.data.next;
-
-}
-
-res.json({
-
-    total,
-
-    resultados
-
-});
+        });
 
     }
 
