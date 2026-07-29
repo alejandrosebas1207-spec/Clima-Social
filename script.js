@@ -1,21 +1,16 @@
 // ==========================================
-// DASHBOARD CLIMA SOCIAL
-// Encuesta: Condiciones Laborales - Trabajadores de las Artes y la Cultura
-// (OEI / Universidad de las Artes)
-//
-// Esta encuesta se aplica vía callcenter y de forma autoadministrada, y no
-// tiene campos de encuestador/supervisor ni geolocalización, así que este
-// tablero no incluye mapa ni ranking de aplicadores — se enfoca en el
-// avance de dos metas (Trabajadores del sector y Graduados UArtes) y en
-// el perfil sociolaboral de quienes respondieron.
+// DASHBOARD — Encuesta Artes y Cultura (3ra edición)
+// Tabs: Todos / Trabajadores / Graduados UArtes
+// 3 KPIs + 6 gráficos (situación laboral, ingresos con
+// promedio+mediana, actividad principal, gauges de inseguridad,
+// satisfacción y recomendación — estas dos últimas solo graduados).
 // ==========================================
 
-// Meta general — se carga desde /api/config
-let META_ENCUESTAS = 1100;
+let META_TRABAJADORES = 2100;
+let META_GRADUADOS = 400;
 let VALOR_SI = "1";
 
-// Guardamos los últimos datos para poder redibujar los gráficos
-// (con los colores correctos) al cambiar de modo oscuro/claro.
+let filtroActual = "todos"; // 'todos' | 'trabajadores' | 'graduados'
 let ultimosDatosCargados = null;
 
 function esModoOscuro() {
@@ -23,12 +18,7 @@ function esModoOscuro() {
 }
 
 // ==========================================
-// RESOLVER DE CAMPOS
-// Kobo devuelve los campos anidados en grupos con el formato
-// "grupo/subgrupo/pregunta". En vez de hardcodear la ruta completa
-// de cada grupo (frágil si cambia el formulario), buscamos la clave
-// que TERMINA en "/nombreCorto", o el nombre corto exacto si no
-// está agrupado.
+// RESOLVER DE CAMPOS (Kobo anida en grupos: grupo/subgrupo/pregunta)
 // ==========================================
 
 function campo(encuesta, nombreCorto) {
@@ -42,63 +32,62 @@ function campo(encuesta, nombreCorto) {
 }
 
 // ==========================================
-// MAPAS DE ETIQUETAS (fijos para esta encuesta)
+// MAPAS DE ETIQUETAS
 // ==========================================
 
-const MAPA_GENERO = { "1": "Femenino", "2": "Masculino", "3": "No binario", "0": "Prefiere no responder" };
-
-const MAPA_ETNIA = {
-    "1": "Indígena", "2": "Afroecuatoriano/a", "3": "Montubio/a",
-    "4": "Mestizo/a", "5": "Blanco/a", "6": "Otro/a"
-};
-
-const MAPA_NIVEL_ESTUDIOS = {
-    "1": "Ninguno", "2": "Primaria incompleta", "3": "Primaria completa",
-    "4": "Bachillerato incompleto", "5": "Bachillerato completo",
-    "6": "Universitaria incompleta", "7": "Universitaria completa",
-    "8_1": "Posgrado", "9": "Doctorado", "10": "Posdoctorado", "11": "Técnica, artesano"
-};
-
-const MAPA_ACTIVIDAD_PRINCIPAL = {
-    "1": "Artes musicales y sonoridades", "2": "Artes literarias y editorial",
-    "3": "Artes cinematográficas y audiovisuales", "4": "Artes vivas y escénicas",
-    "5": "Artes plásticas y visuales", "6": "Diseño e ilustración",
-    "7": "Patrimonio y memoria social", "8": "Artes digitales y nuevos medios",
-    "9": "Formación artística", "10": "Producción y gestión cultural",
-    "11": "Estudios e investigación en artes y cultura", "12": "Otra"
-};
-
+// Orden solicitado: bajo remuneración, intermitente, sin remuneración, cesante/buscando
+const ORDEN_SITUACION_LABORAL = ["1", "2", "4", "3"];
 const MAPA_SITUACION_LABORAL = {
-    "1": "Trabajando bajo remuneración", "2": "Trabajando de manera intermitente",
-    "3": "Cesante / buscando trabajo", "4": "Trabajando sin remuneración"
+    "1": "Bajo remuneración",
+    "2": "Intermitente",
+    "3": "Cesante / buscando trabajo",
+    "4": "Sin remuneración"
 };
 
-const MAPA_SEGURO = {
-    "1": "Seguro social (empleador)", "2": "Seguro social para artistas",
-    "3": "Seguro social voluntario", "4": "Seguro privado", "5": "Ninguno"
+const MAPA_LIKERT = { "1": "Nada", "2": "Poco", "3": "Algo", "4": "Mucho" };
+const ORDEN_LIKERT = ["4", "3", "2", "1"]; // Mucho, Algo, Poco, Nada (de mayor a menor)
+
+const ORDEN_IMPACTO = ["1", "2", "3", "4"]; // Mucho, Algo, Poco, Nada
+const MAPA_IMPACTO = { "1": "Mucho", "2": "Algo", "3": "Poco", "4": "Nada" };
+const COLOR_IMPACTO = { "1": "var(--kimi-chart-2)", "2": "var(--kimi-chart-4)", "3": "var(--kimi-chart-1)", "4": "var(--kimi-chart-3)" };
+
+// Actividad cultural principal (rc07a01, 12 categorías) consolidada en 7 buckets.
+// Ver nota en el chat: la agrupación es una decisión editorial, ajustable.
+const MAPA_ACTIVIDAD_BUCKET = {
+    "1": "Artes musicales",
+    "2": "Literatura",
+    "3": "Audiovisual",
+    "4": "Escénicas",
+    "5": "Visuales",
+    "6": "Visuales",       // Diseño e ilustración
+    "7": "Otras",          // Patrimonio y memoria social
+    "8": "Audiovisual",    // Artes digitales y nuevos medios
+    "9": "Otras",          // Formación artística
+    "10": "Gestión cultural",
+    "11": "Otras",         // Estudios e investigación
+    "12": "Otras"
 };
 
-const MAPA_SATISFACCION = { "1": "Nada", "2": "Poco", "3": "Algo", "4": "Mucho" };
-const MAPA_RECOMENDARIA = { "1": "Nada", "2": "Poco", "3": "Algo", "4": "Mucho" };
+const ORDEN_ACTIVIDAD = ["Artes musicales", "Visuales", "Escénicas", "Gestión cultural", "Audiovisual", "Literatura", "Otras"];
 
-const MAPA_INTERES_POSGRADO = {
-    "1": "Sí, en la UArtes", "2": "Sí, en otra institución", "3": "No estoy interesado/a"
+const COLORES_ACTIVIDAD = {
+    "Artes musicales": "var(--kimi-chart-1)",
+    "Visuales": "var(--kimi-chart-4)",
+    "Escénicas": "var(--kimi-chart-2)",
+    "Gestión cultural": "var(--kimi-chart-3)",
+    "Audiovisual": "#e0a326",
+    "Literatura": "#3aa6a6",
+    "Otras": "var(--kimi-chart-5)"
 };
-
-const PALETA_MARCA = ["#1e2882", "#bc3246", "#4f7a8c", "#efa000", "#4f8232", "#3c0050"];
 
 // ==========================================
-// ACTUALIZAR HORA
+// RELOJ
 // ==========================================
 
 function actualizarHora() {
-
     const ahora = new Date();
-
-    const horaTexto = ahora.toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit" });
-
-    document.getElementById("hora").textContent = horaTexto.replace(/ /g, "\u00A0");
-
+    document.getElementById("hora").textContent =
+        ahora.toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit" }).replace(/ /g, "\u00A0");
 }
 
 actualizarHora();
@@ -115,13 +104,12 @@ async function obtenerConfig() {
         const respuesta = await fetch("/api/config");
         const config = await respuesta.json();
 
-        META_ENCUESTAS = Number(config.metaEncuestas);
+        META_TRABAJADORES = Number(config.metaTrabajadores);
+        META_GRADUADOS = Number(config.metaGraduados);
         VALOR_SI = config.valorConsentimientoSi;
 
         document.getElementById("tituloProyecto").textContent = config.nombreProyecto;
         document.title = config.nombreProyecto;
-
-        document.getElementById("metaGeneralTexto").textContent = META_ENCUESTAS;
 
     } catch (error) {
 
@@ -142,8 +130,6 @@ async function obtenerDatos() {
         if (!respuesta.ok) throw new Error("No fue posible obtener los datos.");
 
         const datos = await respuesta.json();
-
-        console.log(datos);
 
         procesarDatos(datos);
 
@@ -186,118 +172,115 @@ function procesarDatos(datos) {
 
     ultimosDatosCargados = datos;
 
-    // Un registro se considera válido si aceptó el consentimiento en
-    // cualquiera de las dos rutas (trabajador general y/o graduado UArtes).
-    const registrosValidos = datos.resultados.filter(e =>
-        campo(e, "consent") === VALOR_SI || campo(e, "consentuartes") === VALOR_SI
-    );
-
-    const totalValidas = registrosValidos.length;
-    const totalNoValidas = datos.total - totalValidas;
-
-    animarNumero("encuestas", totalValidas);
-
-    const subtituloEncuestas = document.getElementById("subtituloEncuestas");
-
-    if (totalNoValidas > 0) {
-        subtituloEncuestas.textContent = `+${totalNoValidas} no aceptaron`;
-        subtituloEncuestas.style.display = "inline-block";
-    } else {
-        subtituloEncuestas.style.display = "none";
-    }
-
-    // Duración promedio (sobre registros válidos)
-    const duracionProm = calcularDuracionPromedio(registrosValidos);
-    document.getElementById("duracion").textContent =
-        duracionProm !== null ? formatearDuracion(duracionProm) : "--";
-
-    // % de aceptación combinado (sobre quienes respondieron alguna
-    // de las dos preguntas de consentimiento)
-    const porcentajeAceptacion = calcularPorcentajeAceptacion(datos.resultados);
-    const cardAceptacion = document.getElementById("cardAceptacion");
-
-    if (porcentajeAceptacion !== null) {
-        cardAceptacion.style.display = "block";
-        animarNumero("aceptacion", porcentajeAceptacion, "%");
-    } else {
-        cardAceptacion.style.display = "none";
-    }
-
-    // Hoy
-    const hoyTexto = new Date().toISOString().split("T")[0];
-    const encuestasHoy = registrosValidos.filter(e =>
-        (campo(e, "_submission_time") || "").split("T")[0] === hoyTexto
-    ).length;
-    animarNumero("hoy", encuestasHoy);
-
-    // ===========================
-    // AVANCE GENERAL (una sola meta) + desglose por segmento
-    // ===========================
-
     const trabajadores = datos.resultados.filter(e => campo(e, "consent") === VALOR_SI);
     const graduados = datos.resultados.filter(e => campo(e, "consentuartes") === VALOR_SI);
 
-    actualizarAvanceSegmento(totalValidas, META_ENCUESTAS, "anilloGeneral", "avanceGeneral", "totalGeneral");
+    ultimosDatosCargados.trabajadores = trabajadores;
+    ultimosDatosCargados.graduados = graduados;
 
-    animarNumero("totalTrabajadores", trabajadores.length);
-    animarNumero("totalGraduados", graduados.length);
-
-    // ===========================
-    // GRÁFICO DE AVANCE DIARIO (apilado)
-    // ===========================
-
-    generarGraficoDiario(trabajadores, graduados);
-
-    // ===========================
-    // PERFIL SOCIOLABORAL — TRABAJADORES
-    // ===========================
-
-    generarDona(trabajadores, "p5", MAPA_GENERO, "graficoGenero", "Distribución por género");
-    generarDona(trabajadores, "p6", MAPA_ETNIA, "graficoEtnia", "Autoidentificación étnica");
-    generarDona(trabajadores, "p17", MAPA_SITUACION_LABORAL, "graficoSituacionLaboral", "Situación laboral");
-    generarDona(trabajadores, "p41", MAPA_SEGURO, "graficoSeguro", "Afiliación a seguro médico", { multiple: true });
-    generarDona(trabajadores, "p50", { "1": "Mucho", "2": "Algo", "3": "Poco", "4": "Nada" }, "graficoImpactoInseguridad", "Impacto de la inseguridad");
-    generarDona(trabajadores, "p9", MAPA_NIVEL_ESTUDIOS, "graficoNivelEstudios", "Nivel de estudios");
-
-    generarTablaConteo(trabajadores, "p13", MAPA_ACTIVIDAD_PRINCIPAL, "tablaActividad", "Actividad");
-
-    actualizarIngresos(trabajadores);
-    actualizarPorcentajeInseguridad(trabajadores);
-    actualizarPorcentajeSinSeguro(trabajadores);
-
-    // ===========================
-    // GRADUADOS UARTES
-    // ===========================
-
-    generarDona(graduados, "p15u", MAPA_SATISFACCION, "graficoSatisfaccion", "Satisfacción con la formación");
-    generarDona(graduados, "p18u", MAPA_RECOMENDARIA, "graficoRecomendaria", "¿Recomendaría su carrera?");
-    generarDona(graduados, "p11u", MAPA_INTERES_POSGRADO, "graficoInteresPosgrado", "Interés en posgrado");
+    renderizarTodo();
 
 }
 
-// ==========================================
-// AVANCE POR SEGMENTO (anillo + texto)
-// ==========================================
+function renderizarTodo() {
 
-function actualizarAvanceSegmento(total, meta, idAnillo, idTexto, idTotal) {
+    if (!ultimosDatosCargados) return;
 
-    const porcentaje = meta > 0 ? ((total / meta) * 100).toFixed(1) : 0;
+    const { total, trabajadores, graduados } = ultimosDatosCargados;
 
-    animarNumero(idTexto, Number(porcentaje), "%");
-    animarNumero(idTotal, total);
+    // Un registro es válido si aceptó consentimiento en cualquiera de las dos rutas.
+    const idsTrabajadores = new Set(trabajadores.map(e => e._id));
+    const idsGraduados = new Set(graduados.map(e => e._id));
+    const idsValidos = new Set([...idsTrabajadores, ...idsGraduados]);
 
-    const circulo = document.getElementById(idAnillo);
-    if (!circulo) return;
+    let cohorteKPI;
+    let metaKPI;
 
-    const radio = 52;
-    const circunferencia = 2 * Math.PI * radio;
-    const porcentajeVisual = Math.min(Number(porcentaje), 100);
-    const offset = circunferencia - (porcentajeVisual / 100) * circunferencia;
+    if (filtroActual === "trabajadores") {
+        cohorteKPI = trabajadores;
+        metaKPI = META_TRABAJADORES;
+    } else if (filtroActual === "graduados") {
+        cohorteKPI = graduados;
+        metaKPI = META_GRADUADOS;
+    } else {
+        cohorteKPI = null; // en "todos" se usa idsValidos.size (ver abajo), evita doble conteo
+        metaKPI = META_TRABAJADORES + META_GRADUADOS;
+    }
 
-    circulo.style.strokeDasharray = circunferencia;
-    circulo.style.strokeDashoffset = offset;
+    // --- KPI 1: Encuestas válidas ---
+    const totalValidasCohorte = filtroActual === "todos" ? idsValidos.size : cohorteKPI.length;
+
+    animarNumero("kpiValidas", totalValidasCohorte);
+
+    // --- KPI 2: Avance general ---
+    const porcentajeAvance = metaKPI > 0 ? ((totalValidasCohorte / metaKPI) * 100).toFixed(1) : 0;
+    animarNumero("kpiAvance", Number(porcentajeAvance), "%");
+    document.getElementById("kpiMetaTexto").textContent = `${totalValidasCohorte} de ${metaKPI} encuestas`;
+
+    // --- KPI 3: Duración promedio ---
+    const registrosParaDuracion = filtroActual === "trabajadores" ? trabajadores
+        : filtroActual === "graduados" ? graduados
+        : datos_union(trabajadores, graduados);
+
+    const duracionProm = calcularDuracionPromedio(registrosParaDuracion);
+    document.getElementById("kpiDuracion").textContent =
+        duracionProm !== null ? formatearDuracion(duracionProm) : "--";
+
+    // --- Visibilidad de tarjetas por segmento ---
+    document.querySelectorAll('[data-segmento="graduados"]').forEach(el => {
+        el.classList.toggle("oculto", filtroActual === "trabajadores");
+    });
+
+    document.querySelectorAll('[data-segmento="trabajadores"]').forEach(el => {
+        el.classList.toggle("oculto", filtroActual === "graduados");
+    });
+
+    // --- Gráficos: trabajadores siempre alimenta los 4 primeros ---
+    if (filtroActual !== "graduados") {
+        generarGraficoSituacion(trabajadores);
+        generarGraficoIngresos(trabajadores);
+        generarGraficoActividad(trabajadores);
+        generarGaugesInseguridad(trabajadores);
+    }
+
+    // --- Gráficos exclusivos de graduados ---
+    if (filtroActual !== "trabajadores") {
+        generarGraficoSatisfaccion(graduados);
+        generarGraficoRecomendaria(graduados);
+    }
 
 }
+
+function datos_union(a, b) {
+    const vistos = new Set();
+    const resultado = [];
+    [...a, ...b].forEach(e => {
+        if (!vistos.has(e._id)) {
+            vistos.add(e._id);
+            resultado.push(e);
+        }
+    });
+    return resultado;
+}
+
+// ==========================================
+// TABS
+// ==========================================
+
+document.querySelectorAll(".tab").forEach(boton => {
+
+    boton.addEventListener("click", () => {
+
+        document.querySelectorAll(".tab").forEach(b => b.classList.remove("activo"));
+        boton.classList.add("activo");
+
+        filtroActual = boton.dataset.tab;
+
+        renderizarTodo();
+
+    });
+
+});
 
 // ==========================================
 // DURACIÓN PROMEDIO
@@ -322,7 +305,6 @@ function calcularDuracionPromedio(registros) {
 
         const minutos = (t2 - t1) / 60000;
 
-        // Ignoramos valores absurdos (encuestas dejadas abiertas por horas)
         if (minutos > 180) return;
 
         sumaMinutos += minutos;
@@ -337,112 +319,173 @@ function calcularDuracionPromedio(registros) {
 }
 
 function formatearDuracion(minutosDecimal) {
-
     const minutos = Math.floor(minutosDecimal);
     const segundos = Math.round((minutosDecimal - minutos) * 60);
-
     return `${minutos}m ${segundos}s`;
-
 }
 
 // ==========================================
-// % ACEPTACIÓN COMBINADO
+// PLUGIN: etiqueta de % al final de barras horizontales
 // ==========================================
 
-function calcularPorcentajeAceptacion(resultados) {
+const pluginEtiquetaPorcentaje = {
+    id: "etiquetaPorcentaje",
+    afterDatasetsDraw(chart) {
 
-    let totalRespondio = 0;
-    let totalAcepto = 0;
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta) return;
 
-    resultados.forEach(encuesta => {
+        ctx.save();
+        ctx.font = "600 12px " + getComputedStyle(document.body).fontFamily;
+        ctx.fillStyle = esModoOscuro() ? "#f1f2f4" : "#1a1d21";
+        ctx.textBaseline = "middle";
 
-        const consent = campo(encuesta, "consent");
-        const consentuartes = campo(encuesta, "consentuartes");
+        meta.data.forEach((barra, i) => {
+            const valor = chart.data.datasets[0].data[i];
+            const texto = `${valor}%`;
+            ctx.textAlign = "left";
+            ctx.fillText(texto, barra.x + 8, barra.y);
+        });
 
-        // Usamos la primera pregunta de consentimiento que la persona
-        // efectivamente respondió (consentuartes si es graduado, consent
-        // en caso contrario).
-        const valor = consentuartes !== undefined ? consentuartes : consent;
+        ctx.restore();
 
-        if (valor === undefined || valor === null || valor === "") return;
-
-        totalRespondio++;
-
-        if (valor === VALOR_SI) totalAcepto++;
-
-    });
-
-    if (totalRespondio === 0) return null;
-
-    return Number(((totalAcepto / totalRespondio) * 100).toFixed(1));
-
-}
+    }
+};
 
 // ==========================================
-// GRÁFICO DE AVANCE DIARIO (apilado por segmento)
+// GRÁFICO 1: SITUACIÓN LABORAL (barras horizontales)
 // ==========================================
 
-let graficoAvance = null;
+let chartSituacion = null;
 
-function contarPorDia(registros) {
+function generarGraficoSituacion(trabajadores) {
 
     const conteo = {};
+    let respondio = 0;
 
-    registros.forEach(encuesta => {
-
-        const fechaCompleta = campo(encuesta, "_submission_time");
-        if (!fechaCompleta) return;
-
-        const dia = fechaCompleta.split("T")[0];
-        conteo[dia] = (conteo[dia] || 0) + 1;
-
+    trabajadores.forEach(e => {
+        const valor = campo(e, "p17");
+        if (!valor) return;
+        respondio++;
+        conteo[valor] = (conteo[valor] || 0) + 1;
     });
 
-    return conteo;
+    const etiquetas = ORDEN_SITUACION_LABORAL.map(c => MAPA_SITUACION_LABORAL[c]);
+    const porcentajes = ORDEN_SITUACION_LABORAL.map(c =>
+        respondio > 0 ? Number((((conteo[c] || 0) / respondio) * 100).toFixed(1)) : 0
+    );
 
-}
+    const colorTexto = esModoOscuro() ? "#9aa0aa" : "#6b7280";
+    const colorGrid = esModoOscuro() ? "#2b2f37" : "#e4e6ea";
 
-function generarGraficoDiario(trabajadores, graduados) {
+    if (chartSituacion) chartSituacion.destroy();
 
-    const conteoTrabajadores = contarPorDia(trabajadores);
-    const conteoGraduados = contarPorDia(graduados);
-
-    const diasSet = new Set([...Object.keys(conteoTrabajadores), ...Object.keys(conteoGraduados)]);
-    const dias = Array.from(diasSet).sort();
-
-    const diasFormateados = dias.map(dia => {
-        const fecha = new Date(dia + "T00:00:00");
-        return fecha.toLocaleDateString("es-EC", { day: "2-digit", month: "short" });
-    });
-
-    const datosTrabajadores = dias.map(d => conteoTrabajadores[d] || 0);
-    const datosGraduados = dias.map(d => conteoGraduados[d] || 0);
-
-    const colorTexto = esModoOscuro() ? "#c7cbd4" : "#6b6b6b";
-    const colorGrid = esModoOscuro() ? "rgba(255,255,255,0.08)" : "#eceef1";
-
-    const ctx = document.getElementById("grafico");
-
-    if (graficoAvance) graficoAvance.destroy();
-
-    graficoAvance = new Chart(ctx, {
+    chartSituacion = new Chart(document.getElementById("graficoSituacion"), {
 
         type: "bar",
 
         data: {
-            labels: diasFormateados,
+            labels: etiquetas,
+            datasets: [{
+                data: porcentajes,
+                backgroundColor: "#2f6fed",
+                borderRadius: 4,
+                barThickness: 22
+            }]
+        },
+
+        plugins: [pluginEtiquetaPorcentaje],
+
+        options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 600, easing: "easeOutQuart" },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => `${ctx.parsed.x}%`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: { color: colorTexto, callback: v => v + "%" },
+                    grid: { color: colorGrid }
+                },
+                y: {
+                    ticks: { color: colorTexto, font: { size: 12 } },
+                    grid: { display: false }
+                }
+            }
+        }
+
+    });
+
+}
+
+// ==========================================
+// GRÁFICO 2: INGRESO MENSUAL (promedio + mediana superpuesta)
+// Regla clave: nunca mostrar solo promedio — se marca también la mediana.
+// ==========================================
+
+let chartIngresos = null;
+
+function promedioYMediana(valores) {
+
+    const limpios = valores.filter(v => !isNaN(v) && v > 0).sort((a, b) => a - b);
+
+    if (limpios.length === 0) return { promedio: 0, mediana: 0 };
+
+    const promedio = limpios.reduce((a, b) => a + b, 0) / limpios.length;
+
+    const mitad = Math.floor(limpios.length / 2);
+    const mediana = limpios.length % 2 !== 0
+        ? limpios[mitad]
+        : (limpios[mitad - 1] + limpios[mitad]) / 2;
+
+    return { promedio, mediana };
+
+}
+
+function generarGraficoIngresos(trabajadores) {
+
+    const principal = promedioYMediana(trabajadores.map(e => Number(campo(e, "p20"))));
+    const secundaria = promedioYMediana(trabajadores.map(e => Number(campo(e, "p29"))));
+    const noCultural = promedioYMediana(trabajadores.map(e => Number(campo(e, "p32"))));
+
+    const colorTexto = esModoOscuro() ? "#9aa0aa" : "#6b7280";
+    const colorGrid = esModoOscuro() ? "#2b2f37" : "#e4e6ea";
+
+    if (chartIngresos) chartIngresos.destroy();
+
+    chartIngresos = new Chart(document.getElementById("graficoIngresos"), {
+
+        data: {
+            labels: ["Principal", "Secundaria", "No cultural"],
             datasets: [
                 {
-                    label: "Trabajadores del sector",
-                    data: datosTrabajadores,
-                    backgroundColor: "#4f7a8c",
-                    borderRadius: 4
+                    type: "bar",
+                    label: "Promedio",
+                    data: [principal.promedio, secundaria.promedio, noCultural.promedio],
+                    backgroundColor: "#2f6fed",
+                    borderRadius: 4,
+                    barThickness: 46
                 },
                 {
-                    label: "Graduados UArtes",
-                    data: datosGraduados,
-                    backgroundColor: "#efa000",
-                    borderRadius: 4
+                    type: "line",
+                    label: "Mediana",
+                    data: [principal.mediana, secundaria.mediana, noCultural.mediana],
+                    showLine: false,
+                    pointStyle: "line",
+                    pointRadius: 22,
+                    pointBorderWidth: 3,
+                    borderColor: esModoOscuro() ? "#f1f2f4" : "#1a1d21",
+                    backgroundColor: esModoOscuro() ? "#f1f2f4" : "#1a1d21"
                 }
             ]
         },
@@ -450,22 +493,25 @@ function generarGraficoDiario(trabajadores, graduados) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: { duration: 600, easing: "easeOutQuart" },
             plugins: {
                 legend: {
-                    display: true,
                     position: "bottom",
-                    labels: { color: colorTexto, font: { family: "'Plus Jakarta Sans', sans-serif" } }
+                    labels: { color: colorTexto, font: { size: 12 } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => `${ctx.dataset.label}: $${Math.round(ctx.parsed.y)}`
+                    }
                 }
             },
             scales: {
                 y: {
-                    stacked: true,
                     beginAtZero: true,
-                    ticks: { precision: 0, color: colorTexto },
+                    ticks: { color: colorTexto, callback: v => "$" + v },
                     grid: { color: colorGrid }
                 },
                 x: {
-                    stacked: true,
                     ticks: { color: colorTexto },
                     grid: { display: false }
                 }
@@ -477,89 +523,45 @@ function generarGraficoDiario(trabajadores, graduados) {
 }
 
 // ==========================================
-// GRÁFICO DE DONA (genérico)
-// Sirve para cualquier pregunta select_one o select_multiple.
+// GRÁFICO 3: ACTIVIDAD CULTURAL PRINCIPAL (dona, leyenda lateral)
 // ==========================================
 
-let graficosDona = {};
+let chartActividad = null;
 
-function generarDona(registros, nombreCampo, mapa, idCanvas, tituloDefault, opciones = {}) {
+function generarGraficoActividad(trabajadores) {
 
     const conteo = {};
 
-    registros.forEach(encuesta => {
-
-        const valorCrudo = campo(encuesta, nombreCampo);
-        if (!valorCrudo) return;
-
-        const valores = opciones.multiple ? String(valorCrudo).split(" ") : [valorCrudo];
-
-        valores.forEach(v => {
-            if (!v) return;
-            conteo[v] = (conteo[v] || 0) + 1;
-        });
-
+    trabajadores.forEach(e => {
+        const valor = campo(e, "p13");
+        if (!valor) return;
+        const bucket = MAPA_ACTIVIDAD_BUCKET[valor] || "Otras";
+        conteo[bucket] = (conteo[bucket] || 0) + 1;
     });
 
-    const categorias = Object.keys(conteo);
+    const etiquetas = ORDEN_ACTIVIDAD.filter(cat => conteo[cat]);
+    const valores = etiquetas.map(cat => conteo[cat]);
+    const colores = etiquetas.map(cat => {
+        const varName = COLORES_ACTIVIDAD[cat];
+        return varName.startsWith("var(") ? getComputedStyle(document.body).getPropertyValue(varName.slice(4, -1)).trim() : varName;
+    });
 
-    const contenedorCanvas = document.getElementById(idCanvas);
-    const seccion = contenedorCanvas ? contenedorCanvas.closest(".grafico") : null;
+    const colorTexto = esModoOscuro() ? "#9aa0aa" : "#6b7280";
 
-    if (categorias.length === 0) {
-        if (seccion) seccion.style.display = "none";
-        return;
-    }
+    if (chartActividad) chartActividad.destroy();
 
-    if (seccion) seccion.style.display = "block";
+    if (etiquetas.length === 0) return;
 
-    const cantidades = categorias.map(cat => conteo[cat]);
-    const etiquetas = categorias.map(cat => mapa[cat] || cat);
-    const colores = categorias.map((_, i) => PALETA_MARCA[i % PALETA_MARCA.length]);
-
-    const ctx = document.getElementById(idCanvas);
-
-    if (graficosDona[idCanvas]) graficosDona[idCanvas].destroy();
-
-    const totalGeneral = cantidades.reduce((a, b) => a + b, 0);
-
-    const colorTextoPrincipal = esModoOscuro() ? "#f2f3f5" : "#3c3c3c";
-    const colorTextoSecundario = esModoOscuro() ? "#9aa0ab" : "#6b6b6b";
-
-    const textoCentral = {
-        id: "textoCentral" + idCanvas,
-        beforeDraw(chart) {
-            const { ctx, chartArea: { width, height, left, top } } = chart;
-            const centroX = left + width / 2;
-            const centroY = top + height / 2;
-
-            ctx.save();
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-
-            ctx.font = "700 24px 'Plus Jakarta Sans', sans-serif";
-            ctx.fillStyle = colorTextoPrincipal;
-            ctx.fillText(totalGeneral, centroX, centroY - 8);
-
-            ctx.font = "500 10px 'Plus Jakarta Sans', sans-serif";
-            ctx.fillStyle = colorTextoSecundario;
-            ctx.fillText("respuestas", centroX, centroY + 12);
-
-            ctx.restore();
-        }
-    };
-
-    graficosDona[idCanvas] = new Chart(ctx, {
+    chartActividad = new Chart(document.getElementById("graficoActividad"), {
 
         type: "doughnut",
-        plugins: [textoCentral],
 
         data: {
             labels: etiquetas,
             datasets: [{
-                data: cantidades,
+                data: valores,
                 backgroundColor: colores,
-                borderColor: "#ffffff",
+                borderColor: esModoOscuro() ? "#1b1e24" : "#ffffff",
                 borderWidth: 2
             }]
         },
@@ -567,21 +569,24 @@ function generarDona(registros, nombreCampo, mapa, idCanvas, tituloDefault, opci
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: { duration: 600, easing: "easeOutQuart" },
             plugins: {
                 legend: {
-                    position: "bottom",
+                    position: "right",
+                    align: "center",
                     labels: {
-                        padding: 10,
-                        boxWidth: 12,
-                        font: { size: 11, family: "'Plus Jakarta Sans', sans-serif" },
-                        color: colorTextoSecundario
+                        color: colorTexto,
+                        font: { size: 13 },
+                        boxWidth: 14,
+                        padding: 14
                     }
                 },
                 tooltip: {
                     callbacks: {
-                        label: function (contexto) {
-                            const porcentaje = ((contexto.parsed / totalGeneral) * 100).toFixed(1);
-                            return `${contexto.label}: ${contexto.parsed} (${porcentaje}%)`;
+                        label: ctx => {
+                            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            const pct = ((ctx.parsed / total) * 100).toFixed(1);
+                            return `${ctx.label}: ${ctx.parsed} (${pct}%)`;
                         }
                     }
                 }
@@ -593,146 +598,195 @@ function generarDona(registros, nombreCampo, mapa, idCanvas, tituloDefault, opci
 }
 
 // ==========================================
-// TABLA DE CONTEO (genérica)
+// GRÁFICO 4: GAUGES SEMICIRCULARES — IMPACTO DE LA INSEGURIDAD
 // ==========================================
 
-function generarTablaConteo(registros, nombreCampo, mapa, idContenedor, tituloColumna) {
+function generarGaugesInseguridad(trabajadores) {
 
     const conteo = {};
+    let respondio = 0;
 
-    registros.forEach(encuesta => {
-
-        const valorCrudo = campo(encuesta, nombreCampo);
-        if (!valorCrudo) return;
-
-        const etiqueta = mapa[valorCrudo] || valorCrudo;
-        conteo[etiqueta] = (conteo[etiqueta] || 0) + 1;
-
+    trabajadores.forEach(e => {
+        const valor = campo(e, "p50");
+        if (!valor) return;
+        respondio++;
+        conteo[valor] = (conteo[valor] || 0) + 1;
     });
 
-    const filas = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
+    const contenedor = document.getElementById("gaugesInseguridad");
+    contenedor.innerHTML = "";
 
-    const contenedor = document.getElementById(idContenedor);
-    if (!contenedor) return;
+    const radio = 50;
+    const longitudArco = Math.PI * radio; // longitud de un semicírculo
 
-    if (filas.length === 0) {
-        contenedor.innerHTML = `<p style="color:#888;font-size:14px;">Aún no hay datos.</p>`;
-        return;
-    }
+    ORDEN_IMPACTO.forEach(codigo => {
 
-    const total = filas.reduce((suma, fila) => suma + fila[1], 0);
+        const porcentaje = respondio > 0 ? ((conteo[codigo] || 0) / respondio) * 100 : 0;
+        const offset = longitudArco * (1 - porcentaje / 100);
 
-    let html = `
-        <table class="tabla-datos">
-            <thead>
-                <tr>
-                    <th>${tituloColumna}</th>
-                    <th>Encuestas</th>
-                    <th>%</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
+        const colorVar = COLOR_IMPACTO[codigo];
+        const colorResuelto = colorVar.startsWith("var(")
+            ? getComputedStyle(document.body).getPropertyValue(colorVar.slice(4, -1)).trim()
+            : colorVar;
 
-    filas.forEach(([nombre, cantidad]) => {
+        const item = document.createElement("div");
+        item.className = "gauge-item";
 
-        const porcentaje = ((cantidad / total) * 100).toFixed(1);
-
-        html += `
-            <tr>
-                <td>${nombre}</td>
-                <td>${cantidad}</td>
-                <td>
-                    <div class="celda-porcentaje">
-                        <div class="mini-barra">
-                            <div class="mini-progreso" style="width:${porcentaje}%"></div>
-                        </div>
-                        <span>${porcentaje}%</span>
-                    </div>
-                </td>
-            </tr>
+        item.innerHTML = `
+            <svg class="gauge-svg" viewBox="0 0 120 70">
+                <path class="gauge-arco-fondo" d="M 10 60 A 50 50 0 0 1 110 60"></path>
+                <path class="gauge-arco-valor" d="M 10 60 A 50 50 0 0 1 110 60"
+                      style="stroke:${colorResuelto}; stroke-dasharray:${longitudArco}; stroke-dashoffset:${offset};"></path>
+                <text class="gauge-porcentaje" x="60" y="58" text-anchor="middle">${porcentaje.toFixed(0)}%</text>
+            </svg>
+            <span class="gauge-etiqueta">${MAPA_IMPACTO[codigo]}</span>
         `;
 
+        contenedor.appendChild(item);
+
     });
 
-    html += `</tbody></table>`;
-
-    contenedor.innerHTML = html;
-
 }
 
 // ==========================================
-// INGRESOS (promedio y mediana)
-// Usa p20 (retribución mensual de la actividad principal),
-// solo aplica a quienes trabajan bajo remuneración (p17 = 1 o 2).
+// GRÁFICO 5: SATISFACCIÓN CON LA FORMACIÓN (Likert, solo graduados)
 // ==========================================
 
-function actualizarIngresos(trabajadores) {
+let chartSatisfaccion = null;
 
-    const valores = trabajadores
-        .map(e => Number(campo(e, "p20")))
-        .filter(v => !isNaN(v) && v > 0)
-        .sort((a, b) => a - b);
+function generarGraficoSatisfaccion(graduados) {
 
-    if (valores.length === 0) {
-        document.getElementById("ingresoPromedio").textContent = "--";
-        document.getElementById("ingresoMediana").textContent = "--";
-        return;
-    }
-
-    const promedio = valores.reduce((a, b) => a + b, 0) / valores.length;
-
-    const mitad = Math.floor(valores.length / 2);
-    const mediana = valores.length % 2 !== 0
-        ? valores[mitad]
-        : (valores[mitad - 1] + valores[mitad]) / 2;
-
-    document.getElementById("ingresoPromedio").textContent = `$${promedio.toFixed(0)}`;
-    document.getElementById("ingresoMediana").textContent = `$${mediana.toFixed(0)}`;
-
-}
-
-// ==========================================
-// % VÍCTIMAS DE INSEGURIDAD (p49)
-// ==========================================
-
-function actualizarPorcentajeInseguridad(trabajadores) {
-
+    const conteo = {};
     let respondio = 0;
-    let siVictima = 0;
 
-    trabajadores.forEach(e => {
-        const valor = campo(e, "p49");
+    graduados.forEach(e => {
+        const valor = campo(e, "p15u");
         if (!valor) return;
         respondio++;
-        if (valor === "1") siVictima++;
+        conteo[valor] = (conteo[valor] || 0) + 1;
     });
 
-    const elemento = document.getElementById("porcentajeInseguridad");
+    const etiquetas = ORDEN_LIKERT.map(c => MAPA_LIKERT[c]);
+    const porcentajes = ORDEN_LIKERT.map(c =>
+        respondio > 0 ? Number((((conteo[c] || 0) / respondio) * 100).toFixed(1)) : 0
+    );
 
-    elemento.textContent = respondio > 0 ? `${((siVictima / respondio) * 100).toFixed(1)}%` : "--";
+    const colorTexto = esModoOscuro() ? "#9aa0aa" : "#6b7280";
+    const colorGrid = esModoOscuro() ? "#2b2f37" : "#e4e6ea";
+
+    if (chartSatisfaccion) chartSatisfaccion.destroy();
+
+    chartSatisfaccion = new Chart(document.getElementById("graficoSatisfaccion"), {
+
+        type: "bar",
+
+        data: {
+            labels: etiquetas,
+            datasets: [{
+                data: porcentajes,
+                backgroundColor: "#2f9e5b",
+                borderRadius: 4,
+                barThickness: 18
+            }]
+        },
+
+        plugins: [pluginEtiquetaPorcentaje],
+
+        options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 600, easing: "easeOutQuart" },
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => `${ctx.parsed.x}%` } }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true, max: 100,
+                    ticks: { color: colorTexto, callback: v => v + "%" },
+                    grid: { color: colorGrid }
+                },
+                y: {
+                    ticks: { color: colorTexto, font: { size: 12 } },
+                    grid: { display: false }
+                }
+            }
+        }
+
+    });
 
 }
 
 // ==========================================
-// % SIN AFILIACIÓN A SEGURO MÉDICO (p41, incluye "5" = Ninguno)
+// GRÁFICO 6: ¿RECOMENDARÍA SU CARRERA? (binarizado Sí/No, solo graduados)
+// Nota: el formulario mide esto en escala de 4 niveles (Nada/Poco/Algo/Mucho).
+// Se agrupa Mucho+Algo = "Sí" y Poco+Nada = "No" para el comparativo pedido.
 // ==========================================
 
-function actualizarPorcentajeSinSeguro(trabajadores) {
+let chartRecomendaria = null;
+
+function generarGraficoRecomendaria(graduados) {
 
     let respondio = 0;
-    let ninguno = 0;
+    let siCount = 0;
 
-    trabajadores.forEach(e => {
-        const valor = campo(e, "p41");
+    graduados.forEach(e => {
+        const valor = campo(e, "p18u");
         if (!valor) return;
         respondio++;
-        if (String(valor).split(" ").includes("5")) ninguno++;
+        if (valor === "3" || valor === "4") siCount++; // Algo o Mucho
     });
 
-    const elemento = document.getElementById("porcentajeSinSeguro");
+    const noCount = respondio - siCount;
 
-    elemento.textContent = respondio > 0 ? `${((ninguno / respondio) * 100).toFixed(1)}%` : "--";
+    const porcentajeSi = respondio > 0 ? Number(((siCount / respondio) * 100).toFixed(1)) : 0;
+    const porcentajeNo = respondio > 0 ? Number(((noCount / respondio) * 100).toFixed(1)) : 0;
+
+    const colorTexto = esModoOscuro() ? "#9aa0aa" : "#6b7280";
+    const colorGrid = esModoOscuro() ? "#2b2f37" : "#e4e6ea";
+
+    if (chartRecomendaria) chartRecomendaria.destroy();
+
+    chartRecomendaria = new Chart(document.getElementById("graficoRecomendaria"), {
+
+        type: "bar",
+
+        data: {
+            labels: ["Sí", "No"],
+            datasets: [{
+                data: [porcentajeSi, porcentajeNo],
+                backgroundColor: ["#2f9e5b", "#d64550"],
+                borderRadius: 4,
+                barThickness: 26
+            }]
+        },
+
+        plugins: [pluginEtiquetaPorcentaje],
+
+        options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 600, easing: "easeOutQuart" },
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => `${ctx.parsed.x}%` } }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true, max: 100,
+                    ticks: { color: colorTexto, callback: v => v + "%" },
+                    grid: { color: colorGrid }
+                },
+                y: {
+                    ticks: { color: colorTexto, font: { size: 13 } },
+                    grid: { display: false }
+                }
+            }
+        }
+
+    });
 
 }
 
@@ -783,9 +837,7 @@ if (botonModoOscuro) {
         botonModoOscuro.textContent = activo ? "☀️" : "🌙";
         botonModoOscuro.title = activo ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
 
-        // Chart.js dibuja su texto directamente sobre el canvas, así que
-        // hay que redibujar todos los gráficos con los colores del modo activo.
-        if (ultimosDatosCargados) procesarDatos(ultimosDatosCargados);
+        if (ultimosDatosCargados) renderizarTodo();
 
     });
 

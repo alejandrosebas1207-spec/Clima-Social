@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Encuesta Artes y Cultura</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
 <link rel="stylesheet" href="style.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
@@ -26,199 +23,102 @@
 </div>
 
 <!-- ======== CABECERA ======== -->
-<header>
-    <div class="header-contenido">
-        <div class="header-textos">
-            <span class="header-marca">Clima Social</span>
+<header class="cabecera">
+
+    <div class="cabecera-titulo-grupo">
+        <img src="assets/logo.png" alt="Clima Social" class="cabecera-logo">
+        <div class="cabecera-titulo">
             <h1 id="tituloProyecto">Encuesta Artes y Cultura</h1>
+            <span class="cabecera-sub">Tercera edición · Ecuador 2026</span>
         </div>
     </div>
 
-    <div class="header-derecha">
+    <div class="cabecera-derecha">
+
+        <div class="tabs" role="tablist">
+            <button class="tab activo" data-tab="todos">Todos</button>
+            <button class="tab" data-tab="trabajadores">Trabajadores de las Artes y la Cultura</button>
+            <button class="tab" data-tab="graduados">Graduados UArtes</button>
+        </div>
+
         <span class="reloj" id="hora"></span>
         <button class="boton-modo-oscuro" id="botonModoOscuro" title="Cambiar a modo oscuro">🌙</button>
+
     </div>
+
 </header>
 
-<div class="contenedor">
+<main class="contenedor">
 
-    <!-- ======== TARJETAS GENERALES ======== -->
-    <div class="tarjetas">
+    <!-- ======== KPIs SUPERIORES ======== -->
+    <div class="kpis">
 
-        <div class="card">
+        <div class="kpi-card">
             <h3>Encuestas válidas</h3>
-            <p id="encuestas">0</p>
-            <span class="subtitulo-tarjeta" id="subtituloEncuestas" style="display:none;"></span>
+            <p id="kpiValidas">0</p>
         </div>
 
-        <div class="card">
-            <h3>Encuestas hoy</h3>
-            <p id="hoy">0</p>
-        </div>
-
-        <div class="card">
-            <h3>Duración promedio</h3>
-            <p id="duracion">--</p>
-        </div>
-
-        <div class="card" id="cardAceptacion" style="display:none;">
-            <h3>% Aceptación consentimiento</h3>
-            <p id="aceptacion">0%</p>
-        </div>
-
-    </div>
-
-    <!-- ======== AVANCE GENERAL (una sola meta) ======== -->
-    <div class="tarjetas" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));">
-
-        <div class="card card-avance">
+        <div class="kpi-card">
             <h3>Avance general</h3>
-            <div class="anillo-contenedor">
-                <svg class="anillo-svg" viewBox="0 0 120 120">
-                    <circle class="anillo-fondo" cx="60" cy="60" r="52"></circle>
-                    <circle class="anillo-progreso" id="anilloGeneral" cx="60" cy="60" r="52"></circle>
-                </svg>
-                <p class="anillo-texto" id="avanceGeneral">0%</p>
-            </div>
-            <span class="duracion-item"><span id="totalGeneral">0</span> de <span id="metaGeneralTexto">0</span> encuestas</span>
+            <p id="kpiAvance">0%</p>
+            <span class="kpi-meta" id="kpiMetaTexto">de 0 encuestas</span>
         </div>
 
-        <div class="card">
-            <h3>Desglose por segmento</h3>
-            <p style="font-size:16px; display:block; min-height:auto;">
-                <span class="ranking-top" style="margin-bottom:8px;">
-                    <span>Trabajadores del sector</span><span id="totalTrabajadores">0</span>
-                </span>
-                <span class="ranking-top">
-                    <span>Graduados UArtes</span><span id="totalGraduados">0</span>
-                </span>
-            </p>
+        <div class="kpi-card">
+            <h3>Duración promedio</h3>
+            <p id="kpiDuracion">--</p>
         </div>
 
     </div>
 
-    <!-- ======== GRÁFICO DE AVANCE DIARIO (apilado por segmento) ======== -->
-    <div class="grafico">
-        <h2>Avance diario por segmento</h2>
-        <div class="grafico-lienzo">
-            <canvas id="grafico"></canvas>
-        </div>
-    </div>
+    <!-- ======== GRID DE 6 GRÁFICOS ======== -->
+    <div class="grid-graficos">
 
-    <!-- ======================================================
-         SECCIÓN: TRABAJADORES DE LAS ARTES Y LA CULTURA
-    ======================================================= -->
-    <div class="titulo-seccion">
-        <h2>Trabajadores de las artes y la cultura</h2>
-    </div>
-
-    <div class="tarjetas">
-        <div class="card">
-            <h3>Ingreso mensual promedio</h3>
-            <p id="ingresoPromedio">--</p>
-        </div>
-        <div class="card">
-            <h3>Ingreso mensual (mediana)</h3>
-            <p id="ingresoMediana">--</p>
-        </div>
-        <div class="card">
-            <h3>Víctimas de inseguridad este año</h3>
-            <p id="porcentajeInseguridad">--</p>
-        </div>
-        <div class="card">
-            <h3>Sin afiliación a seguro médico</h3>
-            <p id="porcentajeSinSeguro">--</p>
-        </div>
-    </div>
-
-    <div class="ranking-container">
-
-        <div class="grafico">
-            <h2>Género</h2>
-            <div class="grafico-lienzo grafico-lienzo-pequeno">
-                <canvas id="graficoGenero"></canvas>
+        <div class="grafico-card" data-segmento="trabajadores">
+            <h2>Situación laboral · actividad principal</h2>
+            <div class="lienzo lienzo-horizontal">
+                <canvas id="graficoSituacion"></canvas>
             </div>
         </div>
 
-        <div class="grafico">
-            <h2>Autoidentificación étnica</h2>
-            <div class="grafico-lienzo grafico-lienzo-pequeno">
-                <canvas id="graficoEtnia"></canvas>
+        <div class="grafico-card" data-segmento="trabajadores">
+            <h2>Ingreso mensual · actividad principal</h2>
+            <div class="lienzo">
+                <canvas id="graficoIngresos"></canvas>
             </div>
         </div>
 
-        <div class="grafico">
-            <h2>Situación laboral (actividad principal)</h2>
-            <div class="grafico-lienzo grafico-lienzo-pequeno">
-                <canvas id="graficoSituacionLaboral"></canvas>
+        <div class="grafico-card grafico-ancho" data-segmento="trabajadores">
+            <h2>Actividad cultural principal</h2>
+            <div class="lienzo lienzo-donut">
+                <canvas id="graficoActividad"></canvas>
             </div>
         </div>
 
-        <div class="grafico">
-            <h2>Afiliación a seguro médico</h2>
-            <div class="grafico-lienzo grafico-lienzo-pequeno">
-                <canvas id="graficoSeguro"></canvas>
-            </div>
+        <div class="grafico-card" data-segmento="trabajadores">
+            <h2>Impacto de la inseguridad</h2>
+            <div class="gauges-fila" id="gaugesInseguridad"></div>
         </div>
 
-        <div class="grafico">
-            <h2>¿La inseguridad modificó su forma de trabajar?</h2>
-            <div class="grafico-lienzo grafico-lienzo-pequeno">
-                <canvas id="graficoImpactoInseguridad"></canvas>
-            </div>
-        </div>
-
-        <div class="grafico">
-            <h2>Nivel de estudios</h2>
-            <div class="grafico-lienzo grafico-lienzo-pequeno">
-                <canvas id="graficoNivelEstudios"></canvas>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="grafico" style="margin-top:20px;">
-        <h2>Actividad cultural principal</h2>
-        <div class="tabla-conteo" id="tablaActividad"></div>
-    </div>
-
-    <!-- ======================================================
-         SECCIÓN: GRADUADOS UARTES
-    ======================================================= -->
-    <div class="titulo-seccion">
-        <h2>Graduados Universidad de las Artes</h2>
-    </div>
-
-    <div class="ranking-container">
-
-        <div class="grafico">
-            <h2>Satisfacción con la formación recibida</h2>
-            <div class="grafico-lienzo grafico-lienzo-pequeno">
+        <div class="grafico-card" data-segmento="graduados">
+            <h2>Satisfacción con la formación</h2>
+            <div class="lienzo lienzo-horizontal-chica">
                 <canvas id="graficoSatisfaccion"></canvas>
             </div>
         </div>
 
-        <div class="grafico">
-            <h2>¿Recomendaría su carrera profesional?</h2>
-            <div class="grafico-lienzo grafico-lienzo-pequeno">
+        <div class="grafico-card" data-segmento="graduados">
+            <h2>¿Recomendaría su carrera?</h2>
+            <div class="lienzo lienzo-horizontal-chica">
                 <canvas id="graficoRecomendaria"></canvas>
             </div>
         </div>
 
-        <div class="grafico">
-            <h2>Interés en continuar formación de posgrado</h2>
-            <div class="grafico-lienzo grafico-lienzo-pequeno">
-                <canvas id="graficoInteresPosgrado"></canvas>
-            </div>
-        </div>
-
     </div>
 
-    <div class="pie-pagina">
-        <span>Clima Social &middot; Tablero en tiempo real</span>
-    </div>
+    <div class="pie-pagina">Clima Social · Tablero en tiempo real</div>
 
-</div>
+</main>
 
 <script src="script.js"></script>
 </body>

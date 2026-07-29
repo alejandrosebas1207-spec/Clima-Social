@@ -29,8 +29,11 @@ app.get("/api/config", (req, res) => {
 
         nombreProyecto: process.env.NOMBRE_PROYECTO || "Encuesta Artes y Cultura",
 
-        // Meta general de encuestas (no se distingue por segmento).
-        metaEncuestas: process.env.META_ENCUESTAS || 1100,
+        // Meta de gestores culturales / trabajadores del sector
+        metaTrabajadores: process.env.META_TRABAJADORES || 2100,
+
+        // Meta de graduados de la Universidad de las Artes
+        metaGraduados: process.env.META_GRADUADOS || 400,
 
         // Valor que representa una respuesta afirmativa en las preguntas
         // de consentimiento (consent, consentuartes, grad).

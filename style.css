@@ -1,195 +1,185 @@
 /* ==========================================
-   VARIABLES — Clima Social × Artes y Cultura
-   Paleta de marca + tokens editoriales
-   (papel/tinta en vez de gris corporativo plano)
+   SISTEMA DE DISEÑO — tokens "Kimi"
+   Superficies planas, sin gradientes ni sombras pesadas.
 ========================================== */
 
 :root{
 
-    /* Marca Clima Social */
-    --gris-carbon:#3c3c3c;
-    --morado:#3c0050;
-    --azul-acero:#4f7a8c;
-    --dorado:#efa000;
-    --rojo:#bc3246;
-    --verde:#4f8232;
-    --azul-marino:#1e2882;
+    --kimi-chart-1:#2f6fed; /* azul — datos principales / remuneración */
+    --kimi-chart-2:#d64550; /* rojo — alertas / inseguridad */
+    --kimi-chart-3:#2f9e5b; /* verde — indicadores positivos / satisfacción */
+    --kimi-chart-4:#7c5cd6; /* púrpura — secundarios */
+    --kimi-chart-5:#8a8f98; /* gris — otros / neutro */
 
-    /* Tokens editoriales — modo claro */
-    --papel:#f7f3ec;
-    --papel-tarjeta:#fffdf9;
-    --tinta:#241f2e;
-    --texto-suave:#736c63;
-    --linea:#e7e0d3;
+    --kimi-color-border:#e4e6ea;
+    --kimi-bg:#f7f8fa;
+    --kimi-bg-card:#ffffff;
+    --kimi-text:#1a1d21;
+    --kimi-text-soft:#6b7280;
 
-    --fuente-cuerpo:"Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
-
-    --sombra: 0 6px 20px rgba(60,0,80,.07);
-    --sombra-hover: 0 10px 28px rgba(60,0,80,.12);
+    --kimi-font:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
 }
 
-/* ======== ESTILO GENERAL ======== */
+body.modo-oscuro{
+
+    --kimi-bg:#111318;
+    --kimi-bg-card:#1b1e24;
+    --kimi-color-border:#2b2f37;
+    --kimi-text:#f1f2f4;
+    --kimi-text-soft:#9aa0aa;
+
+}
 
 *{
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:var(--fuente-cuerpo);
+    font-family:var(--kimi-font);
 }
 
 body{
 
-    background:var(--papel);
-    color:var(--tinta);
-    background-image:
-        radial-gradient(circle at 100% 0%, rgba(239,160,0,.06), transparent 40%),
-        radial-gradient(circle at 0% 100%, rgba(60,0,80,.05), transparent 40%);
-    background-attachment:fixed;
+    background:var(--kimi-bg);
+    color:var(--kimi-text);
+    transition:background .3s ease, color .3s ease;
 
 }
 
 /* ======== CABECERA ======== */
 
-header{
+.cabecera{
 
-    background:var(--papel-tarjeta);
-
-    padding:16px 28px;
-
+    background:var(--kimi-bg-card);
+    border-bottom:1px solid var(--kimi-color-border);
+    padding:14px 24px;
     display:flex;
-
     align-items:center;
-
     justify-content:space-between;
-
-    gap:18px;
-
-    box-shadow:0 2px 10px rgba(36,31,46,.05);
-
-    border-bottom:5px solid transparent;
-
-    border-image:linear-gradient(90deg,
-        var(--verde), var(--rojo), var(--azul-acero),
-        var(--dorado), var(--morado), var(--azul-marino)) 1;
+    gap:16px;
+    flex-wrap:wrap;
 
 }
 
-.header-contenido{
+.cabecera-titulo-grupo{
 
     display:flex;
-
     align-items:center;
-
-    gap:14px;
+    gap:12px;
 
 }
 
-.header-icono{
+.cabecera-logo{
 
-    height:44px;
+    height:36px;
     width:auto;
     display:block;
 
 }
 
-.header-textos{
+.cabecera-titulo{
 
     display:flex;
-
     flex-direction:column;
-
-    gap:3px;
-
-}
-
-.header-marca{
-
-    font-size:11px;
-
-    font-weight:700;
-
-    letter-spacing:2px;
-
-    text-transform:uppercase;
-
-    color:var(--azul-acero);
+    gap:2px;
 
 }
 
-header h1{
+.cabecera-titulo h1{
 
-    font-family:var(--fuente-cuerpo);
-
-    font-size:22px;
-
-    font-weight:800;
-
-    letter-spacing:-.2px;
-
-    color:var(--tinta);
-
-    line-height:1.15;
+    font-size:20px;
+    font-weight:500;
+    color:var(--kimi-text);
 
 }
 
-.header-derecha{
+.cabecera-sub{
+
+    font-size:12px;
+    font-weight:400;
+    color:var(--kimi-text-soft);
+
+}
+
+.cabecera-derecha{
 
     display:flex;
-
     align-items:center;
-
     gap:14px;
+    flex-wrap:wrap;
 
 }
 
-/* Reloj — antes heredaba color negro por defecto y quedaba
-   ilegible en modo oscuro. Ahora es un badge con color propio
-   que se adapta explícitamente en ambos modos. */
+/* ======== TABS ======== */
+
+.tabs{
+
+    display:flex;
+    gap:4px;
+    background:var(--kimi-bg);
+    border:1px solid var(--kimi-color-border);
+    border-radius:10px;
+    padding:3px;
+
+}
+
+.tab{
+
+    border:none;
+    background:transparent;
+    color:var(--kimi-text-soft);
+    font-size:13px;
+    font-weight:500;
+    padding:7px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:background .3s ease-out, color .3s ease-out;
+    white-space:nowrap;
+
+}
+
+.tab:hover{
+
+    color:var(--kimi-text);
+
+}
+
+.tab.activo{
+
+    background:var(--kimi-chart-1);
+    color:#ffffff;
+
+}
+
+/* Reloj */
 .reloj{
 
-    font-family:var(--fuente-cuerpo);
     font-variant-numeric:tabular-nums;
     font-size:13px;
-    font-weight:600;
-    letter-spacing:.3px;
-    color:var(--texto-suave);
-    background:var(--papel);
-    border:1px solid var(--linea);
-    padding:7px 12px;
-    border-radius:20px;
+    font-weight:500;
+    color:var(--kimi-text-soft);
     white-space:nowrap;
 
 }
 
 .boton-modo-oscuro{
 
-    background:var(--papel);
-
-    border:1px solid var(--linea);
-
-    color:var(--tinta);
-
-    width:38px;
-
-    height:38px;
-
-    border-radius:50%;
-
-    font-size:16px;
-
+    background:transparent;
+    border:1px solid var(--kimi-color-border);
+    color:var(--kimi-text);
+    width:34px;
+    height:34px;
+    border-radius:8px;
+    font-size:15px;
     cursor:pointer;
-
     flex-shrink:0;
-
-    transition:.2s;
+    transition:background .2s ease;
 
 }
 
 .boton-modo-oscuro:hover{
 
-    background:var(--dorado);
-    border-color:var(--dorado);
+    background:var(--kimi-bg);
 
 }
 
@@ -198,397 +188,213 @@ header h1{
 .contenedor{
 
     width:95%;
-    max-width:1400px;
-    margin:auto;
-    margin-top:28px;
-    padding-bottom:40px;
+    max-width:1300px;
+    margin:24px auto 40px;
 
 }
 
-/* ======== TARJETAS ======== */
+/* ======== KPIs ======== */
 
-.tarjetas{
+.kpis{
 
     display:grid;
-
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-
-    gap:18px;
-
-    margin-bottom:24px;
+    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    gap:16px;
+    margin-bottom:20px;
 
 }
 
-.card{
+.kpi-card{
 
-    background:var(--papel-tarjeta);
+    background:var(--kimi-bg-card);
+    border:1px solid var(--kimi-color-border);
+    border-radius:12px;
+    padding:16px;
+    transition:opacity .6s ease-out;
 
-    border-radius:14px;
+}
 
-    padding:20px;
+.kpi-card h3{
 
-    box-shadow:var(--sombra);
+    font-size:13px;
+    font-weight:500;
+    color:var(--kimi-text-soft);
+    text-transform:uppercase;
+    letter-spacing:.4px;
 
-    border-top:3px solid var(--azul-acero);
+}
 
-    transition:.25s;
+.kpi-card p{
 
+    font-size:36px;
+    font-weight:500;
+    color:var(--kimi-text);
+    margin-top:8px;
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+
+}
+
+.kpi-meta{
+
+    display:block;
+    margin-top:6px;
+    font-size:12px;
+    font-weight:400;
+    color:var(--kimi-text-soft);
+
+}
+
+/* ======== GRID DE GRÁFICOS ======== */
+
+.grid-graficos{
+
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+
+}
+
+.grafico-ancho{
+
+    grid-column:span 2;
+
+}
+
+.grafico-card{
+
+    background:var(--kimi-bg-card);
+    border:1px solid var(--kimi-color-border);
+    border-radius:12px;
+    padding:16px;
+    transition:opacity .6s ease-out;
+
+}
+
+.grafico-card.oculto{
+
+    display:none;
+
+}
+
+.grafico-card h2{
+
+    font-size:15px;
+    font-weight:500;
+    color:var(--kimi-text);
+    margin-bottom:14px;
+
+}
+
+.lienzo{
+
+    position:relative;
+    height:260px;
+    width:100%;
+
+}
+
+.lienzo-horizontal{
+
+    height:190px;
+
+}
+
+.lienzo-horizontal-chica{
+
+    height:170px;
+
+}
+
+.lienzo-donut{
+
+    height:320px;
+
+}
+
+/* ======== GAUGES SEMICIRCULARES (impacto de inseguridad) ======== */
+
+.gauges-fila{
+
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:12px;
+
+}
+
+.gauge-item{
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
     text-align:center;
 
 }
 
-.card:hover{
+.gauge-svg{
 
-    transform:translateY(-4px);
-
-    box-shadow:var(--sombra-hover);
-
-}
-
-/* Cada tarjeta toma un color distinto de la paleta de la marca (cíclico) */
-.card:nth-child(1){ border-top-color:var(--morado); }
-.card:nth-child(2){ border-top-color:var(--azul-marino); }
-.card:nth-child(3){ border-top-color:var(--verde); }
-.card:nth-child(4){ border-top-color:var(--dorado); }
-.card:nth-child(5){ border-top-color:var(--rojo); }
-.card:nth-child(6){ border-top-color:var(--azul-acero); }
-.card:nth-child(7){ border-top-color:var(--morado); }
-
-.card h3{
-
-    color:var(--texto-suave);
-
-    font-size:11px;
-
-    text-transform:uppercase;
-
-    letter-spacing:1px;
-
-    font-weight:700;
+    width:100%;
+    max-width:110px;
+    height:auto;
 
 }
 
-.card p{
+.gauge-arco-fondo{
 
-    margin-top:12px;
-
-    font-family:var(--fuente-cuerpo);
-
-    font-size:28px;
-
-    font-weight:800;
-
-    color:var(--tinta);
-
-    min-height:64px;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    line-height:1.15;
+    fill:none;
+    stroke:var(--kimi-color-border);
+    stroke-width:12;
+    stroke-linecap:round;
 
 }
 
-/* ======== TÍTULO DE SECCIÓN ======== */
+.gauge-arco-valor{
 
-.titulo-seccion{
-
-    margin-top:44px;
-
-    margin-bottom:18px;
-
-    padding-bottom:14px;
-
-    border-bottom:1px solid var(--linea);
+    fill:none;
+    stroke-width:12;
+    stroke-linecap:round;
+    transition:stroke-dashoffset .6s ease-out;
 
 }
 
-.titulo-seccion h2{
-
-    font-family:var(--fuente-cuerpo);
+.gauge-porcentaje{
 
     font-size:20px;
-
-    font-weight:800;
-
-    color:var(--tinta);
-
-    border-left:4px solid var(--dorado);
-
-    padding-left:12px;
+    font-weight:500;
+    fill:var(--kimi-text);
 
 }
 
-/* ======== GRÁFICO ======== */
-
-.grafico{
-
-    background:var(--papel-tarjeta);
-
-    margin-top:20px;
-
-    border-radius:14px;
-
-    padding:24px;
-
-    box-shadow:var(--sombra);
-
-}
-
-.grafico h2{
-
-    font-family:var(--fuente-cuerpo);
-
-    font-weight:800;
-
-    color:var(--tinta);
-
-    margin-bottom:20px;
-
-    font-size:19px;
-
-    border-left:3px solid var(--dorado);
-
-    padding-left:12px;
-
-}
-
-/* Controla la altura del gráfico para que no se vea gigante.
-   Chart.js con maintainAspectRatio:false respeta esta altura. */
-.grafico-lienzo{
-
-    position:relative;
-
-    height:280px;
-    width:100%;
-
-}
-
-.grafico-lienzo-pequeno{
-
-    height:240px;
-    max-width:340px;
-    margin:0 auto;
-
-}
-
-/* ======== RANKING / GRILLA DE GRÁFICOS ======== */
-
-.ranking-container{
-
-    display:grid;
-
-    grid-template-columns:1fr 1fr;
-
-    gap:20px;
-
-    margin-top:20px;
-
-}
-
-.ranking-card{
-
-    background:var(--papel-tarjeta);
-
-    border-radius:14px;
-
-    padding:20px;
-
-    box-shadow:var(--sombra);
-
-}
-
-.ranking-card h3{
-
-    margin-bottom:20px;
-
-    color:var(--tinta);
-
-    font-size:16px;
-
-}
-
-.ranking-item{
-
-    margin-bottom:16px;
-
-}
-
-.duracion-item{
-
-    display:block;
-
-    margin-top:6px;
-
-    font-size:12px;
-
-    color:var(--texto-suave);
-
-}
-
-.ranking-top{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    font-weight:600;
-
-    margin-bottom:6px;
-
-    color:var(--tinta);
-
-    font-size:14px;
-
-}
-
-.barra{
-
-    width:100%;
-
-    height:8px;
-
-    background:var(--linea);
-
-    border-radius:20px;
-
-    overflow:hidden;
-
-}
-
-.progreso{
-
-    height:100%;
-
-    background:linear-gradient(90deg, var(--azul-marino), var(--azul-acero));
-
-    border-radius:20px;
+.gauge-etiqueta{
+
+    margin-top:4px;
+    font-size:13px;
+    font-weight:500;
+    color:var(--kimi-text-soft);
 
 }
 
 /* ======== RESPONSIVE ======== */
 
-@media(max-width:700px){
+@media(max-width:800px){
 
-    .card p{
-        font-size:25px;
-    }
-
-    .ranking-container{
+    .grid-graficos{
         grid-template-columns:1fr;
     }
 
-    .grafico-lienzo{
-        height:220px;
+    .grafico-ancho{
+        grid-column:span 1;
     }
 
-    header{
-        flex-wrap:wrap;
-        padding:14px 16px;
+    .gauges-fila{
+        grid-template-columns:repeat(2, 1fr);
+        gap:20px;
     }
 
-    header h1{
-        font-size:19px;
+    .kpi-card p{
+        font-size:28px;
     }
-
-    .titulo-seccion h2{
-        font-size:17px;
-    }
-
-}
-
-/*==========================
-TABLA DE CONTEO (actividad cultural, etc.)
-==========================*/
-
-.tabla-conteo{
-
-    overflow-x:auto;
-
-}
-
-.tabla-datos{
-
-    width:100%;
-
-    border-collapse:collapse;
-
-}
-
-.tabla-datos thead th{
-
-    text-align:left;
-
-    padding:10px 12px;
-
-    font-size:12px;
-
-    text-transform:uppercase;
-
-    letter-spacing:.6px;
-
-    font-weight:700;
-
-    color:var(--texto-suave);
-
-    border-bottom:2px solid var(--linea);
-
-}
-
-.tabla-datos tbody td{
-
-    padding:12px;
-
-    font-size:14px;
-
-    color:var(--tinta);
-
-    border-bottom:1px solid var(--linea);
-
-}
-
-.tabla-datos tbody tr:hover{
-
-    background:rgba(239,160,0,.06);
-
-}
-
-.celda-porcentaje{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:10px;
-
-}
-
-.mini-barra{
-
-    flex:1;
-
-    height:6px;
-
-    background:var(--linea);
-
-    border-radius:20px;
-
-    overflow:hidden;
-
-    min-width:60px;
-
-}
-
-.mini-progreso{
-
-    height:100%;
-
-    background:linear-gradient(90deg, var(--azul-marino), var(--dorado));
-
-    border-radius:20px;
 
 }
 
@@ -599,65 +405,45 @@ OVERLAY DE CARGA
 .carga-overlay{
 
     position:fixed;
-
     inset:0;
-
-    background:var(--papel);
-
+    background:var(--kimi-bg);
     display:flex;
-
     flex-direction:column;
-
     align-items:center;
-
     justify-content:center;
-
-    gap:16px;
-
+    gap:14px;
     z-index:9999;
-
-    transition:opacity .35s ease;
+    transition:opacity .3s ease;
 
 }
 
 .carga-overlay.oculto{
 
     opacity:0;
-
     pointer-events:none;
 
 }
 
 .spinner{
 
-    width:44px;
-
-    height:44px;
-
-    border:4px solid var(--linea);
-
-    border-top-color:var(--dorado);
-
+    width:36px;
+    height:36px;
+    border:3px solid var(--kimi-color-border);
+    border-top-color:var(--kimi-chart-1);
     border-radius:50%;
-
-    animation:girar 0.8s linear infinite;
+    animation:girar .8s linear infinite;
 
 }
 
 @keyframes girar{
-
     to{ transform:rotate(360deg); }
-
 }
 
 .carga-overlay p{
 
-    font-family:var(--fuente-cuerpo);
-    font-weight:600;
-
-    color:var(--texto-suave);
-
-    font-size:14px;
+    font-size:13px;
+    font-weight:500;
+    color:var(--kimi-text-soft);
 
 }
 
@@ -668,126 +454,11 @@ BANNER DE ERROR
 .error-banner{
 
     background:#fdecea;
-
     color:#8a2c22;
-
     text-align:center;
-
     padding:10px;
-
-    font-size:14px;
-
-    font-weight:600;
-
-}
-
-/*==========================
-ANILLO DE PROGRESO (tarjeta Avance)
-==========================*/
-
-.card-avance{
-
-    display:flex;
-
-    flex-direction:column;
-
-    align-items:center;
-
-    text-align:center;
-
-    position:relative;
-
-    overflow:hidden;
-
-}
-
-/* Momento de riesgo único del diseño: un leve "reflector de escenario"
-   detrás del anillo de avance general. */
-.card-avance::before{
-
-    content:"";
-    position:absolute;
-    top:-40%;
-    left:50%;
-    width:220px;
-    height:220px;
-    transform:translateX(-50%);
-    background:radial-gradient(circle, rgba(239,160,0,.16), transparent 68%);
-    pointer-events:none;
-
-}
-
-.anillo-contenedor{
-
-    position:relative;
-
-    width:110px;
-
-    height:110px;
-
-    margin-top:8px;
-
-}
-
-.anillo-svg{
-
-    width:100%;
-
-    height:100%;
-
-    transform:rotate(-90deg);
-
-}
-
-.anillo-fondo{
-
-    fill:none;
-
-    stroke:var(--linea);
-
-    stroke-width:10;
-
-}
-
-.anillo-progreso{
-
-    fill:none;
-
-    stroke:var(--dorado);
-
-    stroke-width:10;
-
-    stroke-linecap:round;
-
-    stroke-dasharray:326.7;
-
-    stroke-dashoffset:326.7;
-
-    transition:stroke-dashoffset .6s ease;
-
-}
-
-.anillo-texto{
-
-    position:absolute;
-
-    top:50%;
-
-    left:50%;
-
-    transform:translate(-50%,-50%);
-
-    font-family:var(--fuente-cuerpo) !important;
-
-    font-size:22px !important;
-
-    font-weight:800 !important;
-
-    margin:0 !important;
-
-    min-height:auto !important;
-
-    display:block !important;
+    font-size:13px;
+    font-weight:500;
 
 }
 
@@ -797,179 +468,9 @@ FOOTER
 
 .pie-pagina{
 
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    gap:10px;
-
-    padding:26px 16px 34px;
-
-    color:var(--texto-suave);
-
+    text-align:center;
+    padding:24px 16px;
+    color:var(--kimi-text-soft);
     font-size:12px;
-
-    letter-spacing:.3px;
-
-}
-
-.pie-logo{
-
-    height:16px;
-
-    width:auto;
-
-    opacity:.7;
-
-}
-
-/*==========================
-MODO OSCURO
-==========================*/
-
-body.modo-oscuro{
-
-    background:#1b1622;
-    background-image:
-        radial-gradient(circle at 100% 0%, rgba(239,160,0,.05), transparent 40%),
-        radial-gradient(circle at 0% 100%, rgba(79,122,140,.08), transparent 40%);
-    color:#f2f0f5;
-
-}
-
-body.modo-oscuro .card,
-body.modo-oscuro .grafico,
-body.modo-oscuro .ranking-card{
-
-    background:#26202f;
-
-    box-shadow:0 6px 20px rgba(0,0,0,.35);
-
-}
-
-body.modo-oscuro .card h3,
-body.modo-oscuro .ranking-card h3{
-
-    color:#b7aec2;
-
-}
-
-body.modo-oscuro .grafico h2,
-body.modo-oscuro .titulo-seccion h2{
-
-    color:#f2f0f5;
-
-}
-
-body.modo-oscuro .card p,
-body.modo-oscuro .ranking-top,
-body.modo-oscuro .tabla-datos tbody td{
-
-    color:#f8f6fb;
-
-}
-
-body.modo-oscuro .tabla-datos thead th{
-
-    color:#a89fb4;
-
-    border-bottom-color:#3a3346;
-
-}
-
-body.modo-oscuro .tabla-datos tbody td{
-
-    border-bottom-color:#352e40;
-
-}
-
-body.modo-oscuro .tabla-datos tbody tr:hover{
-
-    background:rgba(239,160,0,.08);
-
-}
-
-body.modo-oscuro .barra,
-body.modo-oscuro .mini-barra,
-body.modo-oscuro .anillo-fondo{
-
-    stroke:#3a3346;
-
-    background:#3a3346;
-
-}
-
-body.modo-oscuro .duracion-item,
-body.modo-oscuro .pie-pagina{
-
-    color:#a89fb4;
-
-}
-
-body.modo-oscuro .titulo-seccion{
-
-    border-bottom-color:#3a3346;
-
-}
-
-body.modo-oscuro header{
-
-    background:#26202f;
-
-}
-
-body.modo-oscuro header h1{
-
-    color:#f8f6fb;
-
-}
-
-body.modo-oscuro .reloj{
-
-    background:#1b1622;
-    border-color:#3a3346;
-    color:#d8d2e0;
-
-}
-
-body.modo-oscuro .boton-modo-oscuro{
-
-    background:#1b1622;
-    border-color:#3a3346;
-    color:#f8f6fb;
-
-}
-
-body.modo-oscuro .boton-modo-oscuro:hover{
-
-    background:var(--dorado);
-    color:#1b1622;
-    border-color:var(--dorado);
-
-}
-
-body.modo-oscuro .carga-overlay{
-
-    background:#1b1622;
-
-}
-
-/*==========================
-SUBTÍTULO DE TARJETA (ej. encuestas no válidas)
-==========================*/
-
-.subtitulo-tarjeta{
-
-    display:block;
-
-    margin-top:6px;
-
-    font-size:12px;
-
-    font-weight:600;
-
-    color:var(--rojo);
 
 }
