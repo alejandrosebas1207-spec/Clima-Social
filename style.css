@@ -336,6 +336,16 @@ body{
 
 }
 
+.grafico-n{
+
+    margin-left:auto;
+    font-size:12px;
+    font-weight:400;
+    color:var(--kimi-text-soft);
+    white-space:nowrap;
+
+}
+
 .lienzo{
 
     position:relative;

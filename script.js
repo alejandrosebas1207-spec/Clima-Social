@@ -332,20 +332,35 @@ const pluginEtiquetaPorcentaje = {
     id: "etiquetaPorcentaje",
     afterDatasetsDraw(chart) {
 
-        const { ctx } = chart;
+        const { ctx, chartArea } = chart;
         const meta = chart.getDatasetMeta(0);
         if (!meta) return;
 
         ctx.save();
         ctx.font = "600 12px " + getComputedStyle(document.body).fontFamily;
-        ctx.fillStyle = esModoOscuro() ? "#f3ede2" : "#2b241c";
         ctx.textBaseline = "middle";
 
         meta.data.forEach((barra, i) => {
+
             const valor = chart.data.datasets[0].data[i];
             const texto = `${valor}%`;
-            ctx.textAlign = "left";
-            ctx.fillText(texto, barra.x + 8, barra.y);
+            const anchoTexto = ctx.measureText(texto).width;
+
+            // Si no hay espacio a la derecha (barra cerca del 100%), la
+            // etiqueta se dibuja DENTRO de la barra en blanco para que no
+            // se corte contra el borde del gráfico.
+            const cabeEnAfuera = (barra.x + 8 + anchoTexto) < chartArea.right;
+
+            if (cabeEnAfuera) {
+                ctx.fillStyle = esModoOscuro() ? "#f3ede2" : "#2b241c";
+                ctx.textAlign = "left";
+                ctx.fillText(texto, barra.x + 8, barra.y);
+            } else {
+                ctx.fillStyle = "#ffffff";
+                ctx.textAlign = "right";
+                ctx.fillText(texto, barra.x - 8, barra.y);
+            }
+
         });
 
         ctx.restore();
@@ -359,6 +374,13 @@ const pluginEtiquetaPorcentaje = {
 
 let chartSituacion = null;
 
+// Muestra "n = X respuestas" junto al título de un gráfico —
+// evita que un % basado en muy pocas respuestas engañe.
+function mostrarN(id, n) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = `n = ${n}`;
+}
+
 function generarGraficoSituacion(trabajadores) {
 
     const conteo = {};
@@ -370,6 +392,8 @@ function generarGraficoSituacion(trabajadores) {
         respondio++;
         conteo[valor] = (conteo[valor] || 0) + 1;
     });
+
+    mostrarN("nSituacion", respondio);
 
     const etiquetas = ORDEN_SITUACION_LABORAL.map(c => MAPA_SITUACION_LABORAL[c]);
     const porcentajes = ORDEN_SITUACION_LABORAL.map(c =>
@@ -452,33 +476,23 @@ function promedioYMediana(valores) {
 
 }
 
-// Muestra el $ de cada barra (promedio) y de cada marcador (mediana)
-// directamente sobre el gráfico, sin necesitar pasar el cursor.
+// Muestra el $ de cada barra (promedio) directamente sobre el gráfico,
+// sin necesitar pasar el cursor.
 const pluginEtiquetaIngresos = {
     id: "etiquetaIngresos",
     afterDatasetsDraw(chart) {
 
         const { ctx } = chart;
         const metaBarra = chart.getDatasetMeta(0);
-        const metaLinea = chart.getDatasetMeta(1);
 
         ctx.save();
         ctx.textAlign = "center";
-
         ctx.font = "600 12px " + getComputedStyle(document.body).fontFamily;
         ctx.fillStyle = esModoOscuro() ? "#f3ede2" : "#2b241c";
 
         metaBarra.data.forEach((barra, i) => {
             const valor = chart.data.datasets[0].data[i];
             ctx.fillText("$" + Math.round(valor), barra.x, barra.y - 8);
-        });
-
-        ctx.font = "600 11px " + getComputedStyle(document.body).fontFamily;
-        ctx.fillStyle = "#c9862e";
-
-        metaLinea.data.forEach((punto, i) => {
-            const valor = chart.data.datasets[1].data[i];
-            ctx.fillText("Mediana $" + Math.round(valor), punto.x, punto.y - 15);
         });
 
         ctx.restore();
@@ -491,6 +505,9 @@ function generarGraficoIngresos(trabajadores) {
     const principal = promedioYMediana(trabajadores.map(e => Number(campo(e, "p20"))));
     const secundaria = promedioYMediana(trabajadores.map(e => Number(campo(e, "p29"))));
     const noCultural = promedioYMediana(trabajadores.map(e => Number(campo(e, "p32"))));
+
+    const nPrincipal = trabajadores.filter(e => Number(campo(e, "p20")) > 0).length;
+    mostrarN("nIngresos", nPrincipal);
 
     const colorTexto = esModoOscuro() ? "#b3a695" : "#75695a";
     const colorGrid = esModoOscuro() ? "#3c3226" : "#e6ded2";
@@ -511,17 +528,6 @@ function generarGraficoIngresos(trabajadores) {
                     backgroundColor: "#454a91",
                     borderRadius: 4,
                     barThickness: 46
-                },
-                {
-                    type: "line",
-                    label: "Mediana",
-                    data: [principal.mediana, secundaria.mediana, noCultural.mediana],
-                    showLine: false,
-                    pointStyle: "line",
-                    pointRadius: 22,
-                    pointBorderWidth: 3,
-                    borderColor: esModoOscuro() ? "#f3ede2" : "#2b241c",
-                    backgroundColor: esModoOscuro() ? "#f3ede2" : "#2b241c"
                 }
             ]
         },
@@ -531,10 +537,7 @@ function generarGraficoIngresos(trabajadores) {
             maintainAspectRatio: false,
             animation: { duration: 600, easing: "easeOutQuart" },
             plugins: {
-                legend: {
-                    position: "bottom",
-                    labels: { color: colorTexto, font: { size: 12 } }
-                },
+                legend: { display: false },
                 tooltip: {
                     callbacks: {
                         label: ctx => `${ctx.dataset.label}: $${Math.round(ctx.parsed.y)}`
@@ -691,6 +694,8 @@ function generarGaugesInseguridad(trabajadores) {
         conteo[valor] = (conteo[valor] || 0) + 1;
     });
 
+    mostrarN("nInseguridad", respondio);
+
     const contenedor = document.getElementById("gaugesInseguridad");
     contenedor.innerHTML = "";
 
@@ -743,6 +748,8 @@ function generarGraficoSatisfaccion(graduados) {
         respondio++;
         conteo[valor] = (conteo[valor] || 0) + 1;
     });
+
+    mostrarN("nSatisfaccion", respondio);
 
     const etiquetas = ORDEN_LIKERT.map(c => MAPA_LIKERT[c]);
     const porcentajes = ORDEN_LIKERT.map(c =>
@@ -817,6 +824,8 @@ function generarGraficoRecomendaria(graduados) {
     });
 
     const noCount = respondio - siCount;
+
+    mostrarN("nRecomendaria", respondio);
 
     const porcentajeSi = respondio > 0 ? Number(((siCount / respondio) * 100).toFixed(1)) : 0;
     const porcentajeNo = respondio > 0 ? Number(((noCount / respondio) * 100).toFixed(1)) : 0;
