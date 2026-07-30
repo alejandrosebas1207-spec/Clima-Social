@@ -88,14 +88,14 @@ body{max-width:100vw;overflow-x:hidden;background:var(--kimi-bg);color:var(--kim
     letter-spacing: 0.3px;
 }
 
-.lienzo{position:relative;height:270px;width:100%;}
+.lienzo{position:relative;height:280px;width:100%;} /* Aumentado de 270px a 280px */
 .lienzo-linea{height:220px;}
 .lienzo-horizontal{height:280px;}
 .lienzo-horizontal-chica{height:180px;}
 .lienzo-dona{height:300px;}
 .lienzo-dona-chica{height:240px;}
 .lienzo-provincia{height:340px;}
-.lienzo-titulo{height:300px;}
+.lienzo-titulo{height:320px;} /* Aumentado de 300px a 320px */
 
 .dona-total{text-align:center;font-size:13px;color:var(--kimi-text-soft);margin-top:6px;}
 .dona-total strong{color:var(--kimi-text);font-weight:500;}
@@ -134,7 +134,7 @@ body{max-width:100vw;overflow-x:hidden;background:var(--kimi-bg);color:var(--kim
     .lienzo-dona{height:260px;}
     .lienzo-dona-chica{height:220px;}
     .lienzo-provincia{height:400px;}
-    .lienzo-titulo{height:360px;}
+    .lienzo-titulo{height:280px;}
     .gauges-fila{grid-template-columns:repeat(2, 1fr);gap:16px 10px;}
 }
 

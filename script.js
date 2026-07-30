@@ -761,7 +761,7 @@ function generarGraficoActividad(encuestas) {
 }
 
 // ==========================================
-// GRÁFICO: AÑO DE GRADUACIÓN (barras verticales)
+// GRÁFICO: AÑO DE GRADUACIÓN (barras verticales) - CON AJUSTES
 // ==========================================
 
 let chartAnioGraduacion = null;
@@ -795,7 +795,9 @@ function generarGraficoAnioGraduacion(graduados) {
                 data: valores,
                 backgroundColor: cssVar("--kimi-chart-3"),
                 borderRadius: 4,
-                barThickness: 28
+                barThickness: 40,        // más grueso
+                categoryPercentage: 0.9,   // menos espacio entre categorías
+                barPercentage: 0.8         // barras más anchas dentro de la categoría
             }]
         },
         options: {
@@ -826,7 +828,7 @@ function generarGraficoAnioGraduacion(graduados) {
 }
 
 // ==========================================
-// GRÁFICO: TÍTULO OBTENIDO (barras horizontales, select_multiple)
+// GRÁFICO: TÍTULO OBTENIDO (barras horizontales) - CON AJUSTES
 // ==========================================
 
 let chartTitulo = null;
@@ -872,7 +874,7 @@ function generarGraficoTitulo(graduados) {
                 data: valores,
                 backgroundColor: cssVar("--kimi-chart-3"),
                 borderRadius: 4,
-                barThickness: 20
+                barThickness: 28        // más grueso que antes (era 20)
             }]
         },
         plugins: [pluginEtiquetaPorcentaje],
