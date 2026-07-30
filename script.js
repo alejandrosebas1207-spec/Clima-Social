@@ -13,6 +13,17 @@ let VALOR_SI = "1";
 let filtroActual = "todos"; // 'todos' | 'trabajadores' | 'graduados'
 let ultimosDatosCargados = null;
 
+// Por debajo de este número de respuestas, un gráfico marca la
+// muestra como "baja" (un % basado en muy pocos casos puede engañar).
+const UMBRAL_MUESTRA_MINIMA = 5;
+
+// Cada cuánto se refresca solo el tablero (milisegundos).
+const INTERVALO_AUTOREFRESCO = 3 * 60 * 1000;
+
+// Punto de quiebre usado para decidir la orientación de la leyenda
+// de la dona (a la derecha en desktop, abajo en móvil).
+const QUIEBRE_MOVIL = 700;
+
 function esModoOscuro() {
     return document.body.classList.contains("modo-oscuro");
 }
@@ -119,11 +130,11 @@ async function obtenerConfig() {
 
 }
 
-async function obtenerDatos() {
+async function obtenerDatos(silencioso = false) {
 
     try {
 
-        await obtenerConfig();
+        if (!silencioso) await obtenerConfig();
 
         const respuesta = await fetch("/api/encuestas");
 
@@ -133,6 +144,8 @@ async function obtenerDatos() {
 
         procesarDatos(datos);
 
+        actualizarTimestamp();
+
         ocultarCarga();
         ocultarError();
 
@@ -140,12 +153,28 @@ async function obtenerDatos() {
 
         console.error(error);
 
-        ocultarCarga();
-        mostrarError();
+        if (!silencioso) {
+            ocultarCarga();
+            mostrarError();
+        }
+        // En un refresco silencioso, si falla, se deja ver el último dato
+        // bueno en pantalla en vez de tapar todo con el banner de error.
 
     }
 
 }
+
+function actualizarTimestamp() {
+    const el = document.getElementById("ultimaActualizacion");
+    if (!el) return;
+    const hora = new Date().toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit" });
+    el.textContent = `Última actualización: ${hora}`;
+}
+
+// Auto-refresco: vuelve a pedir los datos cada cierto tiempo sin
+// mostrar el overlay de carga, útil si esto queda proyectado en una
+// pantalla durante la recolección.
+setInterval(() => obtenerDatos(true), INTERVALO_AUTOREFRESCO);
 
 function ocultarCarga() {
     const overlay = document.getElementById("cargaOverlay");
@@ -374,11 +403,13 @@ const pluginEtiquetaPorcentaje = {
 
 let chartSituacion = null;
 
-// Muestra "n = X respuestas" junto al título de un gráfico —
-// evita que un % basado en muy pocas respuestas engañe.
+// Muestra "n = X" junto al título de un gráfico, marcando en color
+// de alerta cuando la muestra es tan baja que el % puede engañar.
 function mostrarN(id, n) {
     const el = document.getElementById(id);
-    if (el) el.textContent = `n = ${n}`;
+    if (!el) return;
+    el.textContent = n < UMBRAL_MUESTRA_MINIMA ? `n = ${n} · muestra baja` : `n = ${n}`;
+    el.classList.toggle("muestra-baja", n < UMBRAL_MUESTRA_MINIMA);
 }
 
 function generarGraficoSituacion(trabajadores) {
@@ -638,11 +669,11 @@ function generarGraficoActividad(trabajadores) {
             animation: { duration: 600, easing: "easeOutQuart" },
             plugins: {
                 legend: {
-                    position: "right",
+                    position: window.innerWidth < QUIEBRE_MOVIL ? "bottom" : "right",
                     align: "center",
                     labels: {
-                        color: colorTexto,
-                        font: { size: 13 },
+                        color: colorTextoPrincipal,
+                        font: { size: 13, weight: "600" },
                         boxWidth: 14,
                         padding: 14,
                         // Etiqueta con conteo y % directamente visibles, sin necesitar hover.
@@ -929,3 +960,28 @@ if (botonModoOscuro) {
     });
 
 }
+
+// ==========================================
+// RESPONSIVE: re-renderizar al cruzar el punto de quiebre móvil/desktop
+// (ej. al rotar el teléfono), sin recalcular en cada pixel de resize.
+// ==========================================
+
+let eraMovil = window.innerWidth < QUIEBRE_MOVIL;
+let temporizadorResize = null;
+
+window.addEventListener("resize", () => {
+
+    clearTimeout(temporizadorResize);
+
+    temporizadorResize = setTimeout(() => {
+
+        const esMovilAhora = window.innerWidth < QUIEBRE_MOVIL;
+
+        if (esMovilAhora !== eraMovil) {
+            eraMovil = esMovilAhora;
+            if (ultimosDatosCargados) renderizarTodo();
+        }
+
+    }, 250);
+
+});
