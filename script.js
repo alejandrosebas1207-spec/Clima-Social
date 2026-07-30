@@ -554,7 +554,7 @@ function generarGraficoProvincia(encuestas) {
 }
 
 // ==========================================
-// GRÁFICO: GÉNERO (dona)
+// GRÁFICO: GÉNERO (dona) — CON CORRECCIÓN PARA MODO OSCURO
 // ==========================================
 
 let chartGenero = null;
@@ -589,9 +589,6 @@ function generarGraficoGenero(encuestas) {
         }
     });
 
-    const colorTexto = esModoOscuro() ? "#b3a695" : "#75695a";
-    const colorTextoPrincipal = esModoOscuro() ? "#f3ede2" : "#2b241c";
-
     if (chartGenero) chartGenero.destroy();
     if (etiquetas.length === 0) return;
 
@@ -617,13 +614,15 @@ function generarGraficoGenero(encuestas) {
                     position: window.innerWidth < QUIEBRE_MOVIL ? "bottom" : "right",
                     align: "center",
                     labels: {
-                        color: colorTextoPrincipal,
+                        // Color dinámico: se evalúa al generar las etiquetas
+                        color: esModoOscuro() ? "#f3ede2" : "#2b241c",
                         font: { size: 12, weight: "600" },
                         boxWidth: 12,
                         padding: 10,
                         generateLabels(chart) {
                             const data = chart.data;
                             const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                            const textColor = esModoOscuro() ? "#f3ede2" : "#2b241c";
                             return data.labels.map((label, i) => {
                                 const valor = data.datasets[0].data[i];
                                 const pct = ((valor / total) * 100).toFixed(0);
@@ -631,7 +630,7 @@ function generarGraficoGenero(encuestas) {
                                     text: `${label} · ${valor} (${pct}%)`,
                                     fillStyle: data.datasets[0].backgroundColor[i],
                                     strokeStyle: data.datasets[0].backgroundColor[i],
-                                    color: colorTextoPrincipal,
+                                    color: textColor,
                                     index: i
                                 };
                             });
@@ -653,7 +652,7 @@ function generarGraficoGenero(encuestas) {
 }
 
 // ==========================================
-// GRÁFICO: PRINCIPAL ACTIVIDAD (dona)
+// GRÁFICO: PRINCIPAL ACTIVIDAD (dona) — CON CORRECCIÓN PARA MODO OSCURO
 // ==========================================
 
 let chartActividad = null;
@@ -674,9 +673,6 @@ function generarGraficoActividad(encuestas) {
         return varName.startsWith("var(") ? cssVar(varName.slice(4, -1)) : varName;
     });
 
-    const colorTexto = esModoOscuro() ? "#b3a695" : "#75695a";
-    const colorTextoPrincipal = esModoOscuro() ? "#f3ede2" : "#2b241c";
-
     if (chartActividad) chartActividad.destroy();
     if (etiquetas.length === 0) return;
 
@@ -695,10 +691,10 @@ function generarGraficoActividad(encuestas) {
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.font = "600 24px " + getComputedStyle(document.body).fontFamily;
-            ctx.fillStyle = colorTextoPrincipal;
+            ctx.fillStyle = esModoOscuro() ? "#f3ede2" : "#2b241c";
             ctx.fillText(totalGeneral, centroX, centroY - 6);
             ctx.font = "500 11px " + getComputedStyle(document.body).fontFamily;
-            ctx.fillStyle = colorTexto;
+            ctx.fillStyle = esModoOscuro() ? "#b3a695" : "#75695a";
             ctx.fillText("respuestas", centroX, centroY + 10);
             ctx.restore();
         }
@@ -725,13 +721,14 @@ function generarGraficoActividad(encuestas) {
                     position: window.innerWidth < QUIEBRE_MOVIL ? "bottom" : "right",
                     align: "center",
                     labels: {
-                        color: colorTextoPrincipal,
+                        color: esModoOscuro() ? "#f3ede2" : "#2b241c",
                         font: { size: 12, weight: "600" },
                         boxWidth: 12,
                         padding: 10,
                         generateLabels(chart) {
                             const data = chart.data;
                             const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                            const textColor = esModoOscuro() ? "#f3ede2" : "#2b241c";
                             return data.labels.map((label, i) => {
                                 const valor = data.datasets[0].data[i];
                                 const pct = ((valor / total) * 100).toFixed(0);
@@ -739,7 +736,7 @@ function generarGraficoActividad(encuestas) {
                                     text: `${label} · ${valor} (${pct}%)`,
                                     fillStyle: data.datasets[0].backgroundColor[i],
                                     strokeStyle: data.datasets[0].backgroundColor[i],
-                                    color: colorTextoPrincipal,
+                                    color: textColor,
                                     index: i
                                 };
                             });
@@ -761,7 +758,7 @@ function generarGraficoActividad(encuestas) {
 }
 
 // ==========================================
-// GRÁFICO: AÑO DE GRADUACIÓN (barras verticales) - CON AJUSTES
+// GRÁFICO: AÑO DE GRADUACIÓN (barras verticales)
 // ==========================================
 
 let chartAnioGraduacion = null;
@@ -795,9 +792,9 @@ function generarGraficoAnioGraduacion(graduados) {
                 data: valores,
                 backgroundColor: cssVar("--kimi-chart-3"),
                 borderRadius: 4,
-                barThickness: 40,        // más grueso
-                categoryPercentage: 0.9,   // menos espacio entre categorías
-                barPercentage: 0.8         // barras más anchas dentro de la categoría
+                barThickness: 40,
+                categoryPercentage: 0.9,
+                barPercentage: 0.8
             }]
         },
         options: {
@@ -828,7 +825,7 @@ function generarGraficoAnioGraduacion(graduados) {
 }
 
 // ==========================================
-// GRÁFICO: TÍTULO OBTENIDO (barras horizontales) - CON AJUSTES
+// GRÁFICO: TÍTULO OBTENIDO (barras horizontales)
 // ==========================================
 
 let chartTitulo = null;
@@ -874,7 +871,7 @@ function generarGraficoTitulo(graduados) {
                 data: valores,
                 backgroundColor: cssVar("--kimi-chart-3"),
                 borderRadius: 4,
-                barThickness: 28        // más grueso que antes (era 20)
+                barThickness: 28
             }]
         },
         plugins: [pluginEtiquetaPorcentaje],
