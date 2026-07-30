@@ -5,27 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#faf6ef">
 <title>Encuesta Artes y Cultura</title>
-
 <link rel="stylesheet" href="style.css">
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
 </head>
 <body>
 
-<!-- ======== OVERLAY DE CARGA ======== -->
 <div class="carga-overlay" id="cargaOverlay">
     <div class="spinner"></div>
     <p>Cargando datos de la encuesta...</p>
 </div>
 
-<!-- ======== BANNER DE ERROR ======== -->
 <div class="error-banner" id="errorBanner" style="display:none;">
     No fue posible cargar los datos. Verifica la conexión con Kobo.
 </div>
 
-<!-- ======== CABECERA ======== -->
 <header class="cabecera">
-
     <div class="cabecera-titulo-grupo">
         <img src="assets/logo.png" alt="Clima Social" class="cabecera-logo">
         <div class="cabecera-titulo">
@@ -33,121 +27,128 @@
             <span class="cabecera-sub">Tercera edición · Ecuador 2026</span>
         </div>
     </div>
-
     <div class="cabecera-derecha">
-
         <div class="tabs" role="tablist">
             <button class="tab activo" data-tab="todos">Todos</button>
-            <button class="tab" data-tab="trabajadores">Trabajadores de las Artes y la Cultura</button>
+            <button class="tab" data-tab="trabajadores">Trabajadores</button>
             <button class="tab" data-tab="graduados">Graduados UArtes</button>
         </div>
-
         <span class="reloj" id="hora"></span>
         <button class="boton-modo-oscuro" id="botonModoOscuro" title="Cambiar a modo oscuro">🌙</button>
-
     </div>
-
 </header>
 
 <div class="franja-textil"></div>
 
 <main class="contenedor">
 
-    <!-- ======== KPIs SUPERIORES ======== -->
+    <!-- 5 KPIs -->
     <div class="kpis">
-
         <div class="kpi-card">
-            <h3>Encuestas válidas</h3>
-            <p id="kpiValidas">0</p>
-            <!-- ← MEJORA C: delta vs edición anterior -->
-            <span class="kpi-delta" id="kpiDelta">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M11.386 2.361C11.738 2.012 12.306 2.013 12.657 2.364L18.195 7.902C18.546 8.254 18.546 8.823 18.195 9.175C17.843 9.526 17.274 9.526 16.922 9.175L12.92 5.173V21C12.92 21.497 12.517 21.9 12.02 21.9C11.523 21.9 11.12 21.497 11.12 21V5.162L7.076 9.177C6.723 9.527 6.153 9.525 5.803 9.173C5.453 8.82 5.455 8.25 5.807 7.9L11.386 2.361Z" fill="currentColor"/>
-                </svg>
-                <span id="kpiDeltaTexto">+12% vs edición anterior</span>
-            </span>
+            <h3>Encuestas totales</h3>
+            <p id="kpiTotal">0</p>
         </div>
-
+        <div class="kpi-card kpi-trabajadores">
+            <h3>Trabajadores</h3>
+            <p id="kpiTrabajadores">0</p>
+        </div>
+        <div class="kpi-card kpi-graduados">
+            <h3>Graduados UArtes</h3>
+            <p id="kpiGraduados">0</p>
+        </div>
         <div class="kpi-card">
             <h3>Avance general</h3>
             <p id="kpiAvance">0%</p>
-            <span class="kpi-meta" id="kpiMetaTexto">de 0 encuestas</span>
+            <span class="kpi-meta" id="kpiMeta">de 0</span>
         </div>
-
         <div class="kpi-card">
             <h3>Duración promedio</h3>
             <p id="kpiDuracion">--</p>
         </div>
-
     </div>
 
     <div class="ultima-actualizacion" id="ultimaActualizacion"></div>
 
-    <!-- ======== GRID DE 6 GRÁFICOS ======== -->
     <div class="grid-graficos">
 
+        <!-- Avance por día: siempre visible -->
+        <div class="grafico-card grafico-ancho">
+            <h2>
+                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                Avance por día
+            </h2>
+            <div class="lienzo lienzo-linea">
+                <canvas id="graficoAvanceDia"></canvas>
+            </div>
+        </div>
+
+        <!-- Trabajadores -->
         <div class="grafico-card" data-segmento="trabajadores">
             <h2>
-                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M3 12h18"></path></svg>
-                Situación laboral · actividad principal
-                <span class="grafico-n" id="nSituacion"></span>
+                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                Provincia
+                <span class="grafico-n" id="nProvincia"></span>
             </h2>
-            <div class="lienzo lienzo-horizontal">
-                <canvas id="graficoSituacion"></canvas>
+            <div class="lienzo lienzo-provincia">
+                <canvas id="graficoProvincia"></canvas>
             </div>
         </div>
 
         <div class="grafico-card" data-segmento="trabajadores">
             <h2>
-                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v10M9.5 9.5c0-1.4 1.2-2.5 2.7-2.5s2.6.9 2.6 2.1c0 2.8-5.3 1.4-5.3 4.2 0 1.2 1.2 2.1 2.7 2.1s2.7-1.1 2.7-2.5"></path></svg>
-                Ingreso mensual · actividad principal
-                <span class="grafico-n" id="nIngresos"></span>
+                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                Género
+                <span class="grafico-n" id="nGenero"></span>
             </h2>
-            <div class="lienzo">
-                <canvas id="graficoIngresos"></canvas>
+            <div class="lienzo lienzo-dona-chica">
+                <canvas id="graficoGenero"></canvas>
             </div>
         </div>
 
         <div class="grafico-card grafico-ancho" data-segmento="trabajadores">
             <h2>
                 <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-7 7c0 3 2 4 2 6a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2c0-2 2-3 2-6a7 7 0 0 0-7-7z"></path><circle cx="9.5" cy="8.5" r="1"></circle><circle cx="14.5" cy="8.5" r="1"></circle><circle cx="12" cy="12" r="1"></circle><path d="M9 21h6"></path></svg>
-                Actividad cultural principal
+                Principal actividad
                 <span class="grafico-n" id="nActividad"></span>
             </h2>
-            <div class="lienzo lienzo-donut">
+            <div class="lienzo lienzo-dona">
                 <canvas id="graficoActividad"></canvas>
             </div>
             <div class="dona-total" id="donaTotalActividad"></div>
         </div>
 
-        <div class="grafico-card" data-segmento="trabajadores">
-            <h2>
-                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V5z"></path><path d="M12 8v5"></path><circle cx="12" cy="16" r=".6" fill="currentColor" stroke="none"></circle></svg>
-                Impacto de la inseguridad
-                <span class="grafico-n" id="nInseguridad"></span>
-            </h2>
-            <div class="gauges-fila" id="gaugesInseguridad"></div>
-        </div>
-
+        <!-- Graduados -->
         <div class="grafico-card" data-segmento="graduados">
             <h2>
-                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9 12 4l10 5-10 5-10-5z"></path><path d="M6 11.5V17c0 1.5 2.7 3 6 3s6-1.5 6-3v-5.5"></path></svg>
-                Satisfacción con la formación
-                <span class="grafico-n" id="nSatisfaccion"></span>
+                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                Año de graduación
+                <span class="grafico-n" id="nAnioGraduacion"></span>
             </h2>
-            <div class="lienzo lienzo-horizontal-chica">
-                <canvas id="graficoSatisfaccion"></canvas>
+            <div class="lienzo">
+                <canvas id="graficoAnioGraduacion"></canvas>
             </div>
         </div>
 
         <div class="grafico-card grafico-ancho" data-segmento="graduados">
             <h2>
-                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4v-9zM7 11l3.5-7c.6 0 1.5.6 1.5 2v3h5.5c1 0 1.7.9 1.4 1.8l-1.7 5.2c-.3.9-1.1 1.5-2 1.5H10c-1.7 0-3-1.3-3-3v-3.5z"></path></svg>
-                ¿Recomendaría su carrera?
-                <span class="grafico-n" id="nRecomendaria"></span>
+                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9 12 4l10 5-10 5-10-5z"></path><path d="M6 11.5V17c0 1.5 2.7 3 6 3s6-1.5 6-3v-5.5"></path></svg>
+                Título obtenido
+                <span class="grafico-n" id="nTitulo"></span>
+            </h2>
+            <div class="lienzo lienzo-titulo">
+                <canvas id="graficoTitulo"></canvas>
+            </div>
+        </div>
+
+        <!-- Medio de encuesta: siempre visible -->
+        <div class="grafico-card grafico-ancho" data-segmento="todos">
+            <h2>
+                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                Medio por el cual llena la encuesta
+                <span class="grafico-n" id="nMedio"></span>
             </h2>
             <div class="lienzo lienzo-horizontal-chica">
-                <canvas id="graficoRecomendaria"></canvas>
+                <canvas id="graficoMedio"></canvas>
             </div>
         </div>
 
