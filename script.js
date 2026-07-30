@@ -239,6 +239,11 @@ function renderizarTodo() {
         el.classList.toggle("oculto", filtroActual === "trabajadores");
     });
 
+    // --- Mostrar/ocultar badge en gráficos de graduados según filtro ---
+    document.querySelectorAll('[data-segmento="graduados"] .badge-segmento').forEach(el => {
+        el.style.display = (filtroActual === "todos") ? 'inline-block' : 'none';
+    });
+
     // --- Elegir conjunto de datos según filtro ---
     let conjunto;
     if (filtroActual === "todos") conjunto = todos;
@@ -246,8 +251,8 @@ function renderizarTodo() {
     else if (filtroActual === "graduados") conjunto = graduados;
 
     // --- Gráficos siempre visibles (Provincia, Género, Actividad, Medio, Avance) ---
-    generarGraficoAvanceDia(trabajadores, graduados); // siempre con ambos segmentos
-    generarGraficoMedio(conjunto); // ahora pasa el conjunto filtrado
+    generarGraficoAvanceDia(trabajadores, graduados);
+    generarGraficoMedio(conjunto);
     generarGraficoProvincia(conjunto);
     generarGraficoGenero(conjunto);
     generarGraficoActividad(conjunto);
@@ -257,7 +262,6 @@ function renderizarTodo() {
         generarGraficoAnioGraduacion(graduados);
         generarGraficoTitulo(graduados);
     } else {
-        // Si estamos en trabajadores, ocultamos o destruimos los gráficos de graduados
         if (chartAnioGraduacion) { chartAnioGraduacion.destroy(); chartAnioGraduacion = null; }
         if (chartTitulo) { chartTitulo.destroy(); chartTitulo = null; }
         mostrarN("nAnioGraduacion", 0);

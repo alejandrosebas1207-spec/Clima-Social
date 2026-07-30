@@ -82,7 +82,7 @@
             </div>
         </div>
 
-        <!-- Provincia: visible en todas las pestañas -->
+        <!-- Provincia: visible en todas -->
         <div class="grafico-card" data-segmento="todos">
             <h2>
                 <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
@@ -94,7 +94,7 @@
             </div>
         </div>
 
-        <!-- Género: visible en todas las pestañas -->
+        <!-- Género: visible en todas -->
         <div class="grafico-card" data-segmento="todos">
             <h2>
                 <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -106,7 +106,7 @@
             </div>
         </div>
 
-        <!-- Principal actividad: visible en todas las pestañas -->
+        <!-- Principal actividad: visible en todas -->
         <div class="grafico-card grafico-ancho" data-segmento="todos">
             <h2>
                 <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-7 7c0 3 2 4 2 6a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2c0-2 2-3 2-6a7 7 0 0 0-7-7z"></path><circle cx="9.5" cy="8.5" r="1"></circle><circle cx="14.5" cy="8.5" r="1"></circle><circle cx="12" cy="12" r="1"></circle><path d="M9 21h6"></path></svg>
@@ -119,31 +119,33 @@
             <div class="dona-total" id="donaTotalActividad"></div>
         </div>
 
-        <!-- Graduados: Año de graduación (solo visible en pestaña Graduados) -->
+        <!-- Graduados: Año de graduación (visible en Todos y Graduados) -->
         <div class="grafico-card" data-segmento="graduados">
             <h2>
                 <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                 Año de graduación
                 <span class="grafico-n" id="nAnioGraduacion"></span>
+                <span class="badge-segmento">Solo graduados UArtes</span>
             </h2>
             <div class="lienzo">
                 <canvas id="graficoAnioGraduacion"></canvas>
             </div>
         </div>
 
-        <!-- Graduados: Título obtenido (solo visible en pestaña Graduados) -->
+        <!-- Graduados: Título obtenido (visible en Todos y Graduados) -->
         <div class="grafico-card grafico-ancho" data-segmento="graduados">
             <h2>
                 <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9 12 4l10 5-10 5-10-5z"></path><path d="M6 11.5V17c0 1.5 2.7 3 6 3s6-1.5 6-3v-5.5"></path></svg>
                 Título obtenido
                 <span class="grafico-n" id="nTitulo"></span>
+                <span class="badge-segmento">Solo graduados UArtes</span>
             </h2>
             <div class="lienzo lienzo-titulo">
                 <canvas id="graficoTitulo"></canvas>
             </div>
         </div>
 
-        <!-- Medio de encuesta: siempre visible, pero con datos según filtro -->
+        <!-- Medio de encuesta: visible en todas, datos según filtro -->
         <div class="grafico-card grafico-ancho" data-segmento="todos">
             <h2>
                 <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
