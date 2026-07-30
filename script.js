@@ -13,10 +13,6 @@ let VALOR_SI = "1";
 let filtroActual = "todos"; // 'todos' | 'trabajadores' | 'graduados'
 let ultimosDatosCargados = null;
 
-// Por debajo de este número de respuestas, un gráfico marca la
-// muestra como "baja" (un % basado en muy pocos casos puede engañar).
-const UMBRAL_MUESTRA_MINIMA = 5;
-
 // Cada cuánto se refresca solo el tablero (milisegundos).
 const INTERVALO_AUTOREFRESCO = 3 * 60 * 1000;
 
@@ -408,8 +404,7 @@ let chartSituacion = null;
 function mostrarN(id, n) {
     const el = document.getElementById(id);
     if (!el) return;
-    el.textContent = n < UMBRAL_MUESTRA_MINIMA ? `n = ${n} · muestra baja` : `n = ${n}`;
-    el.classList.toggle("muestra-baja", n < UMBRAL_MUESTRA_MINIMA);
+    el.textContent = `n = ${n}`;
 }
 
 function generarGraficoSituacion(trabajadores) {
