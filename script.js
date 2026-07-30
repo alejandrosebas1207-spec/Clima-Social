@@ -207,24 +207,37 @@ function renderizarTodo() {
     const { trabajadores, graduados, todos } = ultimosDatosCargados;
     const metaTotal = META_TRABAJADORES + META_GRADUADOS;
 
-    // --- KPIs ---
+    // --- KPIs fijos (totales) ---
     animarNumero("kpiTotal", todos.length);
     animarNumero("kpiTrabajadores", trabajadores.length);
     animarNumero("kpiGraduados", graduados.length);
 
-    const avance = metaTotal > 0 ? ((todos.length / metaTotal) * 100).toFixed(1) : 0;
+    // --- Avance general según filtro ---
+    let metaSegmento;
+    let totalSegmento;
+    if (filtroActual === "todos") {
+        metaSegmento = metaTotal;
+        totalSegmento = todos.length;
+    } else if (filtroActual === "trabajadores") {
+        metaSegmento = META_TRABAJADORES;
+        totalSegmento = trabajadores.length;
+    } else if (filtroActual === "graduados") {
+        metaSegmento = META_GRADUADOS;
+        totalSegmento = graduados.length;
+    }
+    const avance = metaSegmento > 0 ? ((totalSegmento / metaSegmento) * 100).toFixed(1) : 0;
     animarNumero("kpiAvance", Number(avance), "%");
-    document.getElementById("kpiMeta").textContent = `${todos.length} de ${metaTotal}`;
+    document.getElementById("kpiMeta").textContent = `${totalSegmento} de ${metaSegmento}`;
 
+    // --- Duración promedio (siempre sobre todos) ---
     const duracionProm = calcularDuracionPromedio(todos);
     document.getElementById("kpiDuracion").textContent =
         duracionProm !== null ? formatearDuracion(duracionProm) : "--";
 
-    // --- Visibilidad por segmento (solo para gráficos exclusivos) ---
+    // --- Visibilidad de gráficos exclusivos de graduados ---
     document.querySelectorAll('[data-segmento="graduados"]').forEach(el => {
         el.classList.toggle("oculto", filtroActual === "trabajadores");
     });
-    // Los gráficos con data-segmento="todos" siempre visibles
 
     // --- Elegir conjunto de datos según filtro ---
     let conjunto;
@@ -234,7 +247,7 @@ function renderizarTodo() {
 
     // --- Gráficos siempre visibles (Provincia, Género, Actividad, Medio, Avance) ---
     generarGraficoAvanceDia(trabajadores, graduados); // siempre con ambos segmentos
-    generarGraficoMedio(todos); // siempre con todos (el medio es común)
+    generarGraficoMedio(conjunto); // ahora pasa el conjunto filtrado
     generarGraficoProvincia(conjunto);
     generarGraficoGenero(conjunto);
     generarGraficoActividad(conjunto);
@@ -247,7 +260,6 @@ function renderizarTodo() {
         // Si estamos en trabajadores, ocultamos o destruimos los gráficos de graduados
         if (chartAnioGraduacion) { chartAnioGraduacion.destroy(); chartAnioGraduacion = null; }
         if (chartTitulo) { chartTitulo.destroy(); chartTitulo = null; }
-        // Limpiar los contadores n
         mostrarN("nAnioGraduacion", 0);
         mostrarN("nTitulo", 0);
     }
@@ -894,10 +906,10 @@ function generarGraficoTitulo(graduados) {
 
 let chartMedio = null;
 
-function generarGraficoMedio(todos) {
+function generarGraficoMedio(encuestas) {
     const conteo = {};
     let respondio = 0;
-    todos.forEach(e => {
+    encuestas.forEach(e => {
         const valor = campo(e, "monitoreo");
         if (!valor || !MAPA_MEDIO[valor]) return;
         respondio++;
