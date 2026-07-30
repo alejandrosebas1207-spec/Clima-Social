@@ -27,9 +27,19 @@ function cssVar(nombre) {
 // ==========================================
 
 function campo(encuesta, nombreCorto) {
+    // Búsqueda directa
     if (encuesta[nombreCorto] !== undefined) return encuesta[nombreCorto];
-    const clave = Object.keys(encuesta).find(k => k.endsWith("/" + nombreCorto));
-    return clave ? encuesta[clave] : undefined;
+    // Búsqueda con prefijo de grupo (ej: "group_nt2up78/grad")
+    const clavePrefijo = Object.keys(encuesta).find(k => k.endsWith("/" + nombreCorto));
+    if (clavePrefijo) return encuesta[clavePrefijo];
+    // Búsqueda recursiva en objetos anidados
+    for (let key in encuesta) {
+        if (typeof encuesta[key] === 'object' && encuesta[key] !== null) {
+            const val = campo(encuesta[key], nombreCorto);
+            if (val !== undefined) return val;
+        }
+    }
+    return undefined;
 }
 
 // ==========================================
@@ -175,18 +185,12 @@ obtenerDatos();
 function procesarDatos(datos) {
     ultimosDatosCargados = datos;
 
-    // DISJUNTO: una encuesta es de trabajadores O de graduados, no ambas.
-    // El campo 'grad' (cd9gj53) es el discriminador:
-    //   1 = Soy graduado de la UArtes  → ruta graduados
-    //   2 = No soy graduado de la UArtes → ruta trabajadores
-    const graduados = datos.resultados.filter(e =>
-        campo(e, "grad") === "1" && campo(e, "consentuartes") === VALOR_SI
-    );
-    const trabajadores = datos.resultados.filter(e =>
-        campo(e, "grad") === "2" && campo(e, "consent") === VALOR_SI
-    );
+    // Filtros con búsqueda robusta
+    const esGraduado = e => campo(e, "grad") === "1" && campo(e, "consentuartes") === VALOR_SI;
+    const esTrabajador = e => campo(e, "grad") === "2" && campo(e, "consent") === VALOR_SI;
 
-    // Registros que no califican (sin 'grad', o sin consentimiento) se descartan.
+    const graduados = datos.resultados.filter(esGraduado);
+    const trabajadores = datos.resultados.filter(esTrabajador);
     const todos = [...trabajadores, ...graduados];
 
     ultimosDatosCargados.trabajadores = trabajadores;
@@ -228,7 +232,7 @@ function renderizarTodo() {
     });
 
     // --- Gráficos ---
-    generarGraficoAvanceDia(todos);
+    generarGraficoAvanceDia(trabajadores, graduados);
     generarGraficoMedio(todos);
 
     if (filtroActual !== "graduados") {
@@ -357,77 +361,126 @@ const pluginEtiquetaPorcentaje = {
 };
 
 // ==========================================
-// GRÁFICO: AVANCE POR DÍA (línea de área)
+// NUEVO GRÁFICO: AVANCE POR DÍA (barras agrupadas + línea acumulada)
 // ==========================================
 
 let chartAvanceDia = null;
 
-function generarGraficoAvanceDia(todos) {
-    const conteoPorDia = {};
+function generarGraficoAvanceDia(trabajadores, graduados) {
+    // Agrupar por día
+    const diasMap = {};
+    const todos = [...trabajadores, ...graduados];
     todos.forEach(e => {
         const dia = obtenerFechaDia(e);
         if (!dia) return;
-        conteoPorDia[dia] = (conteoPorDia[dia] || 0) + 1;
+        if (!diasMap[dia]) diasMap[dia] = { trabajadores: 0, graduados: 0 };
+        // Determinar si es trabajador o graduado (según el filtro original)
+        // Usamos el mismo criterio: si está en trabajadores o graduados
+        if (trabajadores.includes(e)) diasMap[dia].trabajadores++;
+        else if (graduados.includes(e)) diasMap[dia].graduados++;
     });
 
-    const dias = Object.keys(conteoPorDia).sort();
+    const dias = Object.keys(diasMap).sort();
     if (dias.length === 0) {
         if (chartAvanceDia) { chartAvanceDia.destroy(); chartAvanceDia = null; }
         return;
     }
 
+    const trabajadoresPorDia = dias.map(d => diasMap[d].trabajadores);
+    const graduadosPorDia = dias.map(d => diasMap[d].graduados);
+    const totalPorDia = trabajadoresPorDia.map((t, i) => t + graduadosPorDia[i]);
     // Acumulado
-    const acumulado = [];
-    let suma = 0;
-    dias.forEach(d => {
-        suma += conteoPorDia[d];
-        acumulado.push(suma);
-    });
+    let acum = 0;
+    const acumulado = totalPorDia.map(v => { acum += v; return acum; });
 
     const colorTexto = esModoOscuro() ? "#b3a695" : "#75695a";
     const colorGrid = esModoOscuro() ? "#3c3226" : "#e6ded2";
-    const colorLinea = cssVar("--kimi-chart-1");
-    const colorFill = colorMix(colorLinea, esModoOscuro() ? "#28211a" : "#ffffff", 20);
+    const colorTrabajadores = cssVar("--kimi-chart-1");
+    const colorGraduados = cssVar("--kimi-chart-3");
+    const colorLinea = cssVar("--kimi-chart-2");
 
     if (chartAvanceDia) chartAvanceDia.destroy();
 
     chartAvanceDia = new Chart(document.getElementById("graficoAvanceDia"), {
-        type: "line",
+        type: "bar",
         data: {
             labels: dias.map(d => {
                 const [anio, mes, diaNum] = d.split("-");
                 return `${diaNum}/${mes}`;
             }),
-            datasets: [{
-                label: "Encuestas acumuladas",
-                data: acumulado,
-                borderColor: colorLinea,
-                backgroundColor: colorFill,
-                fill: true,
-                tension: 0.3,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                pointBackgroundColor: colorLinea,
-                borderWidth: 2
-            }]
+            datasets: [
+                {
+                    label: "Trabajadores",
+                    data: trabajadoresPorDia,
+                    backgroundColor: colorTrabajadores,
+                    borderRadius: 4,
+                    barPercentage: 0.4,
+                    categoryPercentage: 0.8,
+                    order: 2
+                },
+                {
+                    label: "Graduados",
+                    data: graduadosPorDia,
+                    backgroundColor: colorGraduados,
+                    borderRadius: 4,
+                    barPercentage: 0.4,
+                    categoryPercentage: 0.8,
+                    order: 2
+                },
+                {
+                    label: "Acumulado total",
+                    data: acumulado,
+                    type: 'line',
+                    borderColor: colorLinea,
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    pointBackgroundColor: colorLinea,
+                    tension: 0.2,
+                    fill: false,
+                    order: 1,
+                    yAxisID: 'y1'
+                }
+            ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             animation: { duration: 600, easing: "easeOutQuart" },
             plugins: {
-                legend: { display: false },
+                legend: {
+                    labels: {
+                        color: esModoOscuro() ? "#f3ede2" : "#2b241c",
+                        font: { size: 12, weight: "600" },
+                        boxWidth: 14,
+                        padding: 12
+                    }
+                },
                 tooltip: {
                     callbacks: {
-                        label: ctx => `${ctx.parsed.y} encuestas`
+                        label: ctx => {
+                            const label = ctx.dataset.label || '';
+                            const val = ctx.parsed.y;
+                            if (ctx.dataset.label === "Acumulado total") {
+                                return `${label}: ${val}`;
+                            }
+                            return `${label}: ${val} encuestas`;
+                        }
                     }
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
+                    position: 'left',
                     ticks: { color: colorTexto },
                     grid: { color: colorGrid }
+                },
+                y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    ticks: { color: colorTexto },
+                    grid: { display: false }
                 },
                 x: {
                     ticks: { color: colorTexto, maxRotation: 45, minRotation: 0 },
@@ -436,21 +489,6 @@ function generarGraficoAvanceDia(todos) {
             }
         }
     });
-}
-
-// Helper para mezclar colores (simula color-mix sin CSS)
-function colorMix(hex, bgHex, opacityPercent) {
-    const r1 = parseInt(hex.slice(1, 3), 16);
-    const g1 = parseInt(hex.slice(3, 5), 16);
-    const b1 = parseInt(hex.slice(5, 7), 16);
-    const r2 = parseInt(bgHex.slice(1, 3), 16);
-    const g2 = parseInt(bgHex.slice(3, 5), 16);
-    const b2 = parseInt(bgHex.slice(5, 7), 16);
-    const a = opacityPercent / 100;
-    const r = Math.round(r1 * a + r2 * (1 - a));
-    const g = Math.round(g1 * a + g2 * (1 - a));
-    const b = Math.round(b1 * a + b2 * (1 - a));
-    return `rgb(${r}, ${g}, ${b})`;
 }
 
 // ==========================================
@@ -471,7 +509,6 @@ function generarGraficoProvincia(trabajadores) {
 
     mostrarN("nProvincia", respondio);
 
-    // Ordenar por frecuencia descendente
     const ordenados = Object.entries(conteo)
         .sort((a, b) => b[1] - a[1])
         .map(([codigo, count]) => ({
@@ -823,7 +860,6 @@ function generarGraficoTitulo(graduados) {
 
     mostrarN("nTitulo", respondio);
 
-    // Ordenar por frecuencia descendente
     const ordenados = Object.entries(conteo)
         .sort((a, b) => b[1] - a[1])
         .map(([codigo, count]) => ({
