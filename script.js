@@ -24,6 +24,11 @@ function esModoOscuro() {
     return document.body.classList.contains("modo-oscuro");
 }
 
+// ← HELPER NUEVO: resuelve variables CSS del :root
+function cssVar(nombre) {
+    return getComputedStyle(document.body).getPropertyValue(nombre).trim();
+}
+
 // ==========================================
 // RESOLVER DE CAMPOS (Kobo anida en grupos: grupo/subgrupo/pregunta)
 // ==========================================
@@ -395,6 +400,7 @@ const pluginEtiquetaPorcentaje = {
 
 // ==========================================
 // GRÁFICO 1: SITUACIÓN LABORAL (barras horizontales)
+// ← MEJORA B: colores categóricos por barra
 // ==========================================
 
 let chartSituacion = null;
@@ -426,6 +432,14 @@ function generarGraficoSituacion(trabajadores) {
         respondio > 0 ? Number((((conteo[c] || 0) / respondio) * 100).toFixed(1)) : 0
     );
 
+    // ← MEJORA B: un color distinto por categoría
+    const coloresSituacion = [
+        cssVar("--kimi-chart-1"),
+        cssVar("--kimi-chart-2"),
+        cssVar("--kimi-chart-3"),
+        cssVar("--kimi-chart-5")
+    ];
+
     const colorTexto = esModoOscuro() ? "#b3a695" : "#75695a";
     const colorGrid = esModoOscuro() ? "#3c3226" : "#e6ded2";
 
@@ -439,7 +453,7 @@ function generarGraficoSituacion(trabajadores) {
             labels: etiquetas,
             datasets: [{
                 data: porcentajes,
-                backgroundColor: "#454a91",
+                backgroundColor: coloresSituacion,
                 borderRadius: 4,
                 barThickness: 22
             }]
@@ -480,7 +494,7 @@ function generarGraficoSituacion(trabajadores) {
 
 // ==========================================
 // GRÁFICO 2: INGRESO MENSUAL (promedio + mediana superpuesta)
-// Regla clave: nunca mostrar solo promedio — se marca también la mediana.
+// ← MEJORA A: línea de mediana negra/blanca según modo
 // ==========================================
 
 let chartIngresos = null;
@@ -509,7 +523,7 @@ const pluginEtiquetaIngresos = {
     afterDatasetsDraw(chart) {
 
         const { ctx } = chart;
-        const metaBarra = chart.getDatasetMeta(0);
+        const metaBarra = chart.getDatasetMeta(0); // dataset 0 = barras
 
         ctx.save();
         ctx.textAlign = "center";
@@ -537,6 +551,7 @@ function generarGraficoIngresos(trabajadores) {
 
     const colorTexto = esModoOscuro() ? "#b3a695" : "#75695a";
     const colorGrid = esModoOscuro() ? "#3c3226" : "#e6ded2";
+    const colorMediana = esModoOscuro() ? "#f3ede2" : "#2b241c";
 
     if (chartIngresos) chartIngresos.destroy();
 
@@ -551,9 +566,24 @@ function generarGraficoIngresos(trabajadores) {
                     type: "bar",
                     label: "Promedio",
                     data: [principal.promedio, secundaria.promedio, noCultural.promedio],
-                    backgroundColor: "#454a91",
+                    backgroundColor: cssVar("--kimi-chart-1"),
                     borderRadius: 4,
-                    barThickness: 46
+                    barThickness: 46,
+                    order: 2
+                },
+                // ← MEJORA A: línea de mediana superpuesta
+                {
+                    type: "line",
+                    label: "Mediana",
+                    data: [principal.mediana, secundaria.mediana, noCultural.mediana],
+                    borderColor: colorMediana,
+                    backgroundColor: colorMediana,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: colorMediana,
+                    borderWidth: 2,
+                    tension: 0,
+                    order: 1
                 }
             ]
         },
@@ -589,6 +619,8 @@ function generarGraficoIngresos(trabajadores) {
 
 // ==========================================
 // GRÁFICO 3: ACTIVIDAD CULTURAL PRINCIPAL (dona, leyenda lateral)
+// ← FIX: color de leyenda en modo oscuro
+// ← MEJORA D: muestra n = X
 // ==========================================
 
 let chartActividad = null;
@@ -608,7 +640,7 @@ function generarGraficoActividad(trabajadores) {
     const valores = etiquetas.map(cat => conteo[cat]);
     const colores = etiquetas.map(cat => {
         const varName = COLORES_ACTIVIDAD[cat];
-        return varName.startsWith("var(") ? getComputedStyle(document.body).getPropertyValue(varName.slice(4, -1)).trim() : varName;
+        return varName.startsWith("var(") ? cssVar(varName.slice(4, -1)) : varName;
     });
 
     const colorTexto = esModoOscuro() ? "#b3a695" : "#75695a";
@@ -619,6 +651,9 @@ function generarGraficoActividad(trabajadores) {
     if (etiquetas.length === 0) return;
 
     const totalGeneral = valores.reduce((a, b) => a + b, 0);
+
+    // ← MEJORA D: muestra el tamaño de muestra
+    mostrarN("nActividad", totalGeneral);
 
     document.getElementById("donaTotalActividad").innerHTML =
         `<strong>${totalGeneral}</strong> respuestas registradas`;
@@ -671,7 +706,7 @@ function generarGraficoActividad(trabajadores) {
                         font: { size: 13, weight: "600" },
                         boxWidth: 14,
                         padding: 14,
-                        // Etiqueta con conteo y % directamente visibles, sin necesitar hover.
+                        // ← FIX: se agrega color explícito por etiqueta para modo oscuro
                         generateLabels(chart) {
                             const data = chart.data;
                             const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
@@ -682,6 +717,7 @@ function generarGraficoActividad(trabajadores) {
                                     text: `${label} · ${valor} (${pct}%)`,
                                     fillStyle: data.datasets[0].backgroundColor[i],
                                     strokeStyle: data.datasets[0].backgroundColor[i],
+                                    color: colorTextoPrincipal,  // ← FIX
                                     index: i
                                 };
                             });
@@ -735,7 +771,7 @@ function generarGaugesInseguridad(trabajadores) {
 
         const colorVar = COLOR_IMPACTO[codigo];
         const colorResuelto = colorVar.startsWith("var(")
-            ? getComputedStyle(document.body).getPropertyValue(colorVar.slice(4, -1)).trim()
+            ? cssVar(colorVar.slice(4, -1))
             : colorVar;
 
         const item = document.createElement("div");
@@ -745,13 +781,19 @@ function generarGaugesInseguridad(trabajadores) {
             <svg class="gauge-svg" viewBox="0 0 120 70">
                 <path class="gauge-arco-fondo" d="M 10 60 A 50 50 0 0 1 110 60"></path>
                 <path class="gauge-arco-valor" d="M 10 60 A 50 50 0 0 1 110 60"
-                      style="stroke:${colorResuelto}; stroke-dasharray:${longitudArco}; stroke-dashoffset:${offset};"></path>
+                      style="stroke:${colorResuelto}; stroke-dasharray:${longitudArco}; stroke-dashoffset:${longitudArco};"></path>
                 <text class="gauge-porcentaje" x="60" y="58" text-anchor="middle">${porcentaje.toFixed(0)}%</text>
             </svg>
             <span class="gauge-etiqueta">${MAPA_IMPACTO[codigo]}</span>
         `;
 
         contenedor.appendChild(item);
+
+        // Forzar reflow para que la transición CSS se dispare
+        requestAnimationFrame(() => {
+            const arco = item.querySelector(".gauge-arco-valor");
+            if (arco) arco.style.strokeDashoffset = offset;
+        });
 
     });
 
@@ -795,7 +837,7 @@ function generarGraficoSatisfaccion(graduados) {
             labels: etiquetas,
             datasets: [{
                 data: porcentajes,
-                backgroundColor: "#2f6b45",
+                backgroundColor: cssVar("--kimi-chart-3"),
                 borderRadius: 4,
                 barThickness: 18
             }]
@@ -869,7 +911,7 @@ function generarGraficoRecomendaria(graduados) {
             labels: ["Sí", "No"],
             datasets: [{
                 data: [porcentajeSi, porcentajeNo],
-                backgroundColor: ["#2f6b45", "#b23a2e"],
+                backgroundColor: [cssVar("--kimi-chart-3"), cssVar("--kimi-chart-2")],
                 borderRadius: 4,
                 barThickness: 26
             }]

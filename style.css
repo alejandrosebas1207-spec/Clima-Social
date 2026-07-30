@@ -294,6 +294,21 @@ body{
 
 }
 
+/* ← MEJORA C: estilos del delta */
+.kpi-delta{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-top:8px;
+    font-size:13px;
+    font-weight:500;
+    color:var(--kimi-chart-3);
+}
+
+.kpi-delta svg{
+    color:var(--kimi-chart-3);
+}
+
 .ultima-actualizacion{
 
     font-size:12px;
@@ -455,7 +470,7 @@ body{
     fill:none;
     stroke-width:12;
     stroke-linecap:round;
-    transition:stroke-dashoffset .6s ease-out;
+    transition:stroke-dashoffset .8s ease-out;  /* ← MEJORA E: animación más suave */
 
 }
 
