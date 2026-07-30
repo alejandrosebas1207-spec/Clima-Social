@@ -27,12 +27,9 @@ function cssVar(nombre) {
 // ==========================================
 
 function campo(encuesta, nombreCorto) {
-    // Búsqueda directa
     if (encuesta[nombreCorto] !== undefined) return encuesta[nombreCorto];
-    // Búsqueda con prefijo de grupo (ej: "group_nt2up78/grad")
     const clavePrefijo = Object.keys(encuesta).find(k => k.endsWith("/" + nombreCorto));
     if (clavePrefijo) return encuesta[clavePrefijo];
-    // Búsqueda recursiva en objetos anidados
     for (let key in encuesta) {
         if (typeof encuesta[key] === 'object' && encuesta[key] !== null) {
             const val = campo(encuesta[key], nombreCorto);
@@ -185,7 +182,6 @@ obtenerDatos();
 function procesarDatos(datos) {
     ultimosDatosCargados = datos;
 
-    // Filtros con búsqueda robusta
     const esGraduado = e => campo(e, "grad") === "1" && campo(e, "consentuartes") === VALOR_SI;
     const esTrabajador = e => campo(e, "grad") === "2" && campo(e, "consent") === VALOR_SI;
 
@@ -235,12 +231,16 @@ function renderizarTodo() {
     generarGraficoAvanceDia(trabajadores, graduados);
     generarGraficoMedio(todos);
 
+    // Gráficos de trabajadores (provincia, género, actividad)
+    // Si estamos en "todos", mostramos todos los datos; si en "trabajadores", solo trabajadores
     if (filtroActual !== "graduados") {
-        generarGraficoProvincia(trabajadores);
-        generarGraficoGenero(trabajadores);
-        generarGraficoActividad(trabajadores);
+        const dataSource = filtroActual === "todos" ? todos : trabajadores;
+        generarGraficoProvincia(dataSource);
+        generarGraficoGenero(dataSource);
+        generarGraficoActividad(dataSource);
     }
 
+    // Gráficos de graduados (año, título)
     if (filtroActual !== "trabajadores") {
         generarGraficoAnioGraduacion(graduados);
         generarGraficoTitulo(graduados);
@@ -361,21 +361,18 @@ const pluginEtiquetaPorcentaje = {
 };
 
 // ==========================================
-// NUEVO GRÁFICO: AVANCE POR DÍA (barras agrupadas + línea acumulada)
+// GRÁFICO: AVANCE POR DÍA (barras agrupadas + línea acumulada)
 // ==========================================
 
 let chartAvanceDia = null;
 
 function generarGraficoAvanceDia(trabajadores, graduados) {
-    // Agrupar por día
     const diasMap = {};
     const todos = [...trabajadores, ...graduados];
     todos.forEach(e => {
         const dia = obtenerFechaDia(e);
         if (!dia) return;
         if (!diasMap[dia]) diasMap[dia] = { trabajadores: 0, graduados: 0 };
-        // Determinar si es trabajador o graduado (según el filtro original)
-        // Usamos el mismo criterio: si está en trabajadores o graduados
         if (trabajadores.includes(e)) diasMap[dia].trabajadores++;
         else if (graduados.includes(e)) diasMap[dia].graduados++;
     });
@@ -389,7 +386,6 @@ function generarGraficoAvanceDia(trabajadores, graduados) {
     const trabajadoresPorDia = dias.map(d => diasMap[d].trabajadores);
     const graduadosPorDia = dias.map(d => diasMap[d].graduados);
     const totalPorDia = trabajadoresPorDia.map((t, i) => t + graduadosPorDia[i]);
-    // Acumulado
     let acum = 0;
     const acumulado = totalPorDia.map(v => { acum += v; return acum; });
 
@@ -497,10 +493,10 @@ function generarGraficoAvanceDia(trabajadores, graduados) {
 
 let chartProvincia = null;
 
-function generarGraficoProvincia(trabajadores) {
+function generarGraficoProvincia(encuestas) {
     const conteo = {};
     let respondio = 0;
-    trabajadores.forEach(e => {
+    encuestas.forEach(e => {
         const valor = campo(e, "provincia");
         if (!valor || !MAPA_PROVINCIA[valor]) return;
         respondio++;
@@ -571,10 +567,10 @@ function generarGraficoProvincia(trabajadores) {
 
 let chartGenero = null;
 
-function generarGraficoGenero(trabajadores) {
+function generarGraficoGenero(encuestas) {
     const conteo = {};
     let respondio = 0;
-    trabajadores.forEach(e => {
+    encuestas.forEach(e => {
         const valor = campo(e, "p5");
         if (!valor || !MAPA_GENERO[valor]) return;
         respondio++;
@@ -670,9 +666,9 @@ function generarGraficoGenero(trabajadores) {
 
 let chartActividad = null;
 
-function generarGraficoActividad(trabajadores) {
+function generarGraficoActividad(encuestas) {
     const conteo = {};
-    trabajadores.forEach(e => {
+    encuestas.forEach(e => {
         const valor = campo(e, "p13");
         if (!valor) return;
         const bucket = MAPA_ACTIVIDAD_BUCKET[valor] || "Otras";
