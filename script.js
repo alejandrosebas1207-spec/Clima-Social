@@ -75,8 +75,8 @@ const COLORES_ACTIVIDAD = {
     "Visuales": "var(--kimi-chart-4)",
     "Escénicas": "var(--kimi-chart-2)",
     "Gestión cultural": "var(--kimi-chart-3)",
-    "Audiovisual": "#e0a326",
-    "Literatura": "#3aa6a6",
+    "Audiovisual": "#8a4b6b",
+    "Literatura": "var(--kimi-chart-6)",
     "Otras": "var(--kimi-chart-5)"
 };
 
@@ -338,7 +338,7 @@ const pluginEtiquetaPorcentaje = {
 
         ctx.save();
         ctx.font = "600 12px " + getComputedStyle(document.body).fontFamily;
-        ctx.fillStyle = esModoOscuro() ? "#f1f2f4" : "#1a1d21";
+        ctx.fillStyle = esModoOscuro() ? "#f3ede2" : "#2b241c";
         ctx.textBaseline = "middle";
 
         meta.data.forEach((barra, i) => {
@@ -376,8 +376,8 @@ function generarGraficoSituacion(trabajadores) {
         respondio > 0 ? Number((((conteo[c] || 0) / respondio) * 100).toFixed(1)) : 0
     );
 
-    const colorTexto = esModoOscuro() ? "#9aa0aa" : "#6b7280";
-    const colorGrid = esModoOscuro() ? "#2b2f37" : "#e4e6ea";
+    const colorTexto = esModoOscuro() ? "#b3a695" : "#75695a";
+    const colorGrid = esModoOscuro() ? "#3c3226" : "#e6ded2";
 
     if (chartSituacion) chartSituacion.destroy();
 
@@ -389,7 +389,7 @@ function generarGraficoSituacion(trabajadores) {
             labels: etiquetas,
             datasets: [{
                 data: porcentajes,
-                backgroundColor: "#2f6fed",
+                backgroundColor: "#454a91",
                 borderRadius: 4,
                 barThickness: 22
             }]
@@ -452,18 +452,54 @@ function promedioYMediana(valores) {
 
 }
 
+// Muestra el $ de cada barra (promedio) y de cada marcador (mediana)
+// directamente sobre el gráfico, sin necesitar pasar el cursor.
+const pluginEtiquetaIngresos = {
+    id: "etiquetaIngresos",
+    afterDatasetsDraw(chart) {
+
+        const { ctx } = chart;
+        const metaBarra = chart.getDatasetMeta(0);
+        const metaLinea = chart.getDatasetMeta(1);
+
+        ctx.save();
+        ctx.textAlign = "center";
+
+        ctx.font = "600 12px " + getComputedStyle(document.body).fontFamily;
+        ctx.fillStyle = esModoOscuro() ? "#f3ede2" : "#2b241c";
+
+        metaBarra.data.forEach((barra, i) => {
+            const valor = chart.data.datasets[0].data[i];
+            ctx.fillText("$" + Math.round(valor), barra.x, barra.y - 8);
+        });
+
+        ctx.font = "600 11px " + getComputedStyle(document.body).fontFamily;
+        ctx.fillStyle = "#c9862e";
+
+        metaLinea.data.forEach((punto, i) => {
+            const valor = chart.data.datasets[1].data[i];
+            ctx.fillText("Mediana $" + Math.round(valor), punto.x, punto.y - 15);
+        });
+
+        ctx.restore();
+
+    }
+};
+
 function generarGraficoIngresos(trabajadores) {
 
     const principal = promedioYMediana(trabajadores.map(e => Number(campo(e, "p20"))));
     const secundaria = promedioYMediana(trabajadores.map(e => Number(campo(e, "p29"))));
     const noCultural = promedioYMediana(trabajadores.map(e => Number(campo(e, "p32"))));
 
-    const colorTexto = esModoOscuro() ? "#9aa0aa" : "#6b7280";
-    const colorGrid = esModoOscuro() ? "#2b2f37" : "#e4e6ea";
+    const colorTexto = esModoOscuro() ? "#b3a695" : "#75695a";
+    const colorGrid = esModoOscuro() ? "#3c3226" : "#e6ded2";
 
     if (chartIngresos) chartIngresos.destroy();
 
     chartIngresos = new Chart(document.getElementById("graficoIngresos"), {
+
+        plugins: [pluginEtiquetaIngresos],
 
         data: {
             labels: ["Principal", "Secundaria", "No cultural"],
@@ -472,7 +508,7 @@ function generarGraficoIngresos(trabajadores) {
                     type: "bar",
                     label: "Promedio",
                     data: [principal.promedio, secundaria.promedio, noCultural.promedio],
-                    backgroundColor: "#2f6fed",
+                    backgroundColor: "#454a91",
                     borderRadius: 4,
                     barThickness: 46
                 },
@@ -484,8 +520,8 @@ function generarGraficoIngresos(trabajadores) {
                     pointStyle: "line",
                     pointRadius: 22,
                     pointBorderWidth: 3,
-                    borderColor: esModoOscuro() ? "#f1f2f4" : "#1a1d21",
-                    backgroundColor: esModoOscuro() ? "#f1f2f4" : "#1a1d21"
+                    borderColor: esModoOscuro() ? "#f3ede2" : "#2b241c",
+                    backgroundColor: esModoOscuro() ? "#f3ede2" : "#2b241c"
                 }
             ]
         },
@@ -546,22 +582,49 @@ function generarGraficoActividad(trabajadores) {
         return varName.startsWith("var(") ? getComputedStyle(document.body).getPropertyValue(varName.slice(4, -1)).trim() : varName;
     });
 
-    const colorTexto = esModoOscuro() ? "#9aa0aa" : "#6b7280";
+    const colorTexto = esModoOscuro() ? "#b3a695" : "#75695a";
+    const colorTextoPrincipal = esModoOscuro() ? "#f3ede2" : "#2b241c";
 
     if (chartActividad) chartActividad.destroy();
 
     if (etiquetas.length === 0) return;
 
+    const totalGeneral = valores.reduce((a, b) => a + b, 0);
+
+    document.getElementById("donaTotalActividad").innerHTML =
+        `<strong>${totalGeneral}</strong> respuestas registradas`;
+
+    const textoCentralDona = {
+        id: "textoCentralDona",
+        beforeDraw(chart) {
+            const { ctx, chartArea: { width, height, left, top } } = chart;
+            const centroX = left + width / 2;
+            const centroY = top + height / 2;
+
+            ctx.save();
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.font = "600 26px " + getComputedStyle(document.body).fontFamily;
+            ctx.fillStyle = colorTextoPrincipal;
+            ctx.fillText(totalGeneral, centroX, centroY - 8);
+            ctx.font = "500 12px " + getComputedStyle(document.body).fontFamily;
+            ctx.fillStyle = colorTexto;
+            ctx.fillText("respuestas", centroX, centroY + 12);
+            ctx.restore();
+        }
+    };
+
     chartActividad = new Chart(document.getElementById("graficoActividad"), {
 
         type: "doughnut",
+        plugins: [textoCentralDona],
 
         data: {
             labels: etiquetas,
             datasets: [{
                 data: valores,
                 backgroundColor: colores,
-                borderColor: esModoOscuro() ? "#1b1e24" : "#ffffff",
+                borderColor: esModoOscuro() ? "#28211a" : "#ffffff",
                 borderWidth: 2
             }]
         },
@@ -578,7 +641,22 @@ function generarGraficoActividad(trabajadores) {
                         color: colorTexto,
                         font: { size: 13 },
                         boxWidth: 14,
-                        padding: 14
+                        padding: 14,
+                        // Etiqueta con conteo y % directamente visibles, sin necesitar hover.
+                        generateLabels(chart) {
+                            const data = chart.data;
+                            const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                            return data.labels.map((label, i) => {
+                                const valor = data.datasets[0].data[i];
+                                const pct = ((valor / total) * 100).toFixed(0);
+                                return {
+                                    text: `${label} · ${valor} (${pct}%)`,
+                                    fillStyle: data.datasets[0].backgroundColor[i],
+                                    strokeStyle: data.datasets[0].backgroundColor[i],
+                                    index: i
+                                };
+                            });
+                        }
                     }
                 },
                 tooltip: {
@@ -671,8 +749,8 @@ function generarGraficoSatisfaccion(graduados) {
         respondio > 0 ? Number((((conteo[c] || 0) / respondio) * 100).toFixed(1)) : 0
     );
 
-    const colorTexto = esModoOscuro() ? "#9aa0aa" : "#6b7280";
-    const colorGrid = esModoOscuro() ? "#2b2f37" : "#e4e6ea";
+    const colorTexto = esModoOscuro() ? "#b3a695" : "#75695a";
+    const colorGrid = esModoOscuro() ? "#3c3226" : "#e6ded2";
 
     if (chartSatisfaccion) chartSatisfaccion.destroy();
 
@@ -684,7 +762,7 @@ function generarGraficoSatisfaccion(graduados) {
             labels: etiquetas,
             datasets: [{
                 data: porcentajes,
-                backgroundColor: "#2f9e5b",
+                backgroundColor: "#2f6b45",
                 borderRadius: 4,
                 barThickness: 18
             }]
@@ -743,8 +821,8 @@ function generarGraficoRecomendaria(graduados) {
     const porcentajeSi = respondio > 0 ? Number(((siCount / respondio) * 100).toFixed(1)) : 0;
     const porcentajeNo = respondio > 0 ? Number(((noCount / respondio) * 100).toFixed(1)) : 0;
 
-    const colorTexto = esModoOscuro() ? "#9aa0aa" : "#6b7280";
-    const colorGrid = esModoOscuro() ? "#2b2f37" : "#e4e6ea";
+    const colorTexto = esModoOscuro() ? "#b3a695" : "#75695a";
+    const colorGrid = esModoOscuro() ? "#3c3226" : "#e6ded2";
 
     if (chartRecomendaria) chartRecomendaria.destroy();
 
@@ -756,7 +834,7 @@ function generarGraficoRecomendaria(graduados) {
             labels: ["Sí", "No"],
             datasets: [{
                 data: [porcentajeSi, porcentajeNo],
-                backgroundColor: ["#2f9e5b", "#d64550"],
+                backgroundColor: ["#2f6b45", "#b23a2e"],
                 borderRadius: 4,
                 barThickness: 26
             }]

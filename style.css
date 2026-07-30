@@ -1,21 +1,24 @@
 /* ==========================================
-   SISTEMA DE DISEÑO — tokens "Kimi"
-   Superficies planas, sin gradientes ni sombras pesadas.
+   SISTEMA DE DISEÑO
+   Paleta inspirada en la cultura ecuatoriana: índigo textil,
+   ocre andino, terracota cerámica, verde amazónico.
+   Superficies planas, sin gradientes pesados ni glassmorphism.
 ========================================== */
 
 :root{
 
-    --kimi-chart-1:#2f6fed; /* azul — datos principales / remuneración */
-    --kimi-chart-2:#d64550; /* rojo — alertas / inseguridad */
-    --kimi-chart-3:#2f9e5b; /* verde — indicadores positivos / satisfacción */
-    --kimi-chart-4:#7c5cd6; /* púrpura — secundarios */
-    --kimi-chart-5:#8a8f98; /* gris — otros / neutro */
+    --kimi-chart-1:#454a91; /* índigo textil — datos principales / remuneración */
+    --kimi-chart-2:#b23a2e; /* terracota cerámica — alertas / inseguridad */
+    --kimi-chart-3:#2f6b45; /* verde amazónico — indicadores positivos / satisfacción */
+    --kimi-chart-4:#c9862e; /* ocre andino — secundarios */
+    --kimi-chart-5:#8c7a67; /* tierra cálida — otros / neutro */
+    --kimi-chart-6:#3a8f8f; /* verde-azul lagunas andinas — apoyo */
 
-    --kimi-color-border:#e4e6ea;
-    --kimi-bg:#f7f8fa;
+    --kimi-color-border:#e6ded2;
+    --kimi-bg:#faf6ef;
     --kimi-bg-card:#ffffff;
-    --kimi-text:#1a1d21;
-    --kimi-text-soft:#6b7280;
+    --kimi-text:#2b241c;
+    --kimi-text-soft:#75695a;
 
     --kimi-font:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
@@ -23,11 +26,11 @@
 
 body.modo-oscuro{
 
-    --kimi-bg:#111318;
-    --kimi-bg-card:#1b1e24;
-    --kimi-color-border:#2b2f37;
-    --kimi-text:#f1f2f4;
-    --kimi-text-soft:#9aa0aa;
+    --kimi-bg:#1c1712;
+    --kimi-bg-card:#28211a;
+    --kimi-color-border:#3c3226;
+    --kimi-text:#f3ede2;
+    --kimi-text-soft:#b3a695;
 
 }
 
@@ -36,13 +39,37 @@ body.modo-oscuro{
     padding:0;
     box-sizing:border-box;
     font-family:var(--kimi-font);
+    -webkit-tap-highlight-color:transparent;
+}
+
+html{
+
+    -webkit-text-size-adjust:100%;
+
 }
 
 body{
 
     background:var(--kimi-bg);
     color:var(--kimi-text);
+    font-size:15px;
     transition:background .3s ease, color .3s ease;
+
+}
+
+/* ======== FRANJA TEXTIL (detalle gráfico, único momento decorativo) ======== */
+
+.franja-textil{
+
+    height:6px;
+    width:100%;
+    background:repeating-linear-gradient(
+        -45deg,
+        var(--kimi-chart-1) 0 10px,
+        var(--kimi-chart-4) 10px 20px,
+        var(--kimi-chart-2) 20px 30px,
+        var(--kimi-chart-3) 30px 40px
+    );
 
 }
 
@@ -52,7 +79,7 @@ body{
 
     background:var(--kimi-bg-card);
     border-bottom:1px solid var(--kimi-color-border);
-    padding:14px 24px;
+    padding:14px 20px;
     display:flex;
     align-items:center;
     justify-content:space-between;
@@ -71,9 +98,10 @@ body{
 
 .cabecera-logo{
 
-    height:36px;
+    height:38px;
     width:auto;
     display:block;
+    flex-shrink:0;
 
 }
 
@@ -87,15 +115,16 @@ body{
 
 .cabecera-titulo h1{
 
-    font-size:20px;
+    font-size:19px;
     font-weight:500;
     color:var(--kimi-text);
+    line-height:1.25;
 
 }
 
 .cabecera-sub{
 
-    font-size:12px;
+    font-size:13px;
     font-weight:400;
     color:var(--kimi-text-soft);
 
@@ -105,7 +134,7 @@ body{
 
     display:flex;
     align-items:center;
-    gap:14px;
+    gap:12px;
     flex-wrap:wrap;
 
 }
@@ -120,21 +149,28 @@ body{
     border:1px solid var(--kimi-color-border);
     border-radius:10px;
     padding:3px;
+    max-width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
 
 }
+
+.tabs::-webkit-scrollbar{ display:none; }
 
 .tab{
 
     border:none;
     background:transparent;
     color:var(--kimi-text-soft);
-    font-size:13px;
+    font-size:14px;
     font-weight:500;
-    padding:7px 14px;
+    padding:9px 16px;
     border-radius:8px;
     cursor:pointer;
     transition:background .3s ease-out, color .3s ease-out;
     white-space:nowrap;
+    flex-shrink:0;
 
 }
 
@@ -155,7 +191,7 @@ body{
 .reloj{
 
     font-variant-numeric:tabular-nums;
-    font-size:13px;
+    font-size:14px;
     font-weight:500;
     color:var(--kimi-text-soft);
     white-space:nowrap;
@@ -167,10 +203,10 @@ body{
     background:transparent;
     border:1px solid var(--kimi-color-border);
     color:var(--kimi-text);
-    width:34px;
-    height:34px;
+    width:36px;
+    height:36px;
     border-radius:8px;
-    font-size:15px;
+    font-size:16px;
     cursor:pointer;
     flex-shrink:0;
     transition:background .2s ease;
@@ -187,9 +223,9 @@ body{
 
 .contenedor{
 
-    width:95%;
+    width:94%;
     max-width:1300px;
-    margin:24px auto 40px;
+    margin:22px auto 40px;
 
 }
 
@@ -198,8 +234,8 @@ body{
 .kpis{
 
     display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
-    gap:16px;
+    grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+    gap:14px;
     margin-bottom:20px;
 
 }
@@ -208,6 +244,7 @@ body{
 
     background:var(--kimi-bg-card);
     border:1px solid var(--kimi-color-border);
+    border-left:3px solid var(--kimi-chart-1);
     border-radius:12px;
     padding:16px;
     transition:opacity .6s ease-out;
@@ -226,7 +263,7 @@ body{
 
 .kpi-card p{
 
-    font-size:36px;
+    font-size:34px;
     font-weight:500;
     color:var(--kimi-text);
     margin-top:8px;
@@ -240,7 +277,7 @@ body{
 
     display:block;
     margin-top:6px;
-    font-size:12px;
+    font-size:13px;
     font-weight:400;
     color:var(--kimi-text-soft);
 
@@ -252,7 +289,7 @@ body{
 
     display:grid;
     grid-template-columns:1fr 1fr;
-    gap:16px;
+    gap:14px;
 
 }
 
@@ -280,36 +317,64 @@ body{
 
 .grafico-card h2{
 
-    font-size:15px;
+    font-size:16px;
     font-weight:500;
     color:var(--kimi-text);
     margin-bottom:14px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+}
+
+.grafico-icono{
+
+    width:19px;
+    height:19px;
+    flex-shrink:0;
+    color:var(--kimi-chart-1);
 
 }
 
 .lienzo{
 
     position:relative;
-    height:260px;
+    height:270px;
     width:100%;
 
 }
 
 .lienzo-horizontal{
 
-    height:190px;
+    height:200px;
 
 }
 
 .lienzo-horizontal-chica{
 
-    height:170px;
+    height:180px;
 
 }
 
 .lienzo-donut{
 
-    height:320px;
+    height:300px;
+
+}
+
+.dona-total{
+
+    text-align:center;
+    font-size:13px;
+    color:var(--kimi-text-soft);
+    margin-top:6px;
+
+}
+
+.dona-total strong{
+
+    color:var(--kimi-text);
+    font-weight:500;
 
 }
 
@@ -319,7 +384,7 @@ body{
 
     display:grid;
     grid-template-columns:repeat(4, 1fr);
-    gap:12px;
+    gap:10px;
 
 }
 
@@ -360,7 +425,7 @@ body{
 
 .gauge-porcentaje{
 
-    font-size:20px;
+    font-size:21px;
     font-weight:500;
     fill:var(--kimi-text);
 
@@ -387,13 +452,70 @@ body{
         grid-column:span 1;
     }
 
-    .gauges-fila{
-        grid-template-columns:repeat(2, 1fr);
-        gap:20px;
+}
+
+@media(max-width:600px){
+
+    body{
+        font-size:15px;
+    }
+
+    .cabecera{
+        padding:12px 16px;
+        gap:12px;
+    }
+
+    .cabecera-derecha{
+        width:100%;
+        justify-content:space-between;
+    }
+
+    .tabs{
+        order:3;
+        width:100%;
+    }
+
+    .tab{
+        font-size:13px;
+        padding:9px 13px;
+    }
+
+    .contenedor{
+        width:92%;
+        margin-top:18px;
+    }
+
+    .kpis{
+        grid-template-columns:1fr 1fr;
     }
 
     .kpi-card p{
-        font-size:28px;
+        font-size:26px;
+    }
+
+    .kpi-card h3{
+        font-size:12px;
+    }
+
+    .grafico-card h2{
+        font-size:15px;
+    }
+
+    .lienzo{
+        height:240px;
+    }
+
+    .lienzo-donut{
+        height:280px;
+    }
+
+    .gauges-fila{
+        grid-template-columns:repeat(2, 1fr);
+        gap:16px 10px;
+    }
+
+    .gauge-porcentaje{
+        font-size:19px;
     }
 
 }
@@ -441,7 +563,7 @@ OVERLAY DE CARGA
 
 .carga-overlay p{
 
-    font-size:13px;
+    font-size:14px;
     font-weight:500;
     color:var(--kimi-text-soft);
 
@@ -457,7 +579,7 @@ BANNER DE ERROR
     color:#8a2c22;
     text-align:center;
     padding:10px;
-    font-size:13px;
+    font-size:14px;
     font-weight:500;
 
 }
@@ -471,6 +593,6 @@ FOOTER
     text-align:center;
     padding:24px 16px;
     color:var(--kimi-text-soft);
-    font-size:12px;
+    font-size:13px;
 
 }
