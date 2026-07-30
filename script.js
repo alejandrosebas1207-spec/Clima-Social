@@ -125,14 +125,15 @@ setInterval(actualizarHora, 60000);
 async function obtenerConfig() {
     try {
         const respuesta = await fetch("/api/config");
+        if (!respuesta.ok) throw new Error("No se pudo obtener configuración");
         const config = await respuesta.json();
-        META_TRABAJADORES = Number(config.metaTrabajadores);
-        META_GRADUADOS = Number(config.metaGraduados);
-        VALOR_SI = config.valorConsentimientoSi;
-        document.getElementById("tituloProyecto").textContent = config.nombreProyecto;
-        document.title = config.nombreProyecto;
+        META_TRABAJADORES = Number(config.metaTrabajadores) || 2100;
+        META_GRADUADOS = Number(config.metaGraduados) || 400;
+        VALOR_SI = config.valorConsentimientoSi || "1";
+        document.getElementById("tituloProyecto").textContent = config.nombreProyecto || "Encuesta Artes y Cultura";
+        document.title = document.getElementById("tituloProyecto").textContent;
     } catch (error) {
-        console.error("No se pudo cargar la configuración.", error);
+        console.warn("Usando configuración por defecto", error);
     }
 }
 
@@ -219,31 +220,36 @@ function renderizarTodo() {
     document.getElementById("kpiDuracion").textContent =
         duracionProm !== null ? formatearDuracion(duracionProm) : "--";
 
-    // --- Visibilidad por segmento ---
+    // --- Visibilidad por segmento (solo para gráficos exclusivos) ---
     document.querySelectorAll('[data-segmento="graduados"]').forEach(el => {
         el.classList.toggle("oculto", filtroActual === "trabajadores");
     });
-    document.querySelectorAll('[data-segmento="trabajadores"]').forEach(el => {
-        el.classList.toggle("oculto", filtroActual === "graduados");
-    });
+    // Los gráficos con data-segmento="todos" siempre visibles
 
-    // --- Gráficos ---
-    generarGraficoAvanceDia(trabajadores, graduados);
-    generarGraficoMedio(todos);
+    // --- Elegir conjunto de datos según filtro ---
+    let conjunto;
+    if (filtroActual === "todos") conjunto = todos;
+    else if (filtroActual === "trabajadores") conjunto = trabajadores;
+    else if (filtroActual === "graduados") conjunto = graduados;
 
-    // Gráficos de trabajadores (provincia, género, actividad)
-    // Si estamos en "todos", mostramos todos los datos; si en "trabajadores", solo trabajadores
-    if (filtroActual !== "graduados") {
-        const dataSource = filtroActual === "todos" ? todos : trabajadores;
-        generarGraficoProvincia(dataSource);
-        generarGraficoGenero(dataSource);
-        generarGraficoActividad(dataSource);
-    }
+    // --- Gráficos siempre visibles (Provincia, Género, Actividad, Medio, Avance) ---
+    generarGraficoAvanceDia(trabajadores, graduados); // siempre con ambos segmentos
+    generarGraficoMedio(todos); // siempre con todos (el medio es común)
+    generarGraficoProvincia(conjunto);
+    generarGraficoGenero(conjunto);
+    generarGraficoActividad(conjunto);
 
-    // Gráficos de graduados (año, título)
+    // --- Gráficos exclusivos de graduados ---
     if (filtroActual !== "trabajadores") {
         generarGraficoAnioGraduacion(graduados);
         generarGraficoTitulo(graduados);
+    } else {
+        // Si estamos en trabajadores, ocultamos o destruimos los gráficos de graduados
+        if (chartAnioGraduacion) { chartAnioGraduacion.destroy(); chartAnioGraduacion = null; }
+        if (chartTitulo) { chartTitulo.destroy(); chartTitulo = null; }
+        // Limpiar los contadores n
+        mostrarN("nAnioGraduacion", 0);
+        mostrarN("nTitulo", 0);
     }
 }
 
@@ -361,7 +367,7 @@ const pluginEtiquetaPorcentaje = {
 };
 
 // ==========================================
-// GRÁFICO: AVANCE POR DÍA (barras agrupadas + línea acumulada)
+// GRÁFICO: AVANCE POR DÍA (barras agrupadas SIN línea)
 // ==========================================
 
 let chartAvanceDia = null;
@@ -385,15 +391,11 @@ function generarGraficoAvanceDia(trabajadores, graduados) {
 
     const trabajadoresPorDia = dias.map(d => diasMap[d].trabajadores);
     const graduadosPorDia = dias.map(d => diasMap[d].graduados);
-    const totalPorDia = trabajadoresPorDia.map((t, i) => t + graduadosPorDia[i]);
-    let acum = 0;
-    const acumulado = totalPorDia.map(v => { acum += v; return acum; });
 
     const colorTexto = esModoOscuro() ? "#b3a695" : "#75695a";
     const colorGrid = esModoOscuro() ? "#3c3226" : "#e6ded2";
     const colorTrabajadores = cssVar("--kimi-chart-1");
     const colorGraduados = cssVar("--kimi-chart-3");
-    const colorLinea = cssVar("--kimi-chart-2");
 
     if (chartAvanceDia) chartAvanceDia.destroy();
 
@@ -411,8 +413,7 @@ function generarGraficoAvanceDia(trabajadores, graduados) {
                     backgroundColor: colorTrabajadores,
                     borderRadius: 4,
                     barPercentage: 0.4,
-                    categoryPercentage: 0.8,
-                    order: 2
+                    categoryPercentage: 0.8
                 },
                 {
                     label: "Graduados",
@@ -420,22 +421,7 @@ function generarGraficoAvanceDia(trabajadores, graduados) {
                     backgroundColor: colorGraduados,
                     borderRadius: 4,
                     barPercentage: 0.4,
-                    categoryPercentage: 0.8,
-                    order: 2
-                },
-                {
-                    label: "Acumulado total",
-                    data: acumulado,
-                    type: 'line',
-                    borderColor: colorLinea,
-                    backgroundColor: 'transparent',
-                    borderWidth: 2,
-                    pointRadius: 3,
-                    pointBackgroundColor: colorLinea,
-                    tension: 0.2,
-                    fill: false,
-                    order: 1,
-                    yAxisID: 'y1'
+                    categoryPercentage: 0.8
                 }
             ]
         },
@@ -457,9 +443,6 @@ function generarGraficoAvanceDia(trabajadores, graduados) {
                         label: ctx => {
                             const label = ctx.dataset.label || '';
                             const val = ctx.parsed.y;
-                            if (ctx.dataset.label === "Acumulado total") {
-                                return `${label}: ${val}`;
-                            }
                             return `${label}: ${val} encuestas`;
                         }
                     }
@@ -468,15 +451,8 @@ function generarGraficoAvanceDia(trabajadores, graduados) {
             scales: {
                 y: {
                     beginAtZero: true,
-                    position: 'left',
                     ticks: { color: colorTexto },
                     grid: { color: colorGrid }
-                },
-                y1: {
-                    beginAtZero: true,
-                    position: 'right',
-                    ticks: { color: colorTexto },
-                    grid: { display: false }
                 },
                 x: {
                     ticks: { color: colorTexto, maxRotation: 45, minRotation: 0 },
