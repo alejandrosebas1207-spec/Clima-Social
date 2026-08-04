@@ -360,12 +360,14 @@ const pluginEtiquetaPorcentaje = {
         const { ctx, chartArea } = chart;
         const meta = chart.getDatasetMeta(0);
         if (!meta) return;
+        const conteos = chart.data.datasets[0].counts;
         ctx.save();
         ctx.font = "600 12px " + getComputedStyle(document.body).fontFamily;
         ctx.textBaseline = "middle";
         meta.data.forEach((barra, i) => {
             const valor = chart.data.datasets[0].data[i];
-            const texto = `${valor}%`;
+            const n = conteos ? conteos[i] : null;
+            const texto = n !== null ? `${valor}% (${n})` : `${valor}%`;
             const anchoTexto = ctx.measureText(texto).width;
             const cabeEnAfuera = (barra.x + 8 + anchoTexto) < chartArea.right;
             if (cabeEnAfuera) {
@@ -377,6 +379,30 @@ const pluginEtiquetaPorcentaje = {
                 ctx.textAlign = "right";
                 ctx.fillText(texto, barra.x - 8, barra.y);
             }
+        });
+        ctx.restore();
+    }
+};
+
+// ==========================================
+// PLUGIN: número encima de barras verticales
+// ==========================================
+
+const pluginEtiquetaValor = {
+    id: "etiquetaValor",
+    afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta) return;
+        ctx.save();
+        ctx.font = "600 12px " + getComputedStyle(document.body).fontFamily;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+        ctx.fillStyle = esModoOscuro() ? "#f3ede2" : "#2b241c";
+        meta.data.forEach((barra, i) => {
+            const valor = chart.data.datasets[0].data[i];
+            if (valor === 0) return;
+            ctx.fillText(valor, barra.x, barra.y - 6);
         });
         ctx.restore();
     }
@@ -507,6 +533,7 @@ function generarGraficoProvincia(encuestas) {
 
     const etiquetas = ordenados.map(d => d.label);
     const valores = ordenados.map(d => d.valor);
+    const counts = ordenados.map(d => d.count);
 
     const colorTexto = esModoOscuro() ? "#b3a695" : "#75695a";
     const colorGrid = esModoOscuro() ? "#3c3226" : "#e6ded2";
@@ -519,6 +546,7 @@ function generarGraficoProvincia(encuestas) {
             labels: etiquetas,
             datasets: [{
                 data: valores,
+                counts: counts,
                 backgroundColor: cssVar("--kimi-chart-1"),
                 borderRadius: 4,
                 barThickness: 18
@@ -666,91 +694,69 @@ function generarGraficoActividad(encuestas) {
         conteo[bucket] = (conteo[bucket] || 0) + 1;
     });
 
-    const etiquetas = ORDEN_ACTIVIDAD.filter(cat => conteo[cat]);
-    const valores = etiquetas.map(cat => conteo[cat]);
-    const colores = etiquetas.map(cat => {
-        const varName = COLORES_ACTIVIDAD[cat];
-        return varName.startsWith("var(") ? cssVar(varName.slice(4, -1)) : varName;
-    });
-
-    if (chartActividad) chartActividad.destroy();
-    if (etiquetas.length === 0) return;
-
-    const totalGeneral = valores.reduce((a, b) => a + b, 0);
+    const totalGeneral = Object.values(conteo).reduce((a, b) => a + b, 0);
     mostrarN("nActividad", totalGeneral);
     document.getElementById("donaTotalActividad").innerHTML =
         `<strong>${totalGeneral}</strong> respuestas registradas`;
 
-    const textoCentralDona = {
-        id: "textoCentralDona",
-        beforeDraw(chart) {
-            const { ctx, chartArea: { width, height, left, top } } = chart;
-            const centroX = left + width / 2;
-            const centroY = top + height / 2;
-            ctx.save();
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.font = "600 24px " + getComputedStyle(document.body).fontFamily;
-            ctx.fillStyle = esModoOscuro() ? "#f3ede2" : "#2b241c";
-            ctx.fillText(totalGeneral, centroX, centroY - 6);
-            ctx.font = "500 11px " + getComputedStyle(document.body).fontFamily;
-            ctx.fillStyle = esModoOscuro() ? "#b3a695" : "#75695a";
-            ctx.fillText("respuestas", centroX, centroY + 10);
-            ctx.restore();
-        }
-    };
+    const ordenados = ORDEN_ACTIVIDAD
+        .filter(cat => conteo[cat])
+        .map(cat => ({
+            label: cat,
+            count: conteo[cat],
+            valor: totalGeneral > 0 ? Number(((conteo[cat] / totalGeneral) * 100).toFixed(1)) : 0
+        }))
+        .sort((a, b) => b.count - a.count);
+
+    if (chartActividad) chartActividad.destroy();
+    if (ordenados.length === 0) return;
+
+    const etiquetas = ordenados.map(d => d.label);
+    const valores = ordenados.map(d => d.valor);
+    const counts = ordenados.map(d => d.count);
+    const colores = ordenados.map(d => {
+        const varName = COLORES_ACTIVIDAD[d.label];
+        return varName.startsWith("var(") ? cssVar(varName.slice(4, -1)) : varName;
+    });
+
+    const colorTexto = esModoOscuro() ? "#b3a695" : "#75695a";
+    const colorGrid = esModoOscuro() ? "#3c3226" : "#e6ded2";
 
     chartActividad = new Chart(document.getElementById("graficoActividad"), {
-        type: "doughnut",
-        plugins: [textoCentralDona],
+        type: "bar",
         data: {
             labels: etiquetas,
             datasets: [{
                 data: valores,
+                counts: counts,
                 backgroundColor: colores,
-                borderColor: esModoOscuro() ? "#28211a" : "#ffffff",
-                borderWidth: 2
+                borderRadius: 4,
+                barThickness: 26
             }]
         },
+        plugins: [pluginEtiquetaPorcentaje],
         options: {
+            indexAxis: "y",
             responsive: true,
             maintainAspectRatio: false,
             animation: { duration: 600, easing: "easeOutQuart" },
             plugins: {
-                legend: {
-                    position: window.innerWidth < QUIEBRE_MOVIL ? "bottom" : "right",
-                    align: "center",
-                    labels: {
-                        color: esModoOscuro() ? "#f3ede2" : "#2b241c",
-                        font: { size: 12, weight: "600" },
-                        boxWidth: 12,
-                        padding: 10,
-                        generateLabels(chart) {
-                            const data = chart.data;
-                            const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
-                            const textColor = esModoOscuro() ? "#f3ede2" : "#2b241c";
-                            return data.labels.map((label, i) => {
-                                const valor = data.datasets[0].data[i];
-                                const pct = ((valor / total) * 100).toFixed(0);
-                                return {
-                                    text: `${label} · ${valor} (${pct}%)`,
-                                    fillStyle: data.datasets[0].backgroundColor[i],
-                                    strokeStyle: data.datasets[0].backgroundColor[i],
-                                    color: textColor,
-                                    index: i
-                                };
-                            });
-                        }
-                    }
-                },
+                legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: ctx => {
-                            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                            const pct = ((ctx.parsed / total) * 100).toFixed(1);
-                            return `${ctx.label}: ${ctx.parsed} (${pct}%)`;
-                        }
+                        label: ctx => `${ctx.parsed.x}% (${counts[ctx.dataIndex]} respuestas)`
                     }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true, max: 100,
+                    ticks: { color: colorTexto, callback: v => v + "%" },
+                    grid: { color: colorGrid }
+                },
+                y: {
+                    ticks: { color: colorTexto, font: { size: 12 } },
+                    grid: { display: false }
                 }
             }
         }
@@ -797,9 +803,11 @@ function generarGraficoAnioGraduacion(graduados) {
                 barPercentage: 0.8
             }]
         },
+        plugins: [pluginEtiquetaValor],
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: { padding: { top: 20 } },
             animation: { duration: 600, easing: "easeOutQuart" },
             plugins: {
                 legend: { display: false },
@@ -857,6 +865,7 @@ function generarGraficoTitulo(graduados) {
 
     const etiquetas = ordenados.map(d => d.label);
     const valores = ordenados.map(d => d.valor);
+    const counts = ordenados.map(d => d.count);
 
     const colorTexto = esModoOscuro() ? "#b3a695" : "#75695a";
     const colorGrid = esModoOscuro() ? "#3c3226" : "#e6ded2";
@@ -869,6 +878,7 @@ function generarGraficoTitulo(graduados) {
             labels: etiquetas,
             datasets: [{
                 data: valores,
+                counts: counts,
                 backgroundColor: cssVar("--kimi-chart-3"),
                 borderRadius: 4,
                 barThickness: 28
@@ -922,6 +932,7 @@ function generarGraficoMedio(encuestas) {
     mostrarN("nMedio", respondio);
 
     const etiquetas = Object.keys(MAPA_MEDIO).map(c => MAPA_MEDIO[c]);
+    const counts = Object.keys(MAPA_MEDIO).map(c => conteo[c] || 0);
     const valores = Object.keys(MAPA_MEDIO).map(c =>
         respondio > 0 ? Number((((conteo[c] || 0) / respondio) * 100).toFixed(1)) : 0
     );
@@ -937,6 +948,7 @@ function generarGraficoMedio(encuestas) {
             labels: etiquetas,
             datasets: [{
                 data: valores,
+                counts: counts,
                 backgroundColor: cssVar("--kimi-chart-4"),
                 borderRadius: 4,
                 barThickness: 22
@@ -952,7 +964,7 @@ function generarGraficoMedio(encuestas) {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: ctx => `${ctx.parsed.x}%`
+                        label: ctx => `${ctx.parsed.x}% (${counts[ctx.dataIndex]} respuestas)`
                     }
                 }
             },
