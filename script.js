@@ -334,6 +334,17 @@ function obtenerFechaDia(encuesta) {
     return fecha.toISOString().split("T")[0];
 }
 
+// Ajusta la altura del contenedor de un gráfico de barras horizontales
+// según el número de categorías, para que las barras no queden apretadas
+// ni las etiquetas del eje Y se salten por falta de espacio.
+function ajustarAlturaLienzo(idCanvas, cantidadCategorias, filaPx = 34, extraPx = 46, minPx = 160) {
+    const canvas = document.getElementById(idCanvas);
+    if (!canvas) return;
+    const contenedor = canvas.parentElement;
+    if (!contenedor) return;
+    contenedor.style.height = Math.max(minPx, cantidadCategorias * filaPx + extraPx) + "px";
+}
+
 function animarNumero(idElemento, valorNuevo, sufijo = "") {
     const elemento = document.getElementById(idElemento);
     if (!elemento) return;
@@ -540,6 +551,8 @@ function generarGraficoProvincia(encuestas) {
 
     if (chartProvincia) chartProvincia.destroy();
 
+    ajustarAlturaLienzo("graficoProvincia", etiquetas.length, 32, 20, 200);
+
     chartProvincia = new Chart(document.getElementById("graficoProvincia"), {
         type: "bar",
         data: {
@@ -549,7 +562,9 @@ function generarGraficoProvincia(encuestas) {
                 counts: counts,
                 backgroundColor: cssVar("--kimi-chart-1"),
                 borderRadius: 4,
-                barThickness: 18
+                maxBarThickness: 22,
+                barPercentage: 0.7,
+                categoryPercentage: 0.85
             }]
         },
         plugins: [pluginEtiquetaPorcentaje],
@@ -573,7 +588,7 @@ function generarGraficoProvincia(encuestas) {
                     grid: { color: colorGrid }
                 },
                 y: {
-                    ticks: { color: colorTexto, font: { size: 11 } },
+                    ticks: { color: colorTexto, font: { size: 11 }, autoSkip: false },
                     grid: { display: false }
                 }
             }
@@ -722,6 +737,8 @@ function generarGraficoActividad(encuestas) {
     const colorTexto = esModoOscuro() ? "#b3a695" : "#75695a";
     const colorGrid = esModoOscuro() ? "#3c3226" : "#e6ded2";
 
+    ajustarAlturaLienzo("graficoActividad", etiquetas.length, 34, 20, 200);
+
     chartActividad = new Chart(document.getElementById("graficoActividad"), {
         type: "bar",
         data: {
@@ -731,7 +748,9 @@ function generarGraficoActividad(encuestas) {
                 counts: counts,
                 backgroundColor: colores,
                 borderRadius: 4,
-                barThickness: 26
+                maxBarThickness: 26,
+                barPercentage: 0.7,
+                categoryPercentage: 0.85
             }]
         },
         plugins: [pluginEtiquetaPorcentaje],
@@ -755,7 +774,7 @@ function generarGraficoActividad(encuestas) {
                     grid: { color: colorGrid }
                 },
                 y: {
-                    ticks: { color: colorTexto, font: { size: 12 } },
+                    ticks: { color: colorTexto, font: { size: 12 }, autoSkip: false },
                     grid: { display: false }
                 }
             }
@@ -872,6 +891,8 @@ function generarGraficoTitulo(graduados) {
 
     if (chartTitulo) chartTitulo.destroy();
 
+    ajustarAlturaLienzo("graficoTitulo", etiquetas.length, 34, 20, 200);
+
     chartTitulo = new Chart(document.getElementById("graficoTitulo"), {
         type: "bar",
         data: {
@@ -881,7 +902,9 @@ function generarGraficoTitulo(graduados) {
                 counts: counts,
                 backgroundColor: cssVar("--kimi-chart-3"),
                 borderRadius: 4,
-                barThickness: 28
+                maxBarThickness: 26,
+                barPercentage: 0.7,
+                categoryPercentage: 0.85
             }]
         },
         plugins: [pluginEtiquetaPorcentaje],
@@ -905,7 +928,7 @@ function generarGraficoTitulo(graduados) {
                     grid: { color: colorGrid }
                 },
                 y: {
-                    ticks: { color: colorTexto, font: { size: 11 } },
+                    ticks: { color: colorTexto, font: { size: 11 }, autoSkip: false },
                     grid: { display: false }
                 }
             }
@@ -942,6 +965,8 @@ function generarGraficoMedio(encuestas) {
 
     if (chartMedio) chartMedio.destroy();
 
+    ajustarAlturaLienzo("graficoMedio", etiquetas.length, 34, 20, 160);
+
     chartMedio = new Chart(document.getElementById("graficoMedio"), {
         type: "bar",
         data: {
@@ -951,7 +976,9 @@ function generarGraficoMedio(encuestas) {
                 counts: counts,
                 backgroundColor: cssVar("--kimi-chart-4"),
                 borderRadius: 4,
-                barThickness: 22
+                maxBarThickness: 26,
+                barPercentage: 0.7,
+                categoryPercentage: 0.85
             }]
         },
         plugins: [pluginEtiquetaPorcentaje],
@@ -975,7 +1002,7 @@ function generarGraficoMedio(encuestas) {
                     grid: { color: colorGrid }
                 },
                 y: {
-                    ticks: { color: colorTexto, font: { size: 12 } },
+                    ticks: { color: colorTexto, font: { size: 12 }, autoSkip: false },
                     grid: { display: false }
                 }
             }
