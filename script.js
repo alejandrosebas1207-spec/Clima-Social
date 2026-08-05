@@ -234,6 +234,26 @@ function renderizarTodo() {
     document.getElementById("kpiDuracion").textContent =
         duracionProm !== null ? formatearDuracion(duracionProm) : "--";
 
+    // --- KPI: Encuestas hoy (según filtro) ---
+    const hoy = hoyEcuador();
+    // Contar encuestas de hoy en el conjunto actual
+    const encuestasHoy = conjunto.filter(e => obtenerFechaDia(e) === hoy);
+    const totalHoy = encuestasHoy.length;
+
+    // Desglose (siempre calculado sobre el conjunto total, pero mostramos según filtro)
+    let detalleHoy = '';
+    if (filtroActual === 'todos') {
+        const trabajadoresHoy = trabajadores.filter(e => obtenerFechaDia(e) === hoy).length;
+        const graduadosHoy = graduados.filter(e => obtenerFechaDia(e) === hoy).length;
+        detalleHoy = `Trabajadores: ${trabajadoresHoy} · Graduados: ${graduadosHoy}`;
+    } else if (filtroActual === 'trabajadores') {
+        detalleHoy = `Trabajadores: ${totalHoy}`;
+    } else if (filtroActual === 'graduados') {
+        detalleHoy = `Graduados: ${totalHoy}`;
+    }
+    animarNumero('kpiHoy', totalHoy);
+    document.getElementById('kpiHoyDetalle').textContent = detalleHoy;
+
     // --- Visibilidad de gráficos exclusivos de graduados ---
     document.querySelectorAll('[data-segmento="graduados"]').forEach(el => {
         el.classList.toggle("oculto", filtroActual === "trabajadores");
@@ -324,6 +344,7 @@ function parseMultiple(valor) {
     return String(valor).trim().split(/\s+/);
 }
 
+// CORREGIDO: usa zona horaria de Ecuador
 function obtenerFechaDia(encuesta) {
     const start = campo(encuesta, "start");
     const submission = encuesta._submission_time;
@@ -331,7 +352,13 @@ function obtenerFechaDia(encuesta) {
     if (!fechaStr) return null;
     const fecha = new Date(fechaStr);
     if (isNaN(fecha)) return null;
-    return fecha.toISOString().split("T")[0];
+    // Devuelve YYYY-MM-DD en zona horaria de Ecuador
+    return fecha.toLocaleDateString('en-CA', { timeZone: 'America/Guayaquil' });
+}
+
+// Nuevo helper para la fecha actual en Ecuador
+function hoyEcuador() {
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Guayaquil' });
 }
 
 // Ajusta la altura del contenedor de un gráfico de barras horizontales
