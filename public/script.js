@@ -62,10 +62,11 @@ const MAPA_GENERO = {
 };
 
 const MAPA_MEDIO = {
-    "1": "Link por correo",
-    "2": "Llamada telefónica",
+    "1": "Link por correo electrónico",
+    "2": "Llamada telefónica (WhatsApp)",
     "3": "Código QR",
-    "4": "Facilitador"
+    "4": "Facilitador",
+    "5": "Redes sociales"
 };
 
 const MAPA_TITULO = {
@@ -1542,55 +1543,69 @@ function serieTitulo(encuesta) {
     return parseMultiple(valor).filter(s => MAPA_TITULO[s]);
 }
 
+// RADAR: cada eje es un título; cada cohorte de graduación una silueta.
 function generarGraficoCruceAnioTitulo(graduados) {
     if (chartCruceAnioTitulo) chartCruceAnioTitulo.destroy();
 
-    const conteo = {};
-    const años = new Set();
+    const COHORTES = [
+        { desde: 2018, hasta: 2020, etiqueta: "Cohorte 2018-2020" },
+        { desde: 2021, hasta: 2023, etiqueta: "Cohorte 2021-2023" },
+        { desde: 2024, hasta: 2099, etiqueta: "Cohorte 2024+" }
+    ];
+
+    const conteoTitulo = {}; // título -> n total (para ranking de ejes)
+    const conteoCohorte = {}; // cohorte -> título -> n
     let respondio = 0;
+
     graduados.forEach(e => {
-        const anio = campo(e, CAMPOS.anioGraduacion);
+        const anio = Number(campo(e, CAMPOS.anioGraduacion));
         if (!anio) return;
         const titulos = serieTitulo(e);
         if (!titulos.length) return;
         respondio++;
-        años.add(anio);
-        if (!conteo[anio]) conteo[anio] = {};
+        const cohorte = COHORTES.find(c => anio >= c.desde && anio <= c.hasta);
+        if (!cohorte) return;
+        if (!conteoCohorte[cohorte.etiqueta]) conteoCohorte[cohorte.etiqueta] = {};
         titulos.forEach(t => {
-            conteo[anio][t] = (conteo[anio][t] || 0) + 1;
+            conteoTitulo[t] = (conteoTitulo[t] || 0) + 1;
+            conteoCohorte[cohorte.etiqueta][t] = (conteoCohorte[cohorte.etiqueta][t] || 0) + 1;
         });
     });
 
     mostrarN("nCruceAnioTitulo", respondio);
 
-    const ordenAnios = [...años].sort((a, b) => Number(a) - Number(b));
-    const titulos = Object.keys(MAPA_TITULO).filter(t =>
-        ordenAnios.some(a => (conteo[a][t] || 0) > 0)
-    );
+    // Ejes: títulos con datos, top 10 por frecuencia
+    const ejes = Object.entries(conteoTitulo)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([t]) => t);
 
-    if (titulos.length === 0 || ordenAnios.length === 0) {
+    const cohortesActivas = COHORTES.filter(c => conteoCohorte[c.etiqueta]);
+
+    if (ejes.length === 0 || cohortesActivas.length === 0) {
         chartCruceAnioTitulo = null;
         vaciarLienzo("graficoCruceAnioTitulo");
         return;
     }
     limpiarVacio("graficoCruceAnioTitulo");
 
-    const datasets = titulos.map(t => ({
-        label: MAPA_TITULO[t],
-        data: ordenAnios.map(a => conteo[a][t] || 0),
-        borderColor: colorCruz(Object.keys(MAPA_TITULO).indexOf(t)),
-        backgroundColor: colorCruzRGBA(Object.keys(MAPA_TITULO).indexOf(t), 0.55),
-        borderWidth: 1,
-        fill: true,
-        tension: 0.3,
-        pointRadius: 0,
+    const indiceColor = { "Cohorte 2018-2020": 0, "Cohorte 2021-2023": 3, "Cohorte 2024+": 7 };
+
+    const datasets = cohortesActivas.map(c => ({
+        label: c.etiqueta,
+        data: ejes.map(t => conteoCohorte[c.etiqueta][t] || 0),
+        borderColor: colorCruz(indiceColor[c.etiqueta]),
+        backgroundColor: colorCruzRGBA(indiceColor[c.etiqueta], 0.18),
+        borderWidth: 2,
+        pointBackgroundColor: colorCruzRGBA(indiceColor[c.etiqueta], 0.9),
+        pointRadius: 2.5,
         pointHoverRadius: 4,
-        stack: "anio"
+        fill: true
     }));
 
     chartCruceAnioTitulo = new Chart(document.getElementById("graficoCruceAnioTitulo"), {
-        type: "line",
-        data: { labels: ordenAnios, datasets },
+        type: "radar",
+        data: { labels: ejes.map(t => MAPA_TITULO[t]), datasets },
         options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -1603,31 +1618,22 @@ function generarGraficoCruceAnioTitulo(graduados) {
                         font: { size: 10.5 },
                         boxWidth: 9,
                         padding: 8,
-                        usePointStyle: true,
-                        filter(item) {
-                            // Oculta del legend los títulos sin datos
-                            return true;
-                        }
+                        usePointStyle: true
                     }
                 },
                 tooltip: {
                     callbacks: {
-                        label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}`
+                        label: ctx => `${ctx.dataset.label}: ${ctx.parsed.r}`
                     }
                 }
             },
             scales: {
-                x: {
-                    stacked: true,
-                    ticks: { color: COLOR_TEXTO() },
-                    grid: { color: COLOR_GRID() },
-                    title: { color: COLOR_TEXTO(), display: true, text: "Año de graduación", font: { size: 11 } }
-                },
-                y: {
-                    stacked: true,
+                r: {
                     beginAtZero: true,
-                    ticks: { color: COLOR_TEXTO(), precision: 0 },
-                    grid: { color: COLOR_GRID() }
+                    ticks: { display: false, stepSize: 1 },
+                    grid: { color: COLOR_GRID() },
+                    angleLines: { color: COLOR_GRID() },
+                    pointLabels: { color: COLOR_TEXTO(), font: { size: 10 } }
                 }
             }
         }
