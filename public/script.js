@@ -124,13 +124,24 @@ const COLORES_ACTIVIDAD = {
     "Otras": "var(--kimi-chart-5)"
 };
 
-// Paleta fija para series de los cruces (títulos UArtes, etc.)
-const PALETA_CRUCES = [
-    "var(--kimi-chart-1)", "var(--kimi-chart-4)", "var(--kimi-chart-2)",
-    "#8a4b6b", "var(--kimi-chart-6)", "var(--kimi-chart-3)",
-    "#7d6a4f", "#4a6b8a", "#5a8f6b", "#b8863a", "#9c4f75",
-    "#6b7a5a", "#8a6f9c"
+// Paleta suave para series de los cruces (títulos UArtes, etc.)
+const CRUZ_PALETA_CLARO = [
+    "#7d82c4", "#d29a66", "#5f9d80", "#c9776b", "#6f9ec4", "#c2b15e", "#9b8fc2",
+    "#5fbfaf", "#c9a86a", "#c084a0", "#6fc4a0", "#a98cc4", "#d68f8f"
 ];
+const CRUZ_PALETA_OSCURO = [
+    "#9aa0d8", "#e0ad79", "#74b593", "#d98a7e", "#85b0d8", "#d0c06f", "#aca0d0",
+    "#7cd0c0", "#d4b67d", "#cf93ad", "#89d4b3", "#b5a0d4", "#e0a3a3"
+];
+
+function colorCruz(indice) {
+    const pal = esModoOscuro() ? CRUZ_PALETA_OSCURO : CRUZ_PALETA_CLARO;
+    return pal[indice % pal.length];
+}
+
+function colorActividadCruz(bucket) {
+    return colorCruz(Math.max(0, ORDEN_ACTIVIDAD.indexOf(bucket)));
+}
 
 // ==========================================
 // RELOJ + FECHA
@@ -1273,7 +1284,7 @@ function generarCruceApilado(opciones) {
         idCanvas, idN, chartGlobal,
         datos, campoFila, mapaFila, ordenFilas,
         serieDe, etiquetaSerie, ordenSeries, colorSerie,
-        usarPorcentaje = true
+        usarPorcentaje = true, maxFilas = 0
     } = opciones;
 
     const matriz = new Map(); // fila -> Map(columna -> n)
@@ -1321,10 +1332,20 @@ function generarCruceApilado(opciones) {
 
     const totalMenciones = filas.reduce((a, f) => a + f.total, 0);
 
-    const columnas = ordenSeries.filter(c => columnasUsadas.has(c));
+    let columnas = ordenSeries.filter(c => columnasUsadas.has(c));
 
-    // Altura proporcional a las filas con el nuevo formato diclofá
-    ajustarAlturaLienzo(idCanvas, filas.length, 40, 60, 220);
+    // Ordenar filas por tamaño y aplicar tope si se pidió
+    if (maxFilas > 0 && filas.length > maxFilas) {
+        filas.sort((a, b) => b.total - a.total);
+        filas.length = maxFilas;
+    }
+
+    if (columnas.length === 0) {
+        columnas = ordenSeries.filter(c => filas.some(f => matriz.get(f.fila).has(c)));
+    }
+
+    // Altura proporcional a las filas (compacta)
+    ajustarAlturaLienzo(idCanvas, filas.length, 30, 46, 200);
 
     const datasets = columnas.map(col => ({
         label: etiquetaSerie[col],
@@ -1334,7 +1355,9 @@ function generarCruceApilado(opciones) {
         }),
         counts: filas.map(f => matriz.get(f.fila).get(col) || 0),
         backgroundColor: colorSerie(col),
-        borderRadius: 0,
+        borderColor: esModoOscuro() ? "rgba(22,17,12,.25)" : "rgba(255,255,255,.65)",
+        borderWidth: 1,
+        borderRadius: 2,
         stack: "cruce"
     }));
 
@@ -1351,9 +1374,10 @@ function generarCruceApilado(opciones) {
                     position: "bottom",
                     labels: {
                         color: COLOR_TITULO(),
-                        font: { size: 11 },
-                        boxWidth: 12,
-                        padding: 10,
+                        font: { size: 10.5 },
+                        boxWidth: 9,
+                        boxHeight: 9,
+                        padding: 8,
                         usePointStyle: true
                     }
                 },
@@ -1415,18 +1439,13 @@ function generarGraficoCruceProvinciaActividad(conjunto) {
         serieDe: serieActividad,
         etiquetaSerie: Object.fromEntries(ORDEN_ACTIVIDAD.map(c => [c, c])),
         ordenSeries: ORDEN_ACTIVIDAD,
-        colorSerie: c => COLORES_ACTIVIDAD[c] || cssVar("--kimi-chart-5")
+        colorSerie: colorActividadCruz,
+        maxFilas: 15
     });
 }
 
 // Género × Actividad
 function generarGraficoCruceGeneroActividad(conjunto) {
-    const colorMap = {
-        "1": cssVar("--kimi-chart-1"),
-        "2": cssVar("--kimi-chart-4"),
-        "3": cssVar("--kimi-chart-2"),
-        "0": cssVar("--kimi-chart-5")
-    };
     generarCruceApilado({
         idCanvas: "graficoCruceGeneroActividad",
         idN: "nCruceGeneroActividad",
@@ -1438,7 +1457,7 @@ function generarGraficoCruceGeneroActividad(conjunto) {
         serieDe: serieActividad,
         etiquetaSerie: Object.fromEntries(ORDEN_ACTIVIDAD.map(c => [c, c])),
         ordenSeries: ORDEN_ACTIVIDAD,
-        colorSerie: c => COLORES_ACTIVIDAD[c] || cssVar("--kimi-chart-5")
+        colorSerie: colorActividadCruz
     });
 }
 
@@ -1462,7 +1481,7 @@ function generarGraficoCruceAnioTitulo(graduados) {
         serieDe: serieTitulo,
         etiquetaSerie: MAPA_TITULO,
         ordenSeries: Object.keys(MAPA_TITULO),
-        colorSerie: c => PALETA_CRUCES[Object.keys(MAPA_TITULO).indexOf(c) % PALETA_CRUCES.length]
+        colorSerie: c => colorCruz(Object.keys(MAPA_TITULO).indexOf(c))
     });
 }
 
