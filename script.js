@@ -234,13 +234,17 @@ function renderizarTodo() {
     document.getElementById("kpiDuracion").textContent =
         duracionProm !== null ? formatearDuracion(duracionProm) : "--";
 
-    // --- KPI: Encuestas hoy (según filtro) ---
+    // --- Elegir conjunto de datos según filtro (¡ANTES de usarlo!) ---
+    let conjunto;
+    if (filtroActual === "todos") conjunto = todos;
+    else if (filtroActual === "trabajadores") conjunto = trabajadores;
+    else if (filtroActual === "graduados") conjunto = graduados;
+
+    // --- KPI: Encuestas hoy (ahora usamos 'conjunto' que ya está definido) ---
     const hoy = hoyEcuador();
-    // Contar encuestas de hoy en el conjunto actual
     const encuestasHoy = conjunto.filter(e => obtenerFechaDia(e) === hoy);
     const totalHoy = encuestasHoy.length;
 
-    // Desglose (siempre calculado sobre el conjunto total, pero mostramos según filtro)
     let detalleHoy = '';
     if (filtroActual === 'todos') {
         const trabajadoresHoy = trabajadores.filter(e => obtenerFechaDia(e) === hoy).length;
@@ -263,12 +267,6 @@ function renderizarTodo() {
     document.querySelectorAll('[data-segmento="graduados"] .badge-segmento').forEach(el => {
         el.style.display = (filtroActual === "todos") ? 'inline-block' : 'none';
     });
-
-    // --- Elegir conjunto de datos según filtro ---
-    let conjunto;
-    if (filtroActual === "todos") conjunto = todos;
-    else if (filtroActual === "trabajadores") conjunto = trabajadores;
-    else if (filtroActual === "graduados") conjunto = graduados;
 
     // --- Gráficos siempre visibles (Provincia, Género, Actividad, Medio, Avance) ---
     generarGraficoAvanceDia(trabajadores, graduados);
@@ -684,7 +682,6 @@ function generarGraficoGenero(encuestas) {
                     position: window.innerWidth < QUIEBRE_MOVIL ? "bottom" : "right",
                     align: "center",
                     labels: {
-                        // Color dinámico: se evalúa al generar las etiquetas
                         color: esModoOscuro() ? "#f3ede2" : "#2b241c",
                         font: { size: 12, weight: "600" },
                         boxWidth: 12,
@@ -722,7 +719,7 @@ function generarGraficoGenero(encuestas) {
 }
 
 // ==========================================
-// GRÁFICO: PRINCIPAL ACTIVIDAD (dona) — CON CORRECCIÓN PARA MODO OSCURO
+// GRÁFICO: PRINCIPAL ACTIVIDAD (barras horizontales)
 // ==========================================
 
 let chartActividad = null;
