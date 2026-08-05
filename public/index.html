@@ -203,6 +203,40 @@
             </div>
         </div>
 
+        <div class="grafico-card grafico-ancho" data-segmento="todos">
+            <h2>
+                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                Provincia × Principal actividad
+                <span class="grafico-n" id="nCruceProvinciaActividad"></span>
+            </h2>
+            <div class="lienzo lienzo-cruce" data-vacio="Sin respuestas de provincia o actividad">
+                <canvas id="graficoCruceProvinciaActividad"></canvas>
+            </div>
+        </div>
+
+        <div class="grafico-card grafico-ancho" data-segmento="todos">
+            <h2>
+                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                Género × Principal actividad
+                <span class="grafico-n" id="nCruceGeneroActividad"></span>
+            </h2>
+            <div class="lienzo lienzo-cruce" data-vacio="Sin respuestas de género o actividad">
+                <canvas id="graficoCruceGeneroActividad"></canvas>
+            </div>
+        </div>
+
+        <div class="grafico-card grafico-ancho" data-segmento="graduados">
+            <h2>
+                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9 12 4l10 5-10 5-10-5z"></path><path d="M6 11.5V17c0 1.5 2.7 3 6 3s6-1.5 6-3v-5.5"></path></svg>
+                Año de graduación × Título obtenido
+                <span class="grafico-n" id="nCruceAnioTitulo"></span>
+                <span class="badge-segmento">Solo graduados UArtes</span>
+            </h2>
+            <div class="lienzo lienzo-cruce" data-vacio="Sin datos de título">
+                <canvas id="graficoCruceAnioTitulo"></canvas>
+            </div>
+        </div>
+
     </section>
 
     <footer class="pie-pagina">Clima Social · Tablero en tiempo real</footer>

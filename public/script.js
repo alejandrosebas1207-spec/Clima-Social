@@ -101,6 +101,19 @@ const MAPA_ACTIVIDAD_BUCKET = {
 
 const ORDEN_ACTIVIDAD = ["Artes musicales", "Visuales", "Escénicas", "Gestión cultural", "Audiovisual", "Literatura", "Otras"];
 
+// ==========================================
+// CAMPOS PARA CRUCES (nombres en Kobo)
+// Si agregas un campo nuevo (p. ej. edad), cámbialo aquí.
+// ==========================================
+
+const CAMPOS = {
+    provincia: "provincia",
+    genero: "p5",
+    actividad: "p13",
+    anioGraduacion: "p5u",
+    titulo: "p6u"
+};
+
 const COLORES_ACTIVIDAD = {
     "Artes musicales": "var(--kimi-chart-1)",
     "Visuales": "var(--kimi-chart-4)",
@@ -110,6 +123,14 @@ const COLORES_ACTIVIDAD = {
     "Literatura": "var(--kimi-chart-6)",
     "Otras": "var(--kimi-chart-5)"
 };
+
+// Paleta fija para series de los cruces (títulos UArtes, etc.)
+const PALETA_CRUCES = [
+    "var(--kimi-chart-1)", "var(--kimi-chart-4)", "var(--kimi-chart-2)",
+    "#8a4b6b", "var(--kimi-chart-6)", "var(--kimi-chart-3)",
+    "#7d6a4f", "#4a6b8a", "#5a8f6b", "#b8863a", "#9c4f75",
+    "#6b7a5a", "#8a6f9c"
+];
 
 // ==========================================
 // RELOJ + FECHA
@@ -371,13 +392,20 @@ function renderizarTodo() {
     generarGraficoSeguro("generarGraficoGenero", conjunto);
     generarGraficoSeguro("generarGraficoActividad", conjunto);
 
+    // --- Cruces de datos (barras apiladas) ---
+    generarGraficoSeguro("generarGraficoCruceProvinciaActividad", conjunto);
+    generarGraficoSeguro("generarGraficoCruceGeneroActividad", conjunto);
+
     // --- Gráficos exclusivos de graduados ---
     if (filtroActual !== "trabajadores") {
+        generarGraficoSeguro("generarGraficoCruceAnioTitulo", graduados);
         generarGraficoSeguro("generarGraficoAnioGraduacion", graduados);
         generarGraficoSeguro("generarGraficoTitulo", graduados);
     } else {
+        destruirChart("chartCruceAnioTitulo");
         destruirChart("chartAnioGraduacion");
         destruirChart("chartTitulo");
+        mostrarN("nCruceAnioTitulo", 0);
         mostrarN("nAnioGraduacion", 0);
         mostrarN("nTitulo", 0);
     }
@@ -1228,6 +1256,213 @@ function generarGraficoMedio(encuestas) {
                 }
             }
         }
+    });
+}
+
+// ==========================================
+// CRUCES DE DATOS (barras 100% apiladas)
+// Campo de fila = etiquetas del eje; campo de serie = color.
+// ==========================================
+
+var chartCruceProvinciaActividad = null;
+var chartCruceGeneroActividad = null;
+var chartCruceAnioTitulo = null;
+
+function generarCruceApilado(opciones) {
+    const {
+        idCanvas, idN, chartGlobal,
+        datos, campoFila, mapaFila, ordenFilas,
+        serieDe, etiquetaSerie, ordenSeries, colorSerie,
+        usarPorcentaje = true
+    } = opciones;
+
+    const matriz = new Map(); // fila -> Map(columna -> n)
+    const filaPersonas = new Map(); // fila -> n personas
+    const columnasUsadas = new Set();
+    let totalPersonas = 0;
+
+    datos.forEach(e => {
+        const fila = campo(e, campoFila);
+        if (!fila || !mapaFila[fila]) return;
+        const clavesCol = serieDe(e);
+        if (!clavesCol.length) return;
+        totalPersonas++;
+        filaPersonas.set(fila, (filaPersonas.get(fila) || 0) + 1);
+        if (!matriz.has(fila)) matriz.set(fila, new Map());
+        const filaMap = matriz.get(fila);
+        clavesCol.forEach(col => {
+            if (ordenSeries.includes(col)) {
+                filaMap.set(col, (filaMap.get(col) || 0) + 1);
+                columnasUsadas.add(col);
+            }
+        });
+    });
+
+    if (window[chartGlobal]) window[chartGlobal].destroy();
+
+    const filas = ordenFilas
+        .filter(f => matriz.has(f))
+        .map(f => ({
+            etiqueta: mapaFila[f],
+            fila: f,
+            total: [...matriz.get(f).values()].reduce((a, b) => a + b, 0),
+            personas: filaPersonas.get(f) || 0
+        }))
+        .filter(f => f.total > 0);
+
+    if (filas.length === 0 || columnasUsadas.size === 0) {
+        window[chartGlobal] = null;
+        vaciarLienzo(idCanvas);
+        return;
+    }
+    limpiarVacio(idCanvas);
+
+    if (idN) mostrarN(idN, totalPersonas);
+
+    const totalMenciones = filas.reduce((a, f) => a + f.total, 0);
+
+    const columnas = ordenSeries.filter(c => columnasUsadas.has(c));
+
+    // Altura proporcional a las filas con el nuevo formato diclofá
+    ajustarAlturaLienzo(idCanvas, filas.length, 40, 60, 220);
+
+    const datasets = columnas.map(col => ({
+        label: etiquetaSerie[col],
+        data: filas.map(f => {
+            const n = matriz.get(f.fila).get(col) || 0;
+            return usarPorcentaje && f.total > 0 ? Number(((n / f.total) * 100).toFixed(1)) : n;
+        }),
+        counts: filas.map(f => matriz.get(f.fila).get(col) || 0),
+        backgroundColor: colorSerie(col),
+        borderRadius: 0,
+        stack: "cruce"
+    }));
+
+    window[chartGlobal] = new Chart(document.getElementById(idCanvas), {
+        type: "bar",
+        data: { labels: filas.map(f => f.etiqueta), datasets },
+        options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 600, easing: "easeOutQuart" },
+            plugins: {
+                legend: {
+                    position: "bottom",
+                    labels: {
+                        color: COLOR_TITULO(),
+                        font: { size: 11 },
+                        boxWidth: 12,
+                        padding: 10,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => {
+                            const n = ctx.dataset.counts[ctx.dataIndex];
+                            const fila = filas[ctx.dataIndex];
+                            const totalFila = fila.total;
+                            const pct = totalFila > 0 ? ((n / totalFila) * 100).toFixed(1) : 0;
+                            return `${ctx.dataset.label}: ${n} (${pct}%)`;
+                        },
+                        footer: items => {
+                            const fila = filas[items[0].dataIndex];
+                            const base = fila.total; // menciones en la fila
+                            const pct = totalMenciones > 0 ? ((base / totalMenciones) * 100).toFixed(1) : 0;
+                            const multi = fila.personas !== fila.total;
+                            return multi
+                                ? `Total: ${base} menciones · ${fila.personas} personas · ${pct}%`
+                                : `Total: ${base} · ${pct}%`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: usarPorcentaje ? 100 : undefined,
+                    stacked: true,
+                    ticks: { color: COLOR_TEXTO(), callback: v => usarPorcentaje ? v + "%" : v },
+                    grid: { color: COLOR_GRID() }
+                },
+                y: {
+                    stacked: true,
+                    ticks: { color: COLOR_TEXTO(), font: { size: 12 }, autoSkip: false },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+}
+
+function serieActividad(encuesta) {
+    const valor = campo(encuesta, CAMPOS.actividad);
+    const bucket = MAPA_ACTIVIDAD_BUCKET[valor];
+    return bucket ? [bucket] : [];
+}
+
+// Provincia × Actividad
+function generarGraficoCruceProvinciaActividad(conjunto) {
+    generarCruceApilado({
+        idCanvas: "graficoCruceProvinciaActividad",
+        idN: "nCruceProvinciaActividad",
+        chartGlobal: "chartCruceProvinciaActividad",
+        datos: conjunto,
+        campoFila: CAMPOS.provincia,
+        mapaFila: MAPA_PROVINCIA,
+        ordenFilas: Object.keys(MAPA_PROVINCIA),
+        serieDe: serieActividad,
+        etiquetaSerie: Object.fromEntries(ORDEN_ACTIVIDAD.map(c => [c, c])),
+        ordenSeries: ORDEN_ACTIVIDAD,
+        colorSerie: c => COLORES_ACTIVIDAD[c] || cssVar("--kimi-chart-5")
+    });
+}
+
+// Género × Actividad
+function generarGraficoCruceGeneroActividad(conjunto) {
+    const colorMap = {
+        "1": cssVar("--kimi-chart-1"),
+        "2": cssVar("--kimi-chart-4"),
+        "3": cssVar("--kimi-chart-2"),
+        "0": cssVar("--kimi-chart-5")
+    };
+    generarCruceApilado({
+        idCanvas: "graficoCruceGeneroActividad",
+        idN: "nCruceGeneroActividad",
+        chartGlobal: "chartCruceGeneroActividad",
+        datos: conjunto,
+        campoFila: CAMPOS.genero,
+        mapaFila: MAPA_GENERO,
+        ordenFilas: ["1", "2", "3", "0"],
+        serieDe: serieActividad,
+        etiquetaSerie: Object.fromEntries(ORDEN_ACTIVIDAD.map(c => [c, c])),
+        ordenSeries: ORDEN_ACTIVIDAD,
+        colorSerie: c => COLORES_ACTIVIDAD[c] || cssVar("--kimi-chart-5")
+    });
+}
+
+// Año de graduación × Título (múltiple) — solo graduados UArtes
+function serieTitulo(encuesta) {
+    const valor = campo(encuesta, CAMPOS.titulo);
+    if (!valor) return [];
+    return parseMultiple(valor).filter(s => MAPA_TITULO[s]);
+}
+
+function generarGraficoCruceAnioTitulo(graduados) {
+    const ordenAnios = [...new Set(graduados.map(e => campo(e, CAMPOS.anioGraduacion)).filter(Boolean))].sort();
+    generarCruceApilado({
+        idCanvas: "graficoCruceAnioTitulo",
+        idN: "nCruceAnioTitulo",
+        chartGlobal: "chartCruceAnioTitulo",
+        datos: graduados,
+        campoFila: CAMPOS.anioGraduacion,
+        mapaFila: Object.fromEntries(ordenAnios.map(a => [a, String(a)])),
+        ordenFilas: ordenAnios,
+        serieDe: serieTitulo,
+        etiquetaSerie: MAPA_TITULO,
+        ordenSeries: Object.keys(MAPA_TITULO),
+        colorSerie: c => PALETA_CRUCES[Object.keys(MAPA_TITULO).indexOf(c) % PALETA_CRUCES.length]
     });
 }
 
