@@ -588,7 +588,8 @@ function destruirChart(claveGlobal) {
 }
 
 // ==========================================
-// PLUGIN: % al final de barras horizontales
+// PLUGIN: frecuencia + % al final de barras horizontales
+// Muestra primero la frecuencia (n) porque es lo más útil al comparar.
 // ==========================================
 
 const pluginEtiquetaPorcentaje = {
@@ -599,12 +600,12 @@ const pluginEtiquetaPorcentaje = {
         if (!meta) return;
         const conteos = chart.data.datasets[0].counts;
         ctx.save();
-        ctx.font = "600 12px " + getComputedStyle(document.body).fontFamily;
+        ctx.font = "600 11.5px " + getComputedStyle(document.body).fontFamily;
         ctx.textBaseline = "middle";
         meta.data.forEach((barra, i) => {
             const valor = chart.data.datasets[0].data[i];
             const n = conteos ? conteos[i] : null;
-            const texto = n !== null ? `${valor}% (${n})` : `${valor}%`;
+            const texto = n !== null ? `${n} (${valor}%)` : `${valor}%`;
             const anchoTexto = ctx.measureText(texto).width;
             const cabeEnAfuera = (barra.x + 8 + anchoTexto) < chartArea.right;
             if (cabeEnAfuera) {
@@ -615,6 +616,70 @@ const pluginEtiquetaPorcentaje = {
                 ctx.fillStyle = "#ffffff";
                 ctx.textAlign = "right";
                 ctx.fillText(texto, barra.x - 8, barra.y);
+            }
+        });
+        ctx.restore();
+    }
+};
+
+// ==========================================
+// PLUGIN: total en el centro de la dona
+// ==========================================
+
+const pluginTotalDona = {
+    id: "totalDona",
+    afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const data = chart.data.datasets[0].data;
+        if (!data || !data.length) return;
+        const total = data.reduce((a, b) => a + b, 0);
+        if (!total) return;
+        const meta = chart.getDatasetMeta(0);
+        const arco = meta.data[0];
+        if (!arco || !arco.x) return;
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = esModoOscuro() ? "#f2ecdf" : "#241e15";
+        ctx.font = "700 26px " + getComputedStyle(document.body).fontFamily;
+        ctx.fillText(total, arco.x, arco.y - 9);
+        ctx.fillStyle = esModoOscuro() ? "#a99880" : "#7a6d5c";
+        ctx.font = "500 11px " + getComputedStyle(document.body).fontFamily;
+        ctx.fillText("respuestas", arco.x, arco.y + 13);
+        ctx.restore();
+    }
+};
+
+// ==========================================
+// PLUGIN: total al final de barras apiladas
+// (horizontal: junto a la barra; vertical: encima de la columna)
+// ==========================================
+
+const pluginTotalApilado = {
+    id: "totalApilado",
+    afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const nDatasets = chart.data.datasets.length;
+        if (!nDatasets) return;
+        const totales = chart.data.datasets[0].totales;
+        if (!totales) return;
+        const metaUltimo = chart.getDatasetMeta(nDatasets - 1);
+        if (!metaUltimo.data.length) return;
+        const esVertical = chart.options.indexAxis !== "y";
+        ctx.save();
+        ctx.font = "600 11.5px " + getComputedStyle(document.body).fontFamily;
+        ctx.fillStyle = esModoOscuro() ? "#a99880" : "#8a7d6c";
+        metaUltimo.data.forEach((barra, i) => {
+            const total = totales[i];
+            if (total === 0) return;
+            if (esVertical) {
+                ctx.textAlign = "center";
+                ctx.textBaseline = "bottom";
+                ctx.fillText(String(total), barra.x, barra.y - 5);
+            } else {
+                ctx.textAlign = "left";
+                ctx.textBaseline = "middle";
+                ctx.fillText(`n = ${total}`, barra.x + 7, barra.y);
             }
         });
         ctx.restore();
@@ -903,11 +968,12 @@ function generarGraficoGenero(encuestas) {
                 hoverOffset: 6
             }]
         },
+        plugins: [pluginTotalDona],
         options: {
             responsive: true,
             maintainAspectRatio: false,
             animation: { duration: 600, easing: "easeOutQuart" },
-            cutout: "62%",
+            cutout: "58%",
             plugins: {
                 legend: {
                     position: window.innerWidth < QUIEBRE_MOVIL ? "bottom" : "right",
@@ -1094,7 +1160,11 @@ function generarGraficoAnioGraduacion(graduados) {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: ctx => `${ctx.parsed.y} graduados`
+                        label: ctx => {
+                            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            const pct = total > 0 ? ((ctx.parsed.y / total) * 100).toFixed(1) : 0;
+                            return `${ctx.parsed.y} graduados (${pct}%)`;
+                        }
                     }
                 }
             },
@@ -1372,15 +1442,18 @@ function generarCruceApilado(opciones) {
         borderRadius: 2,
         stack: "cruce"
     }));
+    datasets[0].totales = filas.map(f => f.total);
 
     window[chartGlobal] = new Chart(document.getElementById(idCanvas), {
         type: "bar",
         data: { labels: filas.map(f => f.etiqueta), datasets },
+        plugins: [pluginTotalApilado],
         options: {
             indexAxis: vertical ? "x" : "y",
             responsive: true,
             maintainAspectRatio: false,
             animation: { duration: 600, easing: "easeOutQuart" },
+            layout: vertical ? { padding: { top: 20 } } : {},
             plugins: {
                 legend: {
                     position: "bottom",
@@ -1430,9 +1503,9 @@ function generarCruceApilado(opciones) {
             } : {
                 x: {
                     beginAtZero: true,
-                    max: usarPorcentaje ? 100 : undefined,
+                    max: usarPorcentaje ? 108 : undefined,
                     stacked: true,
-                    ticks: { color: COLOR_TEXTO(), callback: v => usarPorcentaje ? v + "%" : v },
+                    ticks: { color: COLOR_TEXTO(), callback: v => usarPorcentaje ? (v <= 100 ? v + "%" : "") : v },
                     grid: { color: COLOR_GRID() }
                 },
                 y: {
@@ -1534,7 +1607,11 @@ function generarGraficoCruceGeneroActividad(conjunto) {
                 },
                 tooltip: {
                     callbacks: {
-                        label: ctx => `${ctx.dataset.label}: ${ctx.parsed.r}`
+                        label: ctx => {
+                            const totalEje = datasets.reduce((s, ds) => s + (ds.data[ctx.dataIndex] || 0), 0);
+                            const pct = totalEje > 0 ? ((ctx.parsed.r / totalEje) * 100).toFixed(1) : 0;
+                            return `${ctx.dataset.label}: ${ctx.parsed.r} (${pct}% de la actividad)`;
+                        }
                     }
                 }
             },
