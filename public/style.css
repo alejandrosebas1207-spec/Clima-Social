@@ -1,0 +1,818 @@
+/* ==========================================
+   CLIMA SOCIAL · SISTEMA DE DISEÑO
+   Paleta inspirada en la cultura ecuatoriana
+========================================== */
+
+:root {
+    --kimi-chart-1: #454a91;
+    --kimi-chart-2: #b23a2e;
+    --kimi-chart-3: #2f6b45;
+    --kimi-chart-4: #c9862e;
+    --kimi-chart-5: #8c7a67;
+    --kimi-chart-6: #3a8f8f;
+
+    --kimi-bg: #f6f1e7;
+    --kimi-bg-card: #ffffff;
+    --kimi-bg-suave: #efe8da;
+    --kimi-color-border: #e2d9c9;
+    --kimi-text: #241e15;
+    --kimi-text-soft: #7a6d5c;
+
+    --kimi-sombra-card: 0 1px 2px rgba(36, 30, 21, .05), 0 8px 24px -12px rgba(36, 30, 21, .12);
+    --kimi-sombra-card-hover: 0 2px 4px rgba(36, 30, 21, .06), 0 14px 32px -12px rgba(36, 30, 21, .18);
+    --kimi-sombra-flotante: 0 10px 30px -8px rgba(36, 30, 21, .25);
+
+    --kimi-radio: 14px;
+    --kimi-radio-chico: 10px;
+    --kimi-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body.modo-oscuro {
+    --kimi-bg: #16110c;
+    --kimi-bg-card: #231c14;
+    --kimi-bg-suave: #2c231a;
+    --kimi-color-border: #3d3225;
+    --kimi-text: #f2ecdf;
+    --kimi-text-soft: #a99880;
+
+    --kimi-sombra-card: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -12px rgba(0, 0, 0, .5);
+    --kimi-sombra-card-hover: 0 2px 4px rgba(0, 0, 0, .35), 0 14px 32px -12px rgba(0, 0, 0, .6);
+    --kimi-sombra-flotante: 0 10px 30px -8px rgba(0, 0, 0, .6);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--kimi-font);
+    -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    max-width: 100vw;
+    overflow-x: hidden;
+    background: var(--kimi-bg);
+    color: var(--kimi-text);
+    font-size: 15px;
+    line-height: 1.45;
+    transition: background .3s ease, color .3s ease;
+}
+
+button {
+    font: inherit;
+}
+
+.franja-textil {
+    height: 6px;
+    width: 100%;
+    background: repeating-linear-gradient(-45deg,
+        var(--kimi-chart-1) 0 10px,
+        var(--kimi-chart-4) 10px 20px,
+        var(--kimi-chart-2) 20px 30px,
+        var(--kimi-chart-3) 30px 40px);
+}
+
+/* ==========================================
+   CABECERA
+========================================== */
+
+.cabecera {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: color-mix(in srgb, var(--kimi-bg-card) 88%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--kimi-color-border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.cabecera-titulo-grupo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.cabecera-logo {
+    height: 44px;
+    width: auto;
+    display: block;
+    flex-shrink: 0;
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 4px 10px;
+    box-shadow: 0 0 0 1px var(--kimi-color-border), 0 2px 6px -2px rgba(36, 30, 21, .15);
+}
+
+.cabecera-titulo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.cabecera-titulo h1 {
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--kimi-text);
+    line-height: 1.25;
+    letter-spacing: -.2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cabecera-sub {
+    font-size: 12.5px;
+    font-weight: 400;
+    color: var(--kimi-text-soft);
+}
+
+.cabecera-derecha {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cabecera-fecha {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.reloj {
+    font-variant-numeric: tabular-nums;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--kimi-text);
+}
+
+.fecha {
+    font-size: 12.5px;
+    font-weight: 400;
+    color: var(--kimi-text-soft);
+    text-transform: capitalize;
+}
+
+/* ==========================================
+   TABS
+========================================== */
+
+.tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--kimi-bg-suave);
+    border: 1px solid var(--kimi-color-border);
+    border-radius: 12px;
+    padding: 4px;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.tab {
+    border: none;
+    background: transparent;
+    color: var(--kimi-text-soft);
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 8px 15px;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: background .25s ease, color .25s ease, box-shadow .25s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.tab:hover {
+    color: var(--kimi-text);
+    background: color-mix(in srgb, var(--kimi-bg-card) 60%, transparent);
+}
+
+.tab.activo {
+    background: var(--kimi-bg-card);
+    color: var(--kimi-chart-1);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(36, 30, 21, .15);
+}
+
+body.modo-oscuro .tab.activo {
+    color: #b9bdf0;
+}
+
+.tab:focus-visible {
+    outline: 2px solid var(--kimi-chart-1);
+    outline-offset: 2px;
+}
+
+.boton-modo-oscuro {
+    background: var(--kimi-bg-suave);
+    border: 1px solid var(--kimi-color-border);
+    color: var(--kimi-text);
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform .2s ease, background .2s ease;
+}
+
+.boton-modo-oscuro:hover {
+    background: var(--kimi-bg-card);
+    transform: translateY(-1px);
+}
+
+.boton-modo-oscuro:focus-visible {
+    outline: 2px solid var(--kimi-chart-1);
+    outline-offset: 2px;
+}
+
+/* ==========================================
+   CONTENEDOR
+========================================== */
+
+.contenedor {
+    width: 94%;
+    max-width: 1320px;
+    margin: 22px auto 40px;
+}
+
+/* ==========================================
+   KPIs
+========================================== */
+
+.kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.kpi-card {
+    background: var(--kimi-bg-card);
+    border: 1px solid var(--kimi-color-border);
+    border-radius: var(--kimi-radio);
+    padding: 16px;
+    box-shadow: var(--kimi-sombra-card);
+    transition: box-shadow .25s ease, transform .25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: var(--kimi-chart-1);
+    border-radius: var(--kimi-radio) 0 0 var(--kimi-radio);
+}
+
+.kpi-card.kpi-trabajadores::before {
+    background: var(--kimi-chart-1);
+}
+
+.kpi-card.kpi-graduados::before {
+    background: var(--kimi-chart-3);
+}
+
+.kpi-card.kpi-avance::before {
+    background: var(--kimi-chart-4);
+}
+
+.kpi-card.kpi-hoy::before {
+    background: var(--kimi-chart-6);
+}
+
+.kpi-card:hover {
+    box-shadow: var(--kimi-sombra-card-hover);
+    transform: translateY(-2px);
+}
+
+.kpi-encabezado {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.kpi-icono {
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--kimi-chart-1) 12%, transparent);
+    color: var(--kimi-chart-1);
+    flex-shrink: 0;
+}
+
+.kpi-trabajadores .kpi-icono {
+    background: color-mix(in srgb, var(--kimi-chart-1) 12%, transparent);
+    color: var(--kimi-chart-1);
+}
+
+.kpi-graduados .kpi-icono {
+    background: color-mix(in srgb, var(--kimi-chart-3) 12%, transparent);
+    color: var(--kimi-chart-3);
+}
+
+.kpi-avance .kpi-icono {
+    background: color-mix(in srgb, var(--kimi-chart-4) 14%, transparent);
+    color: var(--kimi-chart-4);
+}
+
+.kpi-hoy .kpi-icono {
+    background: color-mix(in srgb, var(--kimi-chart-6) 12%, transparent);
+    color: var(--kimi-chart-6);
+}
+
+.kpi-icono svg {
+    width: 14px;
+    height: 14px;
+}
+
+.kpi-card h3 {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--kimi-text-soft);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+
+.kpi-card p {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--kimi-text);
+    line-height: 1.1;
+    letter-spacing: -.5px;
+    font-variant-numeric: tabular-nums;
+}
+
+.kpi-meta {
+    display: block;
+    margin-top: 8px;
+    font-size: 12.5px;
+    font-weight: 400;
+    color: var(--kimi-text-soft);
+}
+
+/* Barras de progreso en KPIs */
+.barra-progreso {
+    height: 6px;
+    background: var(--kimi-bg-suave);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.barra-progreso-relleno {
+    height: 100%;
+    width: 0%;
+    border-radius: 99px;
+    background: var(--kimi-chart-1);
+    transition: width .8s cubic-bezier(.22, 1, .36, 1);
+}
+
+.kpi-graduados .barra-progreso-relleno {
+    background: var(--kimi-chart-3);
+}
+
+.kpi-avance .barra-progreso-relleno {
+    background: linear-gradient(90deg, var(--kimi-chart-4), var(--kimi-chart-2));
+}
+
+/* ==========================================
+   ACTUALIZACIÓN
+========================================== */
+
+.ultima-actualizacion {
+    font-size: 12px;
+    color: var(--kimi-text-soft);
+    text-align: right;
+    margin: -4px 2px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.punto-vivo {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--kimi-chart-3);
+    box-shadow: 0 0 0 0 rgba(47, 107, 69, .4);
+    animation: pulso 2.4s ease-out infinite;
+    flex-shrink: 0;
+}
+
+@keyframes pulso {
+    0% {
+        box-shadow: 0 0 0 0 rgba(47, 107, 69, .45);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(47, 107, 69, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(47, 107, 69, 0);
+    }
+}
+
+/* ==========================================
+   GRID DE GRÁFICOS
+========================================== */
+
+.grid-graficos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: 16px;
+}
+
+.grafico-ancho {
+    grid-column: span 2;
+}
+
+.grafico-card {
+    background: var(--kimi-bg-card);
+    border: 1px solid var(--kimi-color-border);
+    border-radius: var(--kimi-radio);
+    padding: 18px;
+    box-shadow: var(--kimi-sombra-card);
+    transition: box-shadow .25s ease, opacity .4s ease;
+}
+
+.grafico-card:hover {
+    box-shadow: var(--kimi-sombra-card-hover);
+}
+
+.grafico-card.oculto {
+    display: none;
+}
+
+.grafico-card.grafico-centrado {
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.grafico-card h2 {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--kimi-text);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -.1px;
+}
+
+.grafico-icono {
+    width: 19px;
+    height: 19px;
+    flex-shrink: 0;
+    color: var(--kimi-chart-1);
+}
+
+.grafico-n {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--kimi-text-soft);
+    white-space: nowrap;
+    background: var(--kimi-bg-suave);
+    border: 1px solid var(--kimi-color-border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    flex-shrink: 0;
+}
+
+.badge-segmento {
+    display: none;
+    font-size: 10px;
+    font-weight: 500;
+    background: color-mix(in srgb, var(--kimi-chart-3) 14%, transparent);
+    color: var(--kimi-chart-3);
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-left: 8px;
+    white-space: nowrap;
+    letter-spacing: .3px;
+}
+
+body.modo-oscuro .badge-segmento {
+    color: #7ec99a;
+}
+
+/* Lienzos */
+.lienzo {
+    position: relative;
+    height: 280px;
+    width: 100%;
+}
+
+.lienzo-linea {
+    height: 220px;
+}
+
+.lienzo-horizontal {
+    height: 280px;
+}
+
+.lienzo-horizontal-chica {
+    height: 180px;
+}
+
+.lienzo-dona {
+    height: 300px;
+}
+
+.lienzo-dona-chica {
+    height: 240px;
+}
+
+.lienzo-provincia {
+    height: 340px;
+}
+
+.lienzo-titulo {
+    height: 320px;
+}
+
+/* Estado vacío de un gráfico */
+.lienzo-vacio {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--kimi-text-soft);
+    font-size: 13.5px;
+    background: var(--kimi-bg-card);
+    border-radius: 8px;
+    z-index: 2;
+}
+
+.lienzo-vacio svg {
+    width: 30px;
+    height: 30px;
+    opacity: .5;
+}
+
+.dona-total {
+    text-align: center;
+    font-size: 13px;
+    color: var(--kimi-text-soft);
+    margin-top: 6px;
+}
+
+.dona-total strong {
+    color: var(--kimi-text);
+    font-weight: 600;
+}
+
+/* ==========================================
+   ERROR
+========================================== */
+
+.error-banner {
+    background: #fdecea;
+    color: #8a2c22;
+    text-align: center;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+body.modo-oscuro .error-banner {
+    background: #3a1f1b;
+    color: #f0b3a9;
+}
+
+.boton-reintentar {
+    background: #8a2c22;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .15s ease, opacity .15s ease;
+}
+
+.boton-reintentar:hover {
+    transform: translateY(-1px);
+    opacity: .9;
+}
+
+/* ==========================================
+   CARGA
+========================================== */
+
+.carga-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--kimi-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    z-index: 9999;
+    transition: opacity .35s ease, visibility .35s ease;
+}
+
+.carga-overlay.oculto {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--kimi-color-border);
+    border-top-color: var(--kimi-chart-1);
+    border-radius: 50%;
+    animation: girar .8s linear infinite;
+}
+
+@keyframes girar {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.carga-overlay p {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--kimi-text-soft);
+}
+
+/* ==========================================
+   FOOTER
+========================================== */
+
+.pie-pagina {
+    text-align: center;
+    padding: 28px 16px 8px;
+    color: var(--kimi-text-soft);
+    font-size: 12.5px;
+    letter-spacing: .3px;
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 800px) {
+    .grid-graficos {
+        grid-template-columns: 1fr;
+    }
+
+    .grafico-ancho {
+        grid-column: span 1;
+    }
+}
+
+@media (max-width: 600px) {
+    body {
+        font-size: 15px;
+    }
+
+    .cabecera {
+        padding: 12px 16px;
+        gap: 12px;
+    }
+
+    .cabecera-titulo-grupo {
+        width: 100%;
+    }
+
+    .cabecera-logo {
+        height: 32px;
+        max-width: 90px;
+        object-fit: contain;
+        padding: 3px 8px;
+    }
+
+    .cabecera-titulo h1 {
+        font-size: 16px;
+    }
+
+    .cabecera-sub {
+        font-size: 11px;
+    }
+
+    .cabecera-derecha {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .cabecera-fecha {
+        margin-left: auto;
+    }
+
+    .tabs {
+        order: 3;
+        width: 100%;
+    }
+
+    .tab {
+        font-size: 13px;
+        padding: 9px 13px;
+    }
+
+    .contenedor {
+        width: 92%;
+        margin-top: 18px;
+    }
+
+    .kpis {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .kpi-card {
+        padding: 13px;
+    }
+
+    .kpi-card p {
+        font-size: 25px;
+    }
+
+    .kpi-card h3 {
+        font-size: 10.5px;
+    }
+
+    .grafico-card h2 {
+        font-size: 13.5px;
+    }
+
+    .lienzo {
+        height: 240px;
+    }
+
+    .lienzo-linea {
+        height: 200px;
+    }
+
+    .lienzo-dona {
+        height: 260px;
+    }
+
+    .lienzo-dona-chica {
+        height: 220px;
+    }
+
+    .lienzo-provincia {
+        height: 400px;
+    }
+
+    .lienzo-titulo {
+        height: 280px;
+    }
+
+    .lienzo-horizontal {
+        height: 260px;
+    }
+}
+
+/* Respetar preferencias de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}
