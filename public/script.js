@@ -1294,7 +1294,7 @@ function generarCruceApilado(opciones) {
         idCanvas, idN, chartGlobal,
         datos, campoFila, mapaFila, ordenFilas,
         serieDe, etiquetaSerie, ordenSeries, colorSerie,
-        usarPorcentaje = true, maxFilas = 0
+        usarPorcentaje = true, maxFilas = 0, vertical = false
     } = opciones;
 
     const matriz = new Map(); // fila -> Map(columna -> n)
@@ -1354,8 +1354,10 @@ function generarCruceApilado(opciones) {
         columnas = ordenSeries.filter(c => filas.some(f => matriz.get(f.fila).has(c)));
     }
 
-    // Altura proporcional a las filas (compacta)
-    ajustarAlturaLienzo(idCanvas, filas.length, 30, 46, 200);
+    // Altura proporcional a las filas (compacta) — solo horizontal
+    if (!vertical) {
+        ajustarAlturaLienzo(idCanvas, filas.length, 30, 46, 200);
+    }
 
     const datasets = columnas.map(col => ({
         label: etiquetaSerie[col],
@@ -1375,7 +1377,7 @@ function generarCruceApilado(opciones) {
         type: "bar",
         data: { labels: filas.map(f => f.etiqueta), datasets },
         options: {
-            indexAxis: "y",
+            indexAxis: vertical ? "x" : "y",
             responsive: true,
             maintainAspectRatio: false,
             animation: { duration: 600, easing: "easeOutQuart" },
@@ -1412,7 +1414,20 @@ function generarCruceApilado(opciones) {
                     }
                 }
             },
-            scales: {
+            scales: vertical ? {
+                x: {
+                    stacked: true,
+                    ticks: { color: COLOR_TEXTO(), font: { size: 11 }, autoSkip: false },
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    max: usarPorcentaje ? 100 : undefined,
+                    stacked: true,
+                    ticks: { color: COLOR_TEXTO(), callback: v => usarPorcentaje ? v + "%" : v },
+                    grid: { color: COLOR_GRID() }
+                }
+            } : {
                 x: {
                     beginAtZero: true,
                     max: usarPorcentaje ? 100 : undefined,
@@ -1543,100 +1558,24 @@ function serieTitulo(encuesta) {
     return parseMultiple(valor).filter(s => MAPA_TITULO[s]);
 }
 
-// RADAR: cada eje es un título; cada cohorte de graduación una silueta.
+// Barras apiladas verticales: año en el eje X, cada título un segmento.
 function generarGraficoCruceAnioTitulo(graduados) {
-    if (chartCruceAnioTitulo) chartCruceAnioTitulo.destroy();
-
-    const COHORTES = [
-        { desde: 2018, hasta: 2020, etiqueta: "Cohorte 2018-2020" },
-        { desde: 2021, hasta: 2023, etiqueta: "Cohorte 2021-2023" },
-        { desde: 2024, hasta: 2099, etiqueta: "Cohorte 2024+" }
-    ];
-
-    const conteoTitulo = {}; // título -> n total (para ranking de ejes)
-    const conteoCohorte = {}; // cohorte -> título -> n
-    let respondio = 0;
-
-    graduados.forEach(e => {
-        const anio = Number(campo(e, CAMPOS.anioGraduacion));
-        if (!anio) return;
-        const titulos = serieTitulo(e);
-        if (!titulos.length) return;
-        respondio++;
-        const cohorte = COHORTES.find(c => anio >= c.desde && anio <= c.hasta);
-        if (!cohorte) return;
-        if (!conteoCohorte[cohorte.etiqueta]) conteoCohorte[cohorte.etiqueta] = {};
-        titulos.forEach(t => {
-            conteoTitulo[t] = (conteoTitulo[t] || 0) + 1;
-            conteoCohorte[cohorte.etiqueta][t] = (conteoCohorte[cohorte.etiqueta][t] || 0) + 1;
-        });
-    });
-
-    mostrarN("nCruceAnioTitulo", respondio);
-
-    // Ejes: títulos con datos, top 10 por frecuencia
-    const ejes = Object.entries(conteoTitulo)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10)
-        .map(([t]) => t);
-
-    const cohortesActivas = COHORTES.filter(c => conteoCohorte[c.etiqueta]);
-
-    if (ejes.length === 0 || cohortesActivas.length === 0) {
-        chartCruceAnioTitulo = null;
-        vaciarLienzo("graficoCruceAnioTitulo");
-        return;
-    }
-    limpiarVacio("graficoCruceAnioTitulo");
-
-    const indiceColor = { "Cohorte 2018-2020": 0, "Cohorte 2021-2023": 3, "Cohorte 2024+": 7 };
-
-    const datasets = cohortesActivas.map(c => ({
-        label: c.etiqueta,
-        data: ejes.map(t => conteoCohorte[c.etiqueta][t] || 0),
-        borderColor: colorCruz(indiceColor[c.etiqueta]),
-        backgroundColor: colorCruzRGBA(indiceColor[c.etiqueta], 0.18),
-        borderWidth: 2,
-        pointBackgroundColor: colorCruzRGBA(indiceColor[c.etiqueta], 0.9),
-        pointRadius: 2.5,
-        pointHoverRadius: 4,
-        fill: true
-    }));
-
-    chartCruceAnioTitulo = new Chart(document.getElementById("graficoCruceAnioTitulo"), {
-        type: "radar",
-        data: { labels: ejes.map(t => MAPA_TITULO[t]), datasets },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: { duration: 600, easing: "easeOutQuart" },
-            plugins: {
-                legend: {
-                    position: "bottom",
-                    labels: {
-                        color: COLOR_TITULO(),
-                        font: { size: 10.5 },
-                        boxWidth: 9,
-                        padding: 8,
-                        usePointStyle: true
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => `${ctx.dataset.label}: ${ctx.parsed.r}`
-                    }
-                }
-            },
-            scales: {
-                r: {
-                    beginAtZero: true,
-                    ticks: { display: false, stepSize: 1 },
-                    grid: { color: COLOR_GRID() },
-                    angleLines: { color: COLOR_GRID() },
-                    pointLabels: { color: COLOR_TEXTO(), font: { size: 10 } }
-                }
-            }
-        }
+    const ordenAnios = [...new Set(graduados.map(e => campo(e, CAMPOS.anioGraduacion)).filter(Boolean))]
+        .sort((a, b) => Number(a) - Number(b));
+    generarCruceApilado({
+        idCanvas: "graficoCruceAnioTitulo",
+        idN: "nCruceAnioTitulo",
+        chartGlobal: "chartCruceAnioTitulo",
+        datos: graduados,
+        campoFila: CAMPOS.anioGraduacion,
+        mapaFila: Object.fromEntries(ordenAnios.map(a => [a, String(a)])),
+        ordenFilas: ordenAnios,
+        serieDe: serieTitulo,
+        etiquetaSerie: MAPA_TITULO,
+        ordenSeries: Object.keys(MAPA_TITULO),
+        colorSerie: c => colorCruz(Object.keys(MAPA_TITULO).indexOf(c)),
+        usarPorcentaje: false,
+        vertical: true
     });
 }
 
