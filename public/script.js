@@ -139,6 +139,15 @@ function colorCruz(indice) {
     return pal[indice % pal.length];
 }
 
+function colorCruzRGBA(indice, alpha) {
+    const pal = esModoOscuro() ? CRUZ_PALETA_OSCURO : CRUZ_PALETA_CLARO;
+    const hex = pal[indice % pal.length];
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+}
+
 function colorActividadCruz(bucket) {
     return colorCruz(Math.max(0, ORDEN_ACTIVIDAD.indexOf(bucket)));
 }
@@ -1444,20 +1453,85 @@ function generarGraficoCruceProvinciaActividad(conjunto) {
     });
 }
 
-// Género × Actividad
+// Género × Actividad — RADAR: cada eje es una actividad, cada género una silueta
 function generarGraficoCruceGeneroActividad(conjunto) {
-    generarCruceApilado({
-        idCanvas: "graficoCruceGeneroActividad",
-        idN: "nCruceGeneroActividad",
-        chartGlobal: "chartCruceGeneroActividad",
-        datos: conjunto,
-        campoFila: CAMPOS.genero,
-        mapaFila: MAPA_GENERO,
-        ordenFilas: ["1", "2", "3", "0"],
-        serieDe: serieActividad,
-        etiquetaSerie: Object.fromEntries(ORDEN_ACTIVIDAD.map(c => [c, c])),
-        ordenSeries: ORDEN_ACTIVIDAD,
-        colorSerie: colorActividadCruz
+    if (chartCruceGeneroActividad) chartCruceGeneroActividad.destroy();
+
+    const conteo = {};
+    let respondio = 0;
+    conjunto.forEach(e => {
+        const genero = campo(e, CAMPOS.genero);
+        if (!genero || !MAPA_GENERO[genero]) return;
+        const buckets = serieActividad(e);
+        if (!buckets.length) return;
+        respondio++;
+        if (!conteo[genero]) conteo[genero] = {};
+        buckets.forEach(b => {
+            conteo[genero][b] = (conteo[genero][b] || 0) + 1;
+        });
+    });
+
+    mostrarN("nCruceGeneroActividad", respondio);
+
+    const actividades = ORDEN_ACTIVIDAD;
+    const generos = ["1", "2", "3", "0"].filter(g => conteo[g]);
+    const colorMap = {
+        "1": 0, "2": 3, "3": 1, "0": 7
+    };
+
+    if (generos.length === 0) {
+        chartCruceGeneroActividad = null;
+        vaciarLienzo("graficoCruceGeneroActividad");
+        return;
+    }
+    limpiarVacio("graficoCruceGeneroActividad");
+
+    const datasets = generos.map((g, i) => ({
+        label: MAPA_GENERO[g],
+        data: actividades.map(a => conteo[g][a] || 0),
+        borderColor: colorCruz(colorMap[g]),
+        backgroundColor: colorCruzRGBA(colorMap[g], 0.18),
+        borderWidth: 2,
+        pointBackgroundColor: colorCruzRGBA(colorMap[g], 0.9),
+        pointRadius: 2.5,
+        pointHoverRadius: 4,
+        fill: true
+    }));
+
+    chartCruceGeneroActividad = new Chart(document.getElementById("graficoCruceGeneroActividad"), {
+        type: "radar",
+        data: { labels: actividades, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 600, easing: "easeOutQuart" },
+            plugins: {
+                legend: {
+                    position: "bottom",
+                    labels: {
+                        color: COLOR_TITULO(),
+                        font: { size: 10.5 },
+                        boxWidth: 9,
+                        padding: 8,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => `${ctx.dataset.label}: ${ctx.parsed.r}`
+                    }
+                }
+            },
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    ticks: { display: false, stepSize: 1 },
+                    grid: { color: COLOR_GRID() },
+                    angleLines: { color: COLOR_GRID() },
+                    pointLabels: { color: COLOR_TEXTO(), font: { size: 10.5 } }
+                }
+            }
+        }
     });
 }
 
@@ -1469,19 +1543,94 @@ function serieTitulo(encuesta) {
 }
 
 function generarGraficoCruceAnioTitulo(graduados) {
-    const ordenAnios = [...new Set(graduados.map(e => campo(e, CAMPOS.anioGraduacion)).filter(Boolean))].sort();
-    generarCruceApilado({
-        idCanvas: "graficoCruceAnioTitulo",
-        idN: "nCruceAnioTitulo",
-        chartGlobal: "chartCruceAnioTitulo",
-        datos: graduados,
-        campoFila: CAMPOS.anioGraduacion,
-        mapaFila: Object.fromEntries(ordenAnios.map(a => [a, String(a)])),
-        ordenFilas: ordenAnios,
-        serieDe: serieTitulo,
-        etiquetaSerie: MAPA_TITULO,
-        ordenSeries: Object.keys(MAPA_TITULO),
-        colorSerie: c => colorCruz(Object.keys(MAPA_TITULO).indexOf(c))
+    if (chartCruceAnioTitulo) chartCruceAnioTitulo.destroy();
+
+    const conteo = {};
+    const años = new Set();
+    let respondio = 0;
+    graduados.forEach(e => {
+        const anio = campo(e, CAMPOS.anioGraduacion);
+        if (!anio) return;
+        const titulos = serieTitulo(e);
+        if (!titulos.length) return;
+        respondio++;
+        años.add(anio);
+        if (!conteo[anio]) conteo[anio] = {};
+        titulos.forEach(t => {
+            conteo[anio][t] = (conteo[anio][t] || 0) + 1;
+        });
+    });
+
+    mostrarN("nCruceAnioTitulo", respondio);
+
+    const ordenAnios = [...años].sort((a, b) => Number(a) - Number(b));
+    const titulos = Object.keys(MAPA_TITULO).filter(t =>
+        ordenAnios.some(a => (conteo[a][t] || 0) > 0)
+    );
+
+    if (titulos.length === 0 || ordenAnios.length === 0) {
+        chartCruceAnioTitulo = null;
+        vaciarLienzo("graficoCruceAnioTitulo");
+        return;
+    }
+    limpiarVacio("graficoCruceAnioTitulo");
+
+    const datasets = titulos.map(t => ({
+        label: MAPA_TITULO[t],
+        data: ordenAnios.map(a => conteo[a][t] || 0),
+        borderColor: colorCruz(Object.keys(MAPA_TITULO).indexOf(t)),
+        backgroundColor: colorCruzRGBA(Object.keys(MAPA_TITULO).indexOf(t), 0.55),
+        borderWidth: 1,
+        fill: true,
+        tension: 0.3,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        stack: "anio"
+    }));
+
+    chartCruceAnioTitulo = new Chart(document.getElementById("graficoCruceAnioTitulo"), {
+        type: "line",
+        data: { labels: ordenAnios, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 600, easing: "easeOutQuart" },
+            plugins: {
+                legend: {
+                    position: "bottom",
+                    labels: {
+                        color: COLOR_TITULO(),
+                        font: { size: 10.5 },
+                        boxWidth: 9,
+                        padding: 8,
+                        usePointStyle: true,
+                        filter(item) {
+                            // Oculta del legend los títulos sin datos
+                            return true;
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                    ticks: { color: COLOR_TEXTO() },
+                    grid: { color: COLOR_GRID() },
+                    title: { color: COLOR_TEXTO(), display: true, text: "Año de graduación", font: { size: 11 } }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: { color: COLOR_TEXTO(), precision: 0 },
+                    grid: { color: COLOR_GRID() }
+                }
+            }
+        }
     });
 }
 
