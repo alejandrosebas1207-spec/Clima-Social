@@ -559,10 +559,6 @@ body.modo-oscuro .badge-segmento {
     height: 320px;
 }
 
-.lienzo-cruce {
-    height: 300px;
-}
-
 /* Estado vacío de un gráfico */
 .lienzo-vacio {
     position: absolute;
