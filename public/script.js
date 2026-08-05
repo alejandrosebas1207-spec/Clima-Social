@@ -143,14 +143,17 @@ function aplicarModoOscuro(activo) {
         boton.title = activo ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
         boton.setAttribute("aria-pressed", String(activo));
     }
-    if (ultimosDatosCargados) renderizarTodo();
+    // Re-renderiza en el siguiente frame para que el canvas lea
+    // los colores ya aplicados por la clase -> modo-oscuro
+    requestAnimationFrame(() => {
+        if (ultimosDatosCargados) renderizarTodo();
+    });
 }
 
+// El tablero arranca SIEMPRE en modo claro. La preferencia del usuario
+// solo se usa si la guardó antes con el botón.
 function inicializarModoOscuro() {
-    let activo = localStorage.getItem(CLAVE_MODO) === "1";
-    if (!localStorage.getItem(CLAVE_MODO)) {
-        activo = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-    }
+    const activo = localStorage.getItem(CLAVE_MODO) === "1";
     aplicarModoOscuro(activo);
 }
 
@@ -362,21 +365,31 @@ function renderizarTodo() {
     });
 
     // --- Gráficos siempre visibles ---
-    generarGraficoAvanceDia(trabajadores, graduados);
-    generarGraficoMedio(conjunto);
-    generarGraficoProvincia(conjunto);
-    generarGraficoGenero(conjunto);
-    generarGraficoActividad(conjunto);
+    generarGraficoSeguro("generarGraficoAvanceDia", trabajadores, graduados);
+    generarGraficoSeguro("generarGraficoMedio", conjunto);
+    generarGraficoSeguro("generarGraficoProvincia", conjunto);
+    generarGraficoSeguro("generarGraficoGenero", conjunto);
+    generarGraficoSeguro("generarGraficoActividad", conjunto);
 
     // --- Gráficos exclusivos de graduados ---
     if (filtroActual !== "trabajadores") {
-        generarGraficoAnioGraduacion(graduados);
-        generarGraficoTitulo(graduados);
+        generarGraficoSeguro("generarGraficoAnioGraduacion", graduados);
+        generarGraficoSeguro("generarGraficoTitulo", graduados);
     } else {
         destruirChart("chartAnioGraduacion");
         destruirChart("chartTitulo");
         mostrarN("nAnioGraduacion", 0);
         mostrarN("nTitulo", 0);
+    }
+}
+
+// Aísla cada gráfico: si uno falla al renderizar (p. ej. al cambiar
+// de modo oscuro), los demás se dibujan igual con los colores nuevos.
+function generarGraficoSeguro(nombreFuncion, ...args) {
+    try {
+        window[nombreFuncion](...args);
+    } catch (error) {
+        console.error(`Error al generar ${nombreFuncion}:`, error);
     }
 }
 
