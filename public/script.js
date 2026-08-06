@@ -76,6 +76,7 @@ const MAPA_TITULO = {
     "4": "Lic. Cine",
     "5": "Lic. Literatura",
     "6": "Lic. Producción Musical",
+    "6_1": "Lic. Danza",
     "7": "Máster Cine Documental",
     "8": "Máster Artes Visuales y Nuevos Medios",
     "9": "Máster Artes Escénicas",
