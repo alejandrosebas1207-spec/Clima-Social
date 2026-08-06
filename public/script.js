@@ -808,8 +808,8 @@ function generarGraficoProvincia(encuestas) {
 // GRÁFICO: GÉNERO (rosa de Nightingale / polar area)
 // ==========================================
 
-const PALETA_GENERO_CLARO = ["#c97f9d", "#7f9dc9", "#9d7fc9", "#c9b28f"];
-const PALETA_GENERO_OSCURO = ["#d98fae", "#8faede", "#ae8fde", "#d6bf9b"];
+const PALETA_GENERO_CLARO = ["#c4557f", "#4f7fc4", "#8a5fc4", "#b08a4a"];
+const PALETA_GENERO_OSCURO = ["#e57498", "#6f9ad6", "#9f77d6", "#c9a35a"];
 
 function colorGenero(indice) {
     const pal = esModoOscuro() ? PALETA_GENERO_OSCURO : PALETA_GENERO_CLARO;
@@ -875,10 +875,12 @@ function generarGraficoGenero(encuestas) {
                     align: "center",
                     labels: {
                         color: COLOR_TITULO(),
-                        font: { size: 12, weight: "600" },
-                        boxWidth: 12,
-                        padding: 10,
+                        font: { size: 13.5, weight: "600" },
+                        boxWidth: 16,
+                        boxHeight: 16,
+                        padding: 12,
                         usePointStyle: true,
+                        pointStyle: "rectRounded",
                         generateLabels(chart) {
                             const data = chart.data;
                             const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
