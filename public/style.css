@@ -470,12 +470,6 @@ body.modo-oscuro .tab.activo {
     display: none;
 }
 
-.grafico-card.grafico-centrado {
-    max-width: 680px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
 .grafico-card h2 {
     font-size: 14.5px;
     font-weight: 600;
@@ -544,10 +538,6 @@ body.modo-oscuro .badge-segmento {
 }
 
 .lienzo-dona {
-    height: 300px;
-}
-
-.lienzo-dona-chica {
     height: 300px;
 }
 
@@ -787,10 +777,6 @@ body.modo-oscuro .error-banner {
 
     .lienzo-dona {
         height: 260px;
-    }
-
-    .lienzo-dona-chica {
-        height: 280px;
     }
 
     .lienzo-provincia {

@@ -582,34 +582,6 @@ const pluginEtiquetaPorcentaje = {
 };
 
 // ==========================================
-// PLUGIN: icono dentro de la barra horizontal
-// ==========================================
-
-const pluginIconoBarra = {
-    id: "iconoBarra",
-    afterDatasetsDraw(chart) {
-        const { ctx, chartArea } = chart;
-        const meta = chart.getDatasetMeta(0);
-        if (!meta) return;
-        const iconos = chart.data.datasets[0].iconos;
-        if (!iconos) return;
-        ctx.save();
-        ctx.font = "600 16px " + getComputedStyle(document.body).fontFamily;
-        ctx.textAlign = "left";
-        ctx.textBaseline = "middle";
-        meta.data.forEach((barra, i) => {
-            const icono = iconos[i];
-            if (!icono) return;
-            const anchoBarra = barra.x - chartArea.left;
-            if (anchoBarra < 30) return;
-            ctx.fillStyle = "#ffffff";
-            ctx.fillText(icono, chartArea.left + 8, barra.y);
-        });
-        ctx.restore();
-    }
-};
-
-// ==========================================
 // PLUGIN: número encima de barras verticales
 // ==========================================
 
@@ -881,13 +853,12 @@ function generarGraficoGenero(encuestas) {
     limpiarVacio("graficoGenero");
 
     const totalGeneral = items.reduce((s, it) => s + it.count, 0);
-    const etiquetas = items.map(it => it.etiqueta);
+    const etiquetas = items.map(it => `${ICONO_GENERO[it.codigo]} ${it.etiqueta}`);
     const valores = items.map(it => Number(((it.count / totalGeneral) * 100).toFixed(1)));
     const counts = items.map(it => it.count);
     const colores = items.map(it => colorGenero(it.codigo));
-    const iconos = items.map(it => ICONO_GENERO[it.codigo]);
 
-    ajustarAlturaLienzo("graficoGenero", etiquetas.length, 64, 60, 280);
+    ajustarAlturaLienzo("graficoGenero", etiquetas.length, 34, 20, 200);
 
     chartGenero = new Chart(document.getElementById("graficoGenero"), {
         type: "bar",
@@ -896,21 +867,19 @@ function generarGraficoGenero(encuestas) {
             datasets: [{
                 data: valores,
                 counts: counts,
-                iconos: iconos,
                 backgroundColor: colores,
-                borderRadius: 8,
-                maxBarThickness: 44,
-                barPercentage: 0.72,
+                borderRadius: 5,
+                maxBarThickness: 26,
+                barPercentage: 0.7,
                 categoryPercentage: 0.85
             }]
         },
-        plugins: [pluginEtiquetaPorcentaje, pluginIconoBarra],
+        plugins: [pluginEtiquetaPorcentaje],
         options: {
             indexAxis: "y",
             responsive: true,
             maintainAspectRatio: false,
             animation: { duration: 600, easing: "easeOutQuart" },
-            layout: { padding: { left: 2 } },
             plugins: {
                 legend: { display: false },
                 tooltip: {
@@ -926,7 +895,7 @@ function generarGraficoGenero(encuestas) {
                     grid: { color: COLOR_GRID() }
                 },
                 y: {
-                    ticks: { color: COLOR_TEXTO(), font: { size: 13, weight: "600" }, autoSkip: false },
+                    ticks: { color: COLOR_TEXTO(), font: { size: 12 }, autoSkip: false },
                     grid: { display: false }
                 }
             }
