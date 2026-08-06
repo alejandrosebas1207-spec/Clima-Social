@@ -582,6 +582,34 @@ const pluginEtiquetaPorcentaje = {
 };
 
 // ==========================================
+// PLUGIN: icono dentro de la barra horizontal
+// ==========================================
+
+const pluginIconoBarra = {
+    id: "iconoBarra",
+    afterDatasetsDraw(chart) {
+        const { ctx, chartArea } = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta) return;
+        const iconos = chart.data.datasets[0].iconos;
+        if (!iconos) return;
+        ctx.save();
+        ctx.font = "600 16px " + getComputedStyle(document.body).fontFamily;
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        meta.data.forEach((barra, i) => {
+            const icono = iconos[i];
+            if (!icono) return;
+            const anchoBarra = barra.x - chartArea.left;
+            if (anchoBarra < 30) return;
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText(icono, chartArea.left + 8, barra.y);
+        });
+        ctx.restore();
+    }
+};
+
+// ==========================================
 // PLUGIN: número encima de barras verticales
 // ==========================================
 
@@ -805,15 +833,18 @@ function generarGraficoProvincia(encuestas) {
 }
 
 // ==========================================
-// GRÁFICO: GÉNERO (rosa de Nightingale / polar area)
+// GRÁFICO: GÉNERO (barras horizontales con iconos)
+// Femenino rosa, Masculino azul, No binario violeta, Prefiere no responder arena.
 // ==========================================
 
-const PALETA_GENERO_CLARO = ["#c4557f", "#4f7fc4", "#8a5fc4", "#b08a4a"];
+const PALETA_GENERO_CLARO = ["#d4557f", "#4f7fc4", "#8a5fc4", "#b08a4a"];
 const PALETA_GENERO_OSCURO = ["#e57498", "#6f9ad6", "#9f77d6", "#c9a35a"];
+const ICONO_GENERO = { "1": "♀", "2": "♂", "3": "⚧", "0": "?" };
+const ORDEN_GENERO = ["1", "2", "3", "0"];
 
-function colorGenero(indice) {
+function colorGenero(codigo) {
     const pal = esModoOscuro() ? PALETA_GENERO_OSCURO : PALETA_GENERO_CLARO;
-    return pal[indice % pal.length];
+    return pal[Math.max(0, ORDEN_GENERO.indexOf(codigo)) % pal.length];
 }
 
 let chartGenero = null;
@@ -832,90 +863,71 @@ function generarGraficoGenero(encuestas) {
 
     if (chartGenero) chartGenero.destroy();
 
-    const etiquetas = [];
-    const valores = [];
-    const colores = [];
+    // Ordenar de mayor a menor frecuencia
+    const items = ORDEN_GENERO
+        .filter(c => conteo[c])
+        .map(c => ({
+            codigo: c,
+            etiqueta: MAPA_GENERO[c],
+            count: conteo[c]
+        }))
+        .sort((a, b) => b.count - a.count);
 
-    Object.keys(MAPA_GENERO).forEach(codigo => {
-        if (conteo[codigo]) {
-            etiquetas.push(MAPA_GENERO[codigo]);
-            valores.push(conteo[codigo]);
-            colores.push(colorGenero(etiquetas.length - 1));
-        }
-    });
-
-    if (etiquetas.length === 0) {
+    if (items.length === 0) {
         chartGenero = null;
         vaciarLienzo("graficoGenero");
         return;
     }
     limpiarVacio("graficoGenero");
 
+    const totalGeneral = items.reduce((s, it) => s + it.count, 0);
+    const etiquetas = items.map(it => it.etiqueta);
+    const valores = items.map(it => Number(((it.count / totalGeneral) * 100).toFixed(1)));
+    const counts = items.map(it => it.count);
+    const colores = items.map(it => colorGenero(it.codigo));
+    const iconos = items.map(it => ICONO_GENERO[it.codigo]);
+
+    ajustarAlturaLienzo("graficoGenero", etiquetas.length, 64, 60, 280);
+
     chartGenero = new Chart(document.getElementById("graficoGenero"), {
-        type: "polarArea",
+        type: "bar",
         data: {
             labels: etiquetas,
             datasets: [{
                 data: valores,
+                counts: counts,
+                iconos: iconos,
                 backgroundColor: colores,
-                borderColor: esModoOscuro() ? "#231c14" : "#ffffff",
-                borderWidth: 2,
                 borderRadius: 8,
-                spacing: 6,
-                hoverBorderWidth: 3
+                maxBarThickness: 44,
+                barPercentage: 0.72,
+                categoryPercentage: 0.85
             }]
         },
+        plugins: [pluginEtiquetaPorcentaje, pluginIconoBarra],
         options: {
+            indexAxis: "y",
             responsive: true,
             maintainAspectRatio: false,
             animation: { duration: 600, easing: "easeOutQuart" },
+            layout: { padding: { left: 2 } },
             plugins: {
-                legend: {
-                    position: window.innerWidth < QUIEBRE_MOVIL ? "bottom" : "right",
-                    align: "center",
-                    labels: {
-                        color: COLOR_TITULO(),
-                        font: { size: 13.5, weight: "600" },
-                        boxWidth: 16,
-                        boxHeight: 16,
-                        padding: 12,
-                        usePointStyle: true,
-                        pointStyle: "rectRounded",
-                        generateLabels(chart) {
-                            const data = chart.data;
-                            const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
-                            return data.labels.map((label, i) => {
-                                const valor = data.datasets[0].data[i];
-                                const pct = ((valor / total) * 100).toFixed(0);
-                                return {
-                                    text: `${label} · ${valor} (${pct}%)`,
-                                    fillStyle: data.datasets[0].backgroundColor[i],
-                                    strokeStyle: data.datasets[0].backgroundColor[i],
-                                    color: COLOR_TITULO(),
-                                    pointStyle: "circle",
-                                    index: i
-                                };
-                            });
-                        }
-                    }
-                },
+                legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: ctx => {
-                            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                            const pct = total > 0 ? ((ctx.parsed.r / total) * 100).toFixed(1) : 0;
-                            return `${ctx.label}: ${ctx.parsed.r} (${pct}%)`;
-                        }
+                        label: ctx => `${counts[ctx.dataIndex]} respuestas (${ctx.parsed.x}%)`
                     }
                 }
             },
             scales: {
-                r: {
-                    beginAtZero: true,
-                    ticks: { display: false },
-                    grid: { color: COLOR_GRID() },
-                    angleLines: { color: COLOR_GRID() },
-                    pointLabels: { display: false }
+                x: {
+                    beginAtZero: true, max: 100,
+                    ticks: { color: COLOR_TEXTO(), callback: v => v + "%" },
+                    grid: { color: COLOR_GRID() }
+                },
+                y: {
+                    ticks: { color: COLOR_TEXTO(), font: { size: 13, weight: "600" }, autoSkip: false },
+                    grid: { display: false }
                 }
             }
         }
