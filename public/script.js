@@ -582,34 +582,6 @@ const pluginEtiquetaPorcentaje = {
 };
 
 // ==========================================
-// PLUGIN: total en el centro de la dona
-// ==========================================
-
-const pluginTotalDona = {
-    id: "totalDona",
-    afterDatasetsDraw(chart) {
-        const { ctx } = chart;
-        const data = chart.data.datasets[0].data;
-        if (!data || !data.length) return;
-        const total = data.reduce((a, b) => a + b, 0);
-        if (!total) return;
-        const meta = chart.getDatasetMeta(0);
-        const arco = meta.data[0];
-        if (!arco || !arco.x) return;
-        ctx.save();
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = esModoOscuro() ? "#f2ecdf" : "#241e15";
-        ctx.font = "700 26px " + getComputedStyle(document.body).fontFamily;
-        ctx.fillText(total, arco.x, arco.y - 9);
-        ctx.fillStyle = esModoOscuro() ? "#a99880" : "#7a6d5c";
-        ctx.font = "500 11px " + getComputedStyle(document.body).fontFamily;
-        ctx.fillText("respuestas", arco.x, arco.y + 13);
-        ctx.restore();
-    }
-};
-
-// ==========================================
 // PLUGIN: número encima de barras verticales
 // ==========================================
 
@@ -833,8 +805,16 @@ function generarGraficoProvincia(encuestas) {
 }
 
 // ==========================================
-// GRÁFICO: GÉNERO (dona)
+// GRÁFICO: GÉNERO (rosa de Nightingale / polar area)
 // ==========================================
+
+const PALETA_GENERO_CLARO = ["#c97f9d", "#7f9dc9", "#9d7fc9", "#c9b28f"];
+const PALETA_GENERO_OSCURO = ["#d98fae", "#8faede", "#ae8fde", "#d6bf9b"];
+
+function colorGenero(indice) {
+    const pal = esModoOscuro() ? PALETA_GENERO_OSCURO : PALETA_GENERO_CLARO;
+    return pal[indice % pal.length];
+}
 
 let chartGenero = null;
 
@@ -855,18 +835,12 @@ function generarGraficoGenero(encuestas) {
     const etiquetas = [];
     const valores = [];
     const colores = [];
-    const colorMap = {
-        "1": cssVar("--kimi-chart-1"),
-        "2": cssVar("--kimi-chart-4"),
-        "3": cssVar("--kimi-chart-2"),
-        "0": cssVar("--kimi-chart-5")
-    };
 
     Object.keys(MAPA_GENERO).forEach(codigo => {
         if (conteo[codigo]) {
             etiquetas.push(MAPA_GENERO[codigo]);
             valores.push(conteo[codigo]);
-            colores.push(colorMap[codigo] || cssVar("--kimi-chart-5"));
+            colores.push(colorGenero(etiquetas.length - 1));
         }
     });
 
@@ -877,26 +851,24 @@ function generarGraficoGenero(encuestas) {
     }
     limpiarVacio("graficoGenero");
 
-    const totalGeneral = valores.reduce((a, b) => a + b, 0);
-
     chartGenero = new Chart(document.getElementById("graficoGenero"), {
-        type: "doughnut",
+        type: "polarArea",
         data: {
             labels: etiquetas,
             datasets: [{
                 data: valores,
                 backgroundColor: colores,
                 borderColor: esModoOscuro() ? "#231c14" : "#ffffff",
-                borderWidth: 3,
-                hoverOffset: 6
+                borderWidth: 2,
+                borderRadius: 8,
+                spacing: 6,
+                hoverBorderWidth: 3
             }]
         },
-        plugins: [pluginTotalDona],
         options: {
             responsive: true,
             maintainAspectRatio: false,
             animation: { duration: 600, easing: "easeOutQuart" },
-            cutout: "58%",
             plugins: {
                 legend: {
                     position: window.innerWidth < QUIEBRE_MOVIL ? "bottom" : "right",
@@ -929,10 +901,19 @@ function generarGraficoGenero(encuestas) {
                     callbacks: {
                         label: ctx => {
                             const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                            const pct = ((ctx.parsed / total) * 100).toFixed(1);
-                            return `${ctx.label}: ${ctx.parsed} (${pct}%)`;
+                            const pct = total > 0 ? ((ctx.parsed.r / total) * 100).toFixed(1) : 0;
+                            return `${ctx.label}: ${ctx.parsed.r} (${pct}%)`;
                         }
                     }
+                }
+            },
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    ticks: { display: false },
+                    grid: { color: COLOR_GRID() },
+                    angleLines: { color: COLOR_GRID() },
+                    pointLabels: { display: false }
                 }
             }
         }
