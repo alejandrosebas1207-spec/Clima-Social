@@ -764,20 +764,6 @@ function generarGraficoAvanceDia(trabajadores, graduados) {
 
 let chartProvincia = null;
 
-function computarDiasActivos(encuestas) {
-    const fechas = [];
-    for (const e of encuestas) {
-        const start = campo(e, "start") || e._submission_time;
-        if (!start) continue;
-        const d = new Date(start);
-        if (!isNaN(d)) fechas.push(d);
-    }
-    if (!fechas.length) return 1;
-    const min = new Date(Math.min(...fechas));
-    const hoy = new Date();
-    return Math.max(1, Math.ceil((hoy - min) / 86400000));
-}
-
 function generarGraficoProvincia(encuestas) {
     const modoMeta = filtroActual !== "graduados";
     const conteo = {};
@@ -814,8 +800,7 @@ function generarGraficoProvincia(encuestas) {
             .sort((a, b) => b.count - a.count);
         const titulo = document.getElementById("tituloProvincia");
         if (titulo) titulo.textContent = "Avance vs meta";
-        const diasActivos = computarDiasActivos(encuestas);
-        mostrarPanelProvincia(filas, filasSinMeta, diasActivos);
+        mostrarPanelProvincia(filas, filasSinMeta);
         return;
     } else {
         ocultarPanelProvincia();
@@ -895,7 +880,7 @@ function claseEstadoProvincia(pct) {
     return "estado-muy-bajo";
 }
 
-function mostrarPanelProvincia(filasMeta, filasSinMeta, diasActivos) {
+function mostrarPanelProvincia(filasMeta, filasSinMeta) {
     const lienzo = document.getElementById("lienzoProvincia");
     const panel = document.getElementById("panelProvincia");
     if (!lienzo || !panel) return;
@@ -917,9 +902,6 @@ function mostrarPanelProvincia(filasMeta, filasSinMeta, diasActivos) {
             : diferencia === 0
                 ? "Meta alcanzada"
                 : `Supera por ${formatearNumero(Math.abs(diferencia))}`;
-        const ritmo = (fila.count > 0 && fila.count < fila.meta)
-            ? `≈ ${formatearNumero(Math.ceil(diferencia / Math.max(1, fila.count / diasActivos)))} d más`
-            : "";
         return `
             <article class="provincia-meta-fila ${claseEstadoProvincia(porcentaje)}" role="listitem" aria-label="${fila.label}: ${fila.count} encuestas, ${porcentaje}% de meta, objetivo ${fila.meta}">
                 <div class="provincia-meta-cabecera">
@@ -932,7 +914,7 @@ function mostrarPanelProvincia(filasMeta, filasSinMeta, diasActivos) {
                 </div>
                 <div class="provincia-meta-detalle">
                     <span><strong>${formatearNumero(fila.count)} encuestas</strong> · ${porcentaje}% de meta</span>
-                    <span>${estado}${ritmo ? ` · ${ritmo}` : ""}</span>
+                    <span>${estado}</span>
                 </div>
             </article>`;
     }).join("");
