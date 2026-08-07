@@ -546,8 +546,111 @@ body.modo-oscuro .badge-segmento {
 }
 
 .panel-provincia {
-.panel-provincia {
-    margin-top: 10px;
+    margin-top: 12px;
+}
+
+.provincia-meta-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.provincia-meta-fila {
+    --provincia-color: var(--kimi-chart-1);
+    padding: 8px 10px 7px;
+    background: color-mix(in srgb, var(--provincia-color) 5%, var(--kimi-bg-card));
+    border: 1px solid var(--kimi-color-border);
+    border-left: 3px solid var(--provincia-color);
+    border-radius: 8px;
+}
+
+.provincia-meta-fila.estado-muy-bajo {
+    --provincia-color: var(--kimi-chart-2);
+}
+
+.provincia-meta-fila.estado-bajo {
+    --provincia-color: #d66b35;
+}
+
+.provincia-meta-fila.estado-medio {
+    --provincia-color: var(--kimi-chart-4);
+}
+
+.provincia-meta-fila.estado-alto {
+    --provincia-color: #758e51;
+}
+
+.provincia-meta-fila.estado-cumplida {
+    --provincia-color: var(--kimi-chart-3);
+}
+
+.provincia-meta-cabecera {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.provincia-meta-nombre {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--kimi-text);
+    font-size: 12px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.provincia-meta-porcentaje {
+    color: var(--provincia-color);
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.provincia-meta-objetivo {
+    min-width: 78px;
+    color: var(--kimi-text-soft);
+    font-size: 10.5px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.provincia-meta-track {
+    height: 8px;
+    margin-top: 6px;
+    overflow: hidden;
+    background: var(--kimi-bg-suave);
+    border-radius: 99px;
+}
+
+.provincia-meta-relleno {
+    display: block;
+    width: var(--provincia-avance, 0%);
+    height: 100%;
+    background: var(--provincia-color);
+    border-radius: inherit;
+    transition: width .7s cubic-bezier(.22, 1, .36, 1);
+}
+
+.provincia-meta-detalle {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-top: 4px;
+    color: var(--kimi-text-soft);
+    font-size: 10.5px;
+    font-variant-numeric: tabular-nums;
+}
+
+.provincia-meta-detalle strong {
+    color: var(--kimi-text);
+    font-weight: 600;
+}
+
+.provincia-meta-detalle span:last-child {
+    margin-left: auto;
 }
 
 .provincia-sin-meta-cabecera {
@@ -579,7 +682,7 @@ body.modo-oscuro .badge-segmento {
 .provincia-sin-meta-chip {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
     max-width: 100%;
     padding: 4px 8px;
     background: color-mix(in srgb, var(--kimi-chart-5) 7%, var(--kimi-bg-card));
@@ -600,6 +703,7 @@ body.modo-oscuro .badge-segmento {
     color: var(--kimi-text);
     font-size: 10.5px;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
 .lienzo-titulo {
