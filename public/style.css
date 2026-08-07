@@ -556,12 +556,12 @@ body.modo-oscuro .badge-segmento {
 .provincia-meta-lista {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .provincia-meta-fila {
     --provincia-color: var(--kimi-chart-1);
-    padding: 8px 10px 7px;
+    padding: 6px 10px 5px;
     background: color-mix(in srgb, var(--provincia-color) 5%, var(--kimi-bg-card));
     border: 1px solid var(--kimi-color-border);
     border-left: 3px solid var(--provincia-color);
@@ -593,6 +593,7 @@ body.modo-oscuro .badge-segmento {
     grid-template-columns: minmax(0, 1fr) auto auto;
     align-items: baseline;
     gap: 12px;
+    line-height: 1.15;
 }
 
 .provincia-meta-nombre {
@@ -622,8 +623,8 @@ body.modo-oscuro .badge-segmento {
 }
 
 .provincia-meta-track {
-    height: 8px;
-    margin-top: 6px;
+    height: 6px;
+    margin-top: 4px;
     overflow: hidden;
     background: var(--kimi-bg-suave);
     border-radius: 99px;
@@ -641,10 +642,11 @@ body.modo-oscuro .badge-segmento {
 .provincia-meta-detalle {
     display: flex;
     align-items: baseline;
-    gap: 12px;
-    margin-top: 4px;
+    gap: 10px;
+    margin-top: 3px;
     color: var(--kimi-text-soft);
-    font-size: 10.5px;
+    font-size: 10px;
+    line-height: 1.15;
     font-variant-numeric: tabular-nums;
 }
 
