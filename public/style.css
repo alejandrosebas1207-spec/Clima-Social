@@ -545,151 +545,61 @@ body.modo-oscuro .badge-segmento {
     height: 340px;
 }
 
-.lienzo-provincia-panel {
-    height: auto;
-    min-height: 0;
-}
-
 .panel-provincia {
+.panel-provincia {
+    margin-top: 10px;
+}
+
+.provincia-sin-meta-cabecera {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.provincia-resumen {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-}
-
-.provincia-resumen-item {
-    min-width: 0;
-    padding: 8px 10px;
-    background: var(--kimi-bg-suave);
-    border: 1px solid var(--kimi-color-border);
-    border-radius: var(--kimi-radio-chico);
-}
-
-.provincia-resumen-item strong {
-    display: block;
-    color: var(--kimi-text);
-    font-size: 17px;
-    line-height: 1.1;
-    font-variant-numeric: tabular-nums;
-}
-
-.provincia-resumen-item span {
-    display: block;
-    margin-top: 3px;
-    color: var(--kimi-text-soft);
-    font-size: 10.5px;
-    line-height: 1.2;
-}
-
-.provincia-seccion {
-    display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
     gap: 10px;
     color: var(--kimi-text-soft);
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 600;
-    letter-spacing: .35px;
+    letter-spacing: .3px;
     text-transform: uppercase;
 }
 
-.provincia-seccion small {
-    font-size: 10.5px;
-    font-weight: 500;
+.provincia-sin-meta-cabecera small {
+    font-size: 10px;
+    font-weight: 400;
     letter-spacing: 0;
     text-transform: none;
 }
 
-.provincia-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-}
-
-.provincia-mini {
-    --provincia-color: var(--kimi-chart-1);
-    min-width: 0;
-    padding: 9px 10px 8px;
-    background: color-mix(in srgb, var(--provincia-color) 6%, var(--kimi-bg-card));
-    border: 1px solid var(--kimi-color-border);
-    border-left: 3px solid var(--provincia-color);
-    border-radius: var(--kimi-radio-chico);
-}
-
-.provincia-mini.estado-bajo {
-    --provincia-color: var(--kimi-chart-2);
-}
-
-.provincia-mini.estado-medio {
-    --provincia-color: var(--kimi-chart-4);
-}
-
-.provincia-mini.estado-cumplida {
-    --provincia-color: var(--kimi-chart-3);
-}
-
-.provincia-mini.sin-meta {
-    --provincia-color: var(--kimi-chart-5);
-}
-
-.provincia-mini-cabecera,
-.provincia-mini-detalle {
+.provincia-sin-meta-lista {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 8px;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
 }
 
-.provincia-mini-nombre {
-    min-width: 0;
+.provincia-sin-meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 4px 8px;
+    background: color-mix(in srgb, var(--kimi-chart-5) 7%, var(--kimi-bg-card));
+    border: 1px solid var(--kimi-color-border);
+    border-left: 2px solid var(--kimi-chart-5);
+    border-radius: 7px;
+    color: var(--kimi-text-soft);
+    font-size: 10.5px;
+}
+
+.provincia-sin-meta-chip span {
     overflow: hidden;
-    color: var(--kimi-text);
-    font-size: 12px;
-    font-weight: 600;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.provincia-mini-porcentaje {
-    flex-shrink: 0;
-    color: var(--provincia-color);
-    font-size: 12px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-}
-
-.provincia-mini-detalle {
-    margin-top: 4px;
-    color: var(--kimi-text-soft);
+.provincia-sin-meta-chip strong {
+    color: var(--kimi-text);
     font-size: 10.5px;
     font-variant-numeric: tabular-nums;
-}
-
-.provincia-mini-barra {
-    height: 5px;
-    margin-top: 8px;
-    overflow: hidden;
-    background: var(--kimi-bg-suave);
-    border-radius: 99px;
-}
-
-.provincia-mini-relleno {
-    width: var(--provincia-avance, 0%);
-    height: 100%;
-    background: var(--provincia-color);
-    border-radius: inherit;
-    transition: width .7s cubic-bezier(.22, 1, .36, 1);
-}
-
-.provincia-sin-meta-etiqueta {
-    color: var(--provincia-color);
-    font-size: 10px;
-    font-weight: 600;
 }
 
 .lienzo-titulo {
@@ -930,30 +840,12 @@ body.modo-oscuro .error-banner {
         height: 400px;
     }
 
-    .lienzo-provincia.lienzo-provincia-panel {
-        height: auto;
-    }
-
-    .provincia-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .provincia-resumen-item {
-        padding: 8px;
-    }
-
     .lienzo-titulo {
         height: 280px;
     }
 
     .lienzo-horizontal {
         height: 260px;
-    }
-}
-
-@media (max-width: 390px) {
-    .provincia-grid {
-        grid-template-columns: 1fr;
     }
 }
 
