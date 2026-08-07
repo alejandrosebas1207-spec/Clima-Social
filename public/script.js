@@ -57,6 +57,25 @@ const MAPA_PROVINCIA = {
     "21": "Pastaza", "22": "Sucumbíos", "23": "Zamora Chinchipe", "24": "Galápagos"
 };
 
+// Metas de trabajadores por provincia (suma = 2100)
+const META_PROVINCIA = {
+    "9": 740,   // Pichincha
+    "14": 340,  // Guayas
+    "1": 160,   // Azuay
+    "16": 135,  // Manabí
+    "10": 110,  // Tungurahua
+    "7": 105,   // Imbabura
+    "5": 65,    // Chimborazo
+    "8": 65,    // Loja
+    "6": 65,    // Cotopaxi
+    "17": 60,   // Santa Elena
+    "21": 55,   // Pastaza
+    "20": 55,   // Orellana
+    "11": 55,   // Santo Domingo
+    "19": 50,   // Napo
+    "12": 40    // El Oro
+};
+
 const MAPA_GENERO = {
     "1": "Femenino", "2": "Masculino", "3": "No binario", "0": "Prefiere no responder"
 };
@@ -578,6 +597,36 @@ const pluginEtiquetaPorcentaje = {
 };
 
 // ==========================================
+// PLUGIN: línea punteada de referencia de meta (100%)
+// ==========================================
+
+const pluginLineaMeta = {
+    id: "lineaMeta",
+    afterDatasetsDraw(chart) {
+        if (!chart.options.plugins.lineaMeta || chart.options.plugins.lineaMeta.oculto) return;
+        const { ctx, chartArea } = chart;
+        const escalaX = chart.scales.x;
+        if (!escalaX || escalaX.max <= 100) return;
+        const x = escalaX.getPixelForValue(100);
+        if (x < chartArea.left || x > chartArea.right) return;
+        ctx.save();
+        ctx.strokeStyle = esModoOscuro() ? "rgba(242,236,223,0.55)" : "rgba(36,30,21,0.45)";
+        ctx.setLineDash([6, 5]);
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x, chartArea.top);
+        ctx.lineTo(x, chartArea.bottom);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.font = "600 10px " + getComputedStyle(document.body).fontFamily;
+        ctx.fillStyle = ctx.strokeStyle;
+        ctx.textAlign = "center";
+        ctx.fillText("Meta", x, chartArea.top - 4);
+        ctx.restore();
+    }
+};
+
+// ==========================================
 // PLUGIN: número encima de barras verticales
 // ==========================================
 
@@ -723,6 +772,7 @@ function generarGraficoAvanceDia(trabajadores, graduados) {
 let chartProvincia = null;
 
 function generarGraficoProvincia(encuestas) {
+    const modoMeta = filtroActual !== "graduados";
     const conteo = {};
     let respondio = 0;
     encuestas.forEach(e => {
@@ -732,28 +782,49 @@ function generarGraficoProvincia(encuestas) {
         conteo[valor] = (conteo[valor] || 0) + 1;
     });
 
-    mostrarN("nProvincia", respondio);
-
-    const ordenados = Object.entries(conteo)
-        .sort((a, b) => b[1] - a[1])
-        .map(([codigo, count]) => ({
-            label: MAPA_PROVINCIA[codigo],
-            valor: respondio > 0 ? Number(((count / respondio) * 100).toFixed(1)) : 0,
-            count
-        }));
+    let filas;
+    if (modoMeta) {
+        filas = Object.entries(META_PROVINCIA)
+            .map(([codigo, meta]) => {
+                const count = conteo[codigo] || 0;
+                return {
+                    label: MAPA_PROVINCIA[codigo],
+                    meta,
+                    count,
+                    valor: meta > 0 ? Number(((count / meta) * 100).toFixed(1)) : 0
+                };
+            })
+            .sort((a, b) => b.valor - a.valor);
+        mostrarN("nProvincia", Object.values(conteo).reduce((s, n) => s + n, 0));
+        const titulo = document.getElementById("tituloProvincia");
+        if (titulo) titulo.textContent = "Avance vs meta";
+    } else {
+        filas = Object.entries(conteo)
+            .sort((a, b) => b[1] - a[1])
+            .map(([codigo, count]) => ({
+                label: MAPA_PROVINCIA[codigo],
+                meta: null,
+                count,
+                valor: respondio > 0 ? Number(((count / respondio) * 100).toFixed(1)) : 0
+            }));
+        mostrarN("nProvincia", respondio);
+        const titulo = document.getElementById("tituloProvincia");
+        if (titulo) titulo.textContent = "Distribución por provincia";
+    }
 
     if (chartProvincia) chartProvincia.destroy();
 
-    if (ordenados.length === 0) {
+    if (filas.length === 0) {
         chartProvincia = null;
         vaciarLienzo("graficoProvincia");
         return;
     }
     limpiarVacio("graficoProvincia");
 
-    const etiquetas = ordenados.map(d => d.label);
-    const valores = ordenados.map(d => d.valor);
-    const counts = ordenados.map(d => d.count);
+    const etiquetas = filas.map(d => d.label);
+    const valores = filas.map(d => d.valor);
+    const counts = filas.map(d => d.count);
+    const maxEje = Math.max(100, ...valores) + 10;
 
     ajustarAlturaLienzo("graficoProvincia", etiquetas.length, 32, 20, 200);
 
@@ -764,14 +835,15 @@ function generarGraficoProvincia(encuestas) {
             datasets: [{
                 data: valores,
                 counts: counts,
-                backgroundColor: cssVar("--kimi-chart-1"),
+                metas: filas.map(d => d.meta),
+                backgroundColor: filas.map(d => colorProvincia(d.valor, d.meta)),
                 borderRadius: 5,
                 maxBarThickness: 22,
                 barPercentage: 0.7,
                 categoryPercentage: 0.85
             }]
         },
-        plugins: [pluginEtiquetaPorcentaje],
+        plugins: [pluginEtiquetaPorcentaje, pluginLineaMeta],
         options: {
             indexAxis: "y",
             responsive: true,
@@ -779,15 +851,25 @@ function generarGraficoProvincia(encuestas) {
             animation: { duration: 600, easing: "easeOutQuart" },
             plugins: {
                 legend: { display: false },
+                lineaMeta: { oculto: !modoMeta },
                 tooltip: {
                     callbacks: {
-                        label: ctx => `${ctx.parsed.x}% (${ordenados[ctx.dataIndex].count} respuestas)`
+                        label: ctx => {
+                            const f = filas[ctx.dataIndex];
+                            if (modoMeta) {
+                                const faltan = Math.max(0, f.meta - f.count);
+                                return f.valor >= 100
+                                    ? `${f.count} de ${f.meta} · ✓ Meta cumplida`
+                                    : `${f.count} de ${f.meta} · faltan ${faltan}`;
+                            }
+                            return `${ctx.parsed.x}% (${f.count} respuestas)`;
+                        }
                     }
                 }
             },
             scales: {
                 x: {
-                    beginAtZero: true, max: 100,
+                    beginAtZero: true, max: modoMeta ? maxEje : 100,
                     ticks: { color: COLOR_TEXTO(), callback: v => v + "%" },
                     grid: { color: COLOR_GRID() }
                 },
@@ -798,6 +880,13 @@ function generarGraficoProvincia(encuestas) {
             }
         }
     });
+}
+
+function colorProvincia(pct, meta) {
+    if (meta === null) return cssVar("--kimi-chart-1");
+    if (pct >= 100) return cssVar("--kimi-chart-3");
+    if (pct >= 50) return cssVar("--kimi-chart-4");
+    return cssVar("--kimi-chart-2");
 }
 
 // ==========================================
