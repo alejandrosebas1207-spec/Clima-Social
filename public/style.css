@@ -497,6 +497,30 @@ body.modo-oscuro .tab.activo {
     color: var(--kimi-chart-1);
 }
 
+.leyenda-pildoras {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.leyenda-pildora {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--kimi-text-soft);
+}
+
+.leyenda-pildora::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--pill-color, var(--kimi-chart-1));
+}
+
 .grafico-n {
     margin-left: auto;
     font-size: 12px;

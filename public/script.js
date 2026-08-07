@@ -699,6 +699,14 @@ function generarGraficoAvanceDia(trabajadores, graduados) {
     const colorTrabajadores = cssVar("--kimi-chart-4");
     const colorGraduados = cssVar("--kimi-chart-6");
 
+    const leyenda = document.getElementById("leyendaAvanceDia");
+    if (leyenda) {
+        leyenda.innerHTML = `
+            <span class="leyenda-pildora" style="--pill-color: var(--kimi-chart-4)">Trabajadores</span>
+            <span class="leyenda-pildora" style="--pill-color: var(--kimi-chart-6)">Graduados</span>
+        `;
+    }
+
     chartAvanceDia = new Chart(document.getElementById("graficoAvanceDia"), {
         type: "bar",
         plugins: [pluginEtiquetaValor],
@@ -728,15 +736,7 @@ function generarGraficoAvanceDia(trabajadores, graduados) {
             maintainAspectRatio: false,
             animation: { duration: 600, easing: "easeOutQuart" },
             plugins: {
-                legend: {
-                    labels: {
-                        color: COLOR_TITULO(),
-                        font: { size: 12, weight: "600" },
-                        boxWidth: 14,
-                        padding: 14,
-                        usePointStyle: true
-                    }
-                },
+                legend: { display: false },
                 tooltip: {
                     callbacks: {
                         label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y} encuestas`
@@ -763,6 +763,20 @@ function generarGraficoAvanceDia(trabajadores, graduados) {
 // ==========================================
 
 let chartProvincia = null;
+
+function computarDiasActivos(encuestas) {
+    const fechas = [];
+    for (const e of encuestas) {
+        const start = campo(e, "start") || e._submission_time;
+        if (!start) continue;
+        const d = new Date(start);
+        if (!isNaN(d)) fechas.push(d);
+    }
+    if (!fechas.length) return 1;
+    const min = new Date(Math.min(...fechas));
+    const hoy = new Date();
+    return Math.max(1, Math.ceil((hoy - min) / 86400000));
+}
 
 function generarGraficoProvincia(encuestas) {
     const modoMeta = filtroActual !== "graduados";
@@ -800,7 +814,8 @@ function generarGraficoProvincia(encuestas) {
             .sort((a, b) => b.count - a.count);
         const titulo = document.getElementById("tituloProvincia");
         if (titulo) titulo.textContent = "Avance vs meta";
-        mostrarPanelProvincia(filas, filasSinMeta);
+        const diasActivos = computarDiasActivos(encuestas);
+        mostrarPanelProvincia(filas, filasSinMeta, diasActivos);
         return;
     } else {
         ocultarPanelProvincia();
@@ -880,7 +895,7 @@ function claseEstadoProvincia(pct) {
     return "estado-muy-bajo";
 }
 
-function mostrarPanelProvincia(filasMeta, filasSinMeta) {
+function mostrarPanelProvincia(filasMeta, filasSinMeta, diasActivos) {
     const lienzo = document.getElementById("lienzoProvincia");
     const panel = document.getElementById("panelProvincia");
     if (!lienzo || !panel) return;
@@ -902,6 +917,9 @@ function mostrarPanelProvincia(filasMeta, filasSinMeta) {
             : diferencia === 0
                 ? "Meta alcanzada"
                 : `Supera por ${formatearNumero(Math.abs(diferencia))}`;
+        const ritmo = (fila.count > 0 && fila.count < fila.meta)
+            ? `≈ ${formatearNumero(Math.ceil(diferencia / Math.max(1, fila.count / diasActivos)))} d más`
+            : "";
         return `
             <article class="provincia-meta-fila ${claseEstadoProvincia(porcentaje)}" role="listitem" aria-label="${fila.label}: ${fila.count} encuestas, ${porcentaje}% de meta, objetivo ${fila.meta}">
                 <div class="provincia-meta-cabecera">
@@ -913,9 +931,8 @@ function mostrarPanelProvincia(filasMeta, filasSinMeta) {
                     <span class="provincia-meta-relleno" style="--provincia-avance: ${avanceBarra}%"></span>
                 </div>
                 <div class="provincia-meta-detalle">
-                    <span><strong>${formatearNumero(fila.count)} encuestas</strong></span>
-                    <span>${porcentaje}% de meta</span>
-                    <span>${estado}</span>
+                    <span><strong>${formatearNumero(fila.count)} encuestas</strong> · ${porcentaje}% de meta</span>
+                    <span>${estado}${ritmo ? ` · ${ritmo}` : ""}</span>
                 </div>
             </article>`;
     }).join("");
