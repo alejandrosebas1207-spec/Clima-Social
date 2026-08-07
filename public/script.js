@@ -621,17 +621,22 @@ const pluginEtiquetaValor = {
     id: "etiquetaValor",
     afterDatasetsDraw(chart) {
         const { ctx } = chart;
-        const meta = chart.getDatasetMeta(0);
-        if (!meta) return;
         ctx.save();
-        ctx.font = "600 12px " + getComputedStyle(document.body).fontFamily;
+        ctx.font = "600 10.5px " + getComputedStyle(document.body).fontFamily;
         ctx.textAlign = "center";
         ctx.textBaseline = "bottom";
-        ctx.fillStyle = esModoOscuro() ? "#f2ecdf" : "#241e15";
-        meta.data.forEach((barra, i) => {
-            const valor = chart.data.datasets[0].data[i];
-            if (valor === 0) return;
-            ctx.fillText(valor, barra.x, barra.y - 6);
+        chart.data.datasets.forEach((ds, dsIdx) => {
+            const meta = chart.getDatasetMeta(dsIdx);
+            if (!meta || !meta.data) return;
+            const color = (typeof ds.backgroundColor === "string")
+                ? ds.backgroundColor
+                : COLOR_TITULO();
+            ctx.fillStyle = color;
+            meta.data.forEach((barra, i) => {
+                const valor = ds.data[i];
+                if (valor === 0 || valor == null) return;
+                ctx.fillText(valor, barra.x, barra.y - 4);
+            });
         });
         ctx.restore();
     }
@@ -691,11 +696,12 @@ function generarGraficoAvanceDia(trabajadores, graduados) {
         graduadosPorDia = claves.map(c => semanal[c].graduados);
     }
 
-    const colorTrabajadores = cssVar("--kimi-chart-1");
-    const colorGraduados = cssVar("--kimi-chart-3");
+    const colorTrabajadores = cssVar("--kimi-chart-4");
+    const colorGraduados = cssVar("--kimi-chart-6");
 
     chartAvanceDia = new Chart(document.getElementById("graficoAvanceDia"), {
         type: "bar",
+        plugins: [pluginEtiquetaValor],
         data: {
             labels: etiquetas,
             datasets: [
