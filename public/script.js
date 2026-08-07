@@ -597,36 +597,6 @@ const pluginEtiquetaPorcentaje = {
 };
 
 // ==========================================
-// PLUGIN: línea punteada de referencia de meta (100%)
-// ==========================================
-
-const pluginLineaMeta = {
-    id: "lineaMeta",
-    afterDatasetsDraw(chart) {
-        if (!chart.options.plugins.lineaMeta || chart.options.plugins.lineaMeta.oculto) return;
-        const { ctx, chartArea } = chart;
-        const escalaX = chart.scales.x;
-        if (!escalaX || escalaX.max <= 100) return;
-        const x = escalaX.getPixelForValue(100);
-        if (x < chartArea.left || x > chartArea.right) return;
-        ctx.save();
-        ctx.strokeStyle = esModoOscuro() ? "rgba(242,236,223,0.55)" : "rgba(36,30,21,0.45)";
-        ctx.setLineDash([6, 5]);
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(x, chartArea.top);
-        ctx.lineTo(x, chartArea.bottom);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.font = "600 10px " + getComputedStyle(document.body).fontFamily;
-        ctx.fillStyle = ctx.strokeStyle;
-        ctx.textAlign = "center";
-        ctx.fillText("Meta", x, chartArea.top - 4);
-        ctx.restore();
-    }
-};
-
-// ==========================================
 // PLUGIN: número encima de barras verticales
 // ==========================================
 
@@ -784,7 +754,7 @@ function generarGraficoProvincia(encuestas) {
 
     let filas;
     if (modoMeta) {
-        filas = Object.entries(META_PROVINCIA)
+        const filasMeta = Object.entries(META_PROVINCIA)
             .map(([codigo, meta]) => {
                 const count = conteo[codigo] || 0;
                 return {
@@ -794,16 +764,25 @@ function generarGraficoProvincia(encuestas) {
                     valor: meta > 0 ? Number(((count / meta) * 100).toFixed(1)) : 0
                 };
             })
-            .sort((a, b) => b.valor - a.valor);
+            .sort((a, b) => b.valor - a.valor || b.count - a.count);
+        const filasSinMeta = Object.entries(conteo)
+            .filter(([codigo]) => !META_PROVINCIA[codigo])
+            .map(([codigo, count]) => ({
+                label: MAPA_PROVINCIA[codigo],
+                count
+            }))
+            .sort((a, b) => b.count - a.count);
         mostrarN("nProvincia", Object.values(conteo).reduce((s, n) => s + n, 0));
         const titulo = document.getElementById("tituloProvincia");
         if (titulo) titulo.textContent = "Avance vs meta";
+        mostrarPanelProvincia(filasMeta, filasSinMeta);
+        return;
     } else {
+        ocultarPanelProvincia();
         filas = Object.entries(conteo)
             .sort((a, b) => b[1] - a[1])
             .map(([codigo, count]) => ({
                 label: MAPA_PROVINCIA[codigo],
-                meta: null,
                 count,
                 valor: respondio > 0 ? Number(((count / respondio) * 100).toFixed(1)) : 0
             }));
@@ -814,7 +793,7 @@ function generarGraficoProvincia(encuestas) {
 
     if (chartProvincia) chartProvincia.destroy();
 
-    if (filas.length === 0) {
+    if (!filas.length) {
         chartProvincia = null;
         vaciarLienzo("graficoProvincia");
         return;
@@ -824,8 +803,6 @@ function generarGraficoProvincia(encuestas) {
     const etiquetas = filas.map(d => d.label);
     const valores = filas.map(d => d.valor);
     const counts = filas.map(d => d.count);
-    const maxEje = Math.max(100, ...valores) + 10;
-
     ajustarAlturaLienzo("graficoProvincia", etiquetas.length, 32, 20, 200);
 
     chartProvincia = new Chart(document.getElementById("graficoProvincia"), {
@@ -835,15 +812,14 @@ function generarGraficoProvincia(encuestas) {
             datasets: [{
                 data: valores,
                 counts: counts,
-                metas: filas.map(d => d.meta),
-                backgroundColor: filas.map(d => colorProvincia(d.valor, d.meta)),
+                backgroundColor: cssVar("--kimi-chart-1"),
                 borderRadius: 5,
                 maxBarThickness: 22,
                 barPercentage: 0.7,
                 categoryPercentage: 0.85
             }]
         },
-        plugins: [pluginEtiquetaPorcentaje, pluginLineaMeta],
+        plugins: [pluginEtiquetaPorcentaje],
         options: {
             indexAxis: "y",
             responsive: true,
@@ -851,25 +827,15 @@ function generarGraficoProvincia(encuestas) {
             animation: { duration: 600, easing: "easeOutQuart" },
             plugins: {
                 legend: { display: false },
-                lineaMeta: { oculto: !modoMeta },
                 tooltip: {
                     callbacks: {
-                        label: ctx => {
-                            const f = filas[ctx.dataIndex];
-                            if (modoMeta) {
-                                const faltan = Math.max(0, f.meta - f.count);
-                                return f.valor >= 100
-                                    ? `${f.count} de ${f.meta} · ✓ Meta cumplida`
-                                    : `${f.count} de ${f.meta} · faltan ${faltan}`;
-                            }
-                            return `${ctx.parsed.x}% (${f.count} respuestas)`;
-                        }
+                        label: ctx => `${ctx.parsed.x}% (${filas[ctx.dataIndex].count} respuestas)`
                     }
                 }
             },
             scales: {
                 x: {
-                    beginAtZero: true, max: modoMeta ? maxEje : 100,
+                    beginAtZero: true, max: 100,
                     ticks: { color: COLOR_TEXTO(), callback: v => v + "%" },
                     grid: { color: COLOR_GRID() }
                 },
@@ -882,11 +848,116 @@ function generarGraficoProvincia(encuestas) {
     });
 }
 
-function colorProvincia(pct, meta) {
-    if (meta === null) return cssVar("--kimi-chart-1");
-    if (pct >= 100) return cssVar("--kimi-chart-3");
-    if (pct >= 50) return cssVar("--kimi-chart-4");
-    return cssVar("--kimi-chart-2");
+function mostrarPanelProvincia(filasMeta, filasSinMeta) {
+    const lienzo = document.getElementById("lienzoProvincia");
+    const canvas = document.getElementById("graficoProvincia");
+    const panel = document.getElementById("panelProvincia");
+    if (!lienzo || !canvas || !panel) return;
+
+    if (chartProvincia) {
+        chartProvincia.destroy();
+        chartProvincia = null;
+    }
+
+    canvas.style.display = "none";
+    panel.hidden = false;
+    lienzo.classList.add("lienzo-provincia-panel");
+    lienzo.style.height = "";
+
+    const formatearNumero = valor => Number(valor).toLocaleString("es-EC");
+    const metaTotal = Object.values(META_PROVINCIA).reduce((s, n) => s + n, 0);
+    const totalConMeta = filasMeta.reduce((s, fila) => s + fila.count, 0);
+    const totalSinMeta = filasSinMeta.reduce((s, fila) => s + fila.count, 0);
+    const avanceTotal = metaTotal > 0 ? Number(((totalConMeta / metaTotal) * 100).toFixed(1)) : 0;
+    const provinciasCumplidas = filasMeta.filter(fila => fila.valor >= 100).length;
+    const maxRespuestas = Math.max(
+        1,
+        ...filasMeta.map(fila => fila.count),
+        ...filasSinMeta.map(fila => fila.count)
+    );
+
+    const tarjetasMeta = filasMeta.map(fila => {
+        const estado = fila.valor >= 100
+            ? "estado-cumplida"
+            : fila.valor >= 50
+                ? "estado-medio"
+                : "estado-bajo";
+        const avanceBarra = Math.min(100, Math.max(0, fila.valor));
+        const porcentaje = Number(fila.valor.toFixed(1));
+        const detalleMeta = fila.valor >= 100 ? "Meta cumplida" : `Meta: ${formatearNumero(fila.meta)}`;
+        return `
+            <article class="provincia-mini ${estado}" role="listitem" aria-label="${fila.label}: ${fila.count} de meta ${fila.meta}, ${porcentaje}%">
+                <div class="provincia-mini-cabecera">
+                    <span class="provincia-mini-nombre" title="${fila.label}">${fila.label}</span>
+                    <strong class="provincia-mini-porcentaje">${porcentaje}%</strong>
+                </div>
+                <div class="provincia-mini-detalle">
+                    <span>${formatearNumero(fila.count)} encuestas</span>
+                    <span>${detalleMeta}</span>
+                </div>
+                <div class="provincia-mini-barra" aria-hidden="true">
+                    <span class="provincia-mini-relleno" style="--provincia-avance: ${avanceBarra}%"></span>
+                </div>
+            </article>`;
+    }).join("");
+
+    const tarjetasSinMeta = filasSinMeta.map(fila => {
+        const volumen = Math.min(100, (fila.count / maxRespuestas) * 100);
+        return `
+            <article class="provincia-mini sin-meta" role="listitem" aria-label="${fila.label}: ${fila.count} respuestas, sin meta asignada">
+                <div class="provincia-mini-cabecera">
+                    <span class="provincia-mini-nombre" title="${fila.label}">${fila.label}</span>
+                    <strong class="provincia-mini-porcentaje">${formatearNumero(fila.count)}</strong>
+                </div>
+                <div class="provincia-mini-detalle">
+                    <span>respuestas</span>
+                    <span class="provincia-sin-meta-etiqueta">Sin meta</span>
+                </div>
+                <div class="provincia-mini-barra" aria-hidden="true">
+                    <span class="provincia-mini-relleno" style="--provincia-avance: ${volumen}%"></span>
+                </div>
+            </article>`;
+    }).join("");
+
+    panel.innerHTML = `
+        <div class="provincia-resumen" aria-label="Resumen de metas provinciales">
+            <div class="provincia-resumen-item">
+                <strong>${formatearNumero(totalConMeta)}</strong>
+                <span>encuestas con meta</span>
+            </div>
+            <div class="provincia-resumen-item">
+                <strong>${avanceTotal}%</strong>
+                <span>avance de ${formatearNumero(metaTotal)}</span>
+            </div>
+            <div class="provincia-resumen-item">
+                <strong>${provinciasCumplidas}/${filasMeta.length}</strong>
+                <span>metas cumplidas</span>
+            </div>
+        </div>
+        <div class="provincia-seccion">
+            <span>Provincias con meta</span>
+            <small>${filasMeta.length} territorios · ${formatearNumero(metaTotal)} objetivo</small>
+        </div>
+        <div class="provincia-grid" role="list">${tarjetasMeta}</div>
+        ${filasSinMeta.length ? `
+            <div class="provincia-seccion">
+                <span>Provincias fuera de cuota</span>
+                <small>${formatearNumero(totalSinMeta)} respuestas · volumen, no cumplimiento</small>
+            </div>
+            <div class="provincia-grid" role="list">${tarjetasSinMeta}</div>` : ""}
+    `;
+}
+
+function ocultarPanelProvincia() {
+    const lienzo = document.getElementById("lienzoProvincia");
+    const canvas = document.getElementById("graficoProvincia");
+    const panel = document.getElementById("panelProvincia");
+    if (!lienzo || !canvas || !panel) return;
+    panel.hidden = true;
+    panel.innerHTML = "";
+    canvas.style.display = "block";
+    lienzo.classList.remove("lienzo-provincia-panel");
+    lienzo.style.height = "";
 }
 
 // ==========================================
