@@ -376,6 +376,15 @@ body.modo-oscuro .tab.activo {
     color: var(--kimi-text-soft);
 }
 
+.kpi-submeta {
+    display: block;
+    margin-top: 3px;
+    color: var(--kimi-text-soft);
+    font-size: 11px;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+}
+
 /* Barras de progreso en KPIs */
 .barra-progreso {
     height: 6px;

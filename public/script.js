@@ -295,13 +295,20 @@ function procesarDatos(datos) {
 
     const esGraduado = e => campo(e, "grad") === "1" && campo(e, "consentuartes") === VALOR_SI;
     const esTrabajador = e => campo(e, "grad") === "2" && campo(e, "consent") === VALOR_SI;
+    const noAceptoTrabajador = e => campo(e, "grad") === "2" && campo(e, "consent") !== VALOR_SI;
+    const noAceptoGraduado = e => campo(e, "grad") === "1" && campo(e, "consentuartes") !== VALOR_SI;
 
     const graduados = datos.resultados.filter(esGraduado);
     const trabajadores = datos.resultados.filter(esTrabajador);
+    const noAceptaronTrabajadores = datos.resultados.filter(noAceptoTrabajador);
+    const noAceptaronGraduados = datos.resultados.filter(noAceptoGraduado);
     const todos = [...trabajadores, ...graduados];
 
     ultimosDatosCargados.trabajadores = trabajadores;
     ultimosDatosCargados.graduados = graduados;
+    ultimosDatosCargados.noAceptaronTrabajadores = noAceptaronTrabajadores.length;
+    ultimosDatosCargados.noAceptaronGraduados = noAceptaronGraduados.length;
+    ultimosDatosCargados.noAceptaronTotal = noAceptaronTrabajadores.length + noAceptaronGraduados.length;
     ultimosDatosCargados.todos = todos;
 
     renderizarTodo();
@@ -314,7 +321,14 @@ function procesarDatos(datos) {
 function renderizarTodo() {
     if (!ultimosDatosCargados) return;
 
-    const { trabajadores, graduados, todos } = ultimosDatosCargados;
+    const {
+        trabajadores,
+        graduados,
+        todos,
+        noAceptaronTotal,
+        noAceptaronTrabajadores,
+        noAceptaronGraduados
+    } = ultimosDatosCargados;
     const metaTotal = META_TRABAJADORES + META_GRADUADOS;
 
     // --- KPIs fijos (totales) ---
@@ -327,6 +341,9 @@ function renderizarTodo() {
     setBarra("barraGraduados", graduados.length, META_GRADUADOS);
     document.getElementById("metaTrabajadores").textContent = `Meta: ${META_TRABAJADORES}`;
     document.getElementById("metaGraduados").textContent = `Meta: ${META_GRADUADOS}`;
+    document.getElementById("kpiTotalNoAceptaron").textContent = `No aceptaron participar: ${noAceptaronTotal}`;
+    document.getElementById("kpiTrabajadoresNoAceptaron").textContent = `No aceptaron participar: ${noAceptaronTrabajadores}`;
+    document.getElementById("kpiGraduadosNoAceptaron").textContent = `No aceptaron participar: ${noAceptaronGraduados}`;
 
     // --- Avance general según filtro ---
     let metaSegmento;
@@ -754,6 +771,8 @@ function generarGraficoProvincia(encuestas) {
 
     let filas;
     let filasSinMeta = [];
+    const nProvincia = document.getElementById("nProvincia");
+    if (nProvincia) nProvincia.textContent = `n = ${respondio} con provincia`;
     if (modoMeta) {
         filas = Object.entries(META_PROVINCIA)
             .map(([codigo, meta]) => {
@@ -773,7 +792,6 @@ function generarGraficoProvincia(encuestas) {
                 count
             }))
             .sort((a, b) => b.count - a.count);
-        mostrarN("nProvincia", Object.values(conteo).reduce((s, n) => s + n, 0));
         const titulo = document.getElementById("tituloProvincia");
         if (titulo) titulo.textContent = "Avance vs meta";
         mostrarPanelProvincia(filas, filasSinMeta);
@@ -787,7 +805,6 @@ function generarGraficoProvincia(encuestas) {
                 count,
                 valor: respondio > 0 ? Number(((count / respondio) * 100).toFixed(1)) : 0
             }));
-        mostrarN("nProvincia", respondio);
         const titulo = document.getElementById("tituloProvincia");
         if (titulo) titulo.textContent = "Distribución por provincia";
     }
@@ -909,7 +926,7 @@ function mostrarPanelProvincia(filasMeta, filasSinMeta) {
         ${filasSinMeta.length ? `
             <div class="provincia-sin-meta-cabecera">
                 <span>Sin meta asignada</span>
-                <small>${formatearNumero(totalSinMeta)} respuestas · solo referencia</small>
+                <small>${formatearNumero(totalSinMeta)} encuestas sin meta · solo referencia</small>
             </div>
             <div class="provincia-sin-meta-lista" role="list">${chips}</div>` : ""}
     `;
