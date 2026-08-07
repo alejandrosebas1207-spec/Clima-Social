@@ -546,7 +546,11 @@ body.modo-oscuro .badge-segmento {
 }
 
 .panel-provincia {
+    width: 100%;
+    max-width: 1100px;
     margin-top: 12px;
+    margin-right: auto;
+    margin-left: auto;
 }
 
 .provincia-meta-lista {
