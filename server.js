@@ -40,7 +40,12 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, "public"), {
     dotfiles: "deny",
     maxAge: "1h",
-    etag: true
+    etag: true,
+    setHeaders: (res, filePath) => {
+        if (/\.(?:html|css|js)$/i.test(filePath)) {
+            res.setHeader("Cache-Control", "no-cache, must-revalidate");
+        }
+    }
 }));
 
 // =======================================
