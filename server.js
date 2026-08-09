@@ -115,7 +115,8 @@ app.get("/api/config", (req, res) => {
         nombreProyecto: process.env.NOMBRE_PROYECTO || "Encuesta Artes y Cultura",
         metaTrabajadores: Number(process.env.META_TRABAJADORES) || 2100,
         metaGraduados: Number(process.env.META_GRADUADOS) || 400,
-        valorConsentimientoSi: process.env.VALOR_CONSENTIMIENTO_SI || "1"
+        valorConsentimientoSi: process.env.VALOR_CONSENTIMIENTO_SI || "1",
+        fechaCierre: process.env.FECHA_CIERRE || "2026-09-19"
     });
 });
 

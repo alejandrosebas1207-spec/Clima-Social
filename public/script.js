@@ -7,6 +7,7 @@
 let META_TRABAJADORES = 2100;
 let META_GRADUADOS = 400;
 let VALOR_SI = "1";
+let FECHA_CIERRE = "2026-09-19";
 
 let filtroActual = "todos";
 let ultimosDatosCargados = null;
@@ -199,6 +200,7 @@ async function obtenerConfig() {
         META_TRABAJADORES = Number(config.metaTrabajadores) || 2100;
         META_GRADUADOS = Number(config.metaGraduados) || 400;
         VALOR_SI = config.valorConsentimientoSi || "1";
+        FECHA_CIERRE = config.fechaCierre || "2026-09-19";
         document.getElementById("tituloProyecto").textContent = config.nombreProyecto || "Encuesta Artes y Cultura";
         document.title = document.getElementById("tituloProyecto").textContent;
     } catch (error) {
@@ -460,6 +462,7 @@ function renderizarTodo() {
             <span>mejor día <strong>${mejorDia}</strong> (${mejorDiaCount})</span>
         </span>
     `;
+    renderizarFranjaCierre(todos, metaTotal, diasActivos);
 
     // --- Visibilidad de gráficos exclusivos de graduados ---
     document.querySelectorAll('[data-segmento="graduados"]').forEach(el => {
@@ -640,6 +643,73 @@ function dibujarSparkline(encuestas, canvasId, colorVar) {
     ctx.fillStyle = color;
     ctx.arc(lx, ly, 2.3, 0, Math.PI * 2);
     ctx.fill();
+}
+
+function renderizarFranjaCierre(encuestas, metaTotal, diasActivos) {
+    const franja = document.getElementById("franjaCierre");
+    if (!franja) return;
+
+    const fechaCierre = /^\d{4}-\d{2}-\d{2}$/.test(FECHA_CIERRE)
+        ? FECHA_CIERRE
+        : "2026-09-19";
+    const diaHoy = Date.parse(`${hoyEcuador()}T00:00:00Z`);
+    const diaCierre = Date.parse(`${fechaCierre}T00:00:00Z`);
+    const diasRestantes = Number.isNaN(diaCierre) || Number.isNaN(diaHoy)
+        ? 0
+        : Math.max(0, Math.ceil((diaCierre - diaHoy) / 86400000));
+    const restantes = Math.max(0, metaTotal - encuestas.length);
+    const ritmoActual = diasActivos > 0 ? encuestas.length / diasActivos : 0;
+    const ritmoNecesario = diasRestantes > 0 ? Math.ceil(restantes / diasRestantes) : 0;
+    const diferenciaRitmo = ritmoNecesario - Math.floor(ritmoActual);
+
+    let clase = "atrasado";
+    let estado = diferenciaRitmo > 0 ? `Acelerar +${diferenciaRitmo}/día` : "En ritmo";
+    if (restantes === 0) {
+        clase = "en-ritmo";
+        estado = "Meta total cumplida";
+    } else if (diasRestantes === 0) {
+        clase = "vencido";
+        estado = "Plazo vencido";
+    } else if (ritmoActual >= ritmoNecesario) {
+        clase = "en-ritmo";
+        estado = "En ritmo";
+    }
+
+    const fechaVisible = new Date(`${fechaCierre}T00:00:00Z`).toLocaleDateString("es-EC", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        timeZone: "UTC"
+    });
+
+    franja.className = `franja-cierre ${clase}`;
+    franja.innerHTML = `
+        <span class="franja-cierre-item">
+            <span class="franja-cierre-icono" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg>
+            </span>
+            <span>Cierre <strong>${fechaVisible}</strong></span>
+        </span>
+        <span class="franja-cierre-item">
+            <span class="franja-cierre-icono" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </span>
+            <span>Faltan <strong>${diasRestantes}</strong> días</span>
+        </span>
+        <span class="franja-cierre-item">
+            <span class="franja-cierre-icono" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </span>
+            <span>Ritmo actual <strong>${Math.round(ritmoActual)}/día</strong></span>
+        </span>
+        <span class="franja-cierre-item">
+            <span class="franja-cierre-icono" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            </span>
+            <span>Necesarias <strong>${diasRestantes > 0 ? ritmoNecesario : "—"}/día</strong></span>
+        </span>
+        <span class="franja-cierre-item franja-cierre-estado">${estado}</span>
+    `;
 }
 
 function ajustarAlturaLienzo(idCanvas, cantidadCategorias, filaPx = 34, extraPx = 46, minPx = 160) {

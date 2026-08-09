@@ -502,6 +502,91 @@ body.modo-oscuro .tab.activo {
     background: color-mix(in srgb, var(--kimi-chart-3) 13%, transparent);
 }
 
+.franja-cierre {
+    --cierre-color: var(--kimi-chart-4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin: -2px 2px 14px;
+    padding: 7px 10px;
+    background: color-mix(in srgb, var(--cierre-color) 7%, var(--kimi-bg-card));
+    border: 1px solid color-mix(in srgb, var(--cierre-color) 35%, var(--kimi-color-border));
+    border-left: 4px solid var(--cierre-color);
+    border-radius: var(--kimi-radio-chico);
+    color: var(--kimi-text-soft);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.franja-cierre::-webkit-scrollbar {
+    display: none;
+}
+
+.franja-cierre.en-ritmo {
+    --cierre-color: var(--kimi-chart-3);
+}
+
+.franja-cierre.atrasado {
+    --cierre-color: var(--kimi-chart-2);
+}
+
+.franja-cierre.vencido {
+    --cierre-color: var(--kimi-chart-2);
+}
+
+.franja-cierre-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: max-content;
+    padding: 1px 13px;
+    border-right: 1px solid var(--kimi-color-border);
+}
+
+.franja-cierre-item:first-child {
+    padding-left: 4px;
+}
+
+.franja-cierre-item:last-child {
+    border-right: none;
+}
+
+.franja-cierre-icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: var(--cierre-color);
+    background: color-mix(in srgb, var(--cierre-color) 14%, transparent);
+    border-radius: 7px;
+    flex-shrink: 0;
+}
+
+.franja-cierre-icono svg {
+    width: 14px;
+    height: 14px;
+}
+
+.franja-cierre strong {
+    color: var(--kimi-text);
+    font-weight: 700;
+}
+
+.franja-cierre-estado {
+    color: var(--cierre-color);
+    font-weight: 700;
+}
+
+@media (max-width: 600px) {
+    .franja-cierre {
+        justify-content: flex-start;
+    }
+}
+
 /* Top 3 provincias */
 .provincia-top3 {
     display: grid;
