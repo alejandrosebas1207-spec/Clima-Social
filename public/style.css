@@ -385,6 +385,107 @@ body.modo-oscuro .tab.activo {
     font-variant-numeric: tabular-nums;
 }
 
+.kpi-delta {
+    display: block;
+    margin-top: 1px;
+    font-size: 11.5px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+
+.kpi-delta.subir { color: var(--kimi-chart-3); }
+.kpi-delta.bajar { color: var(--kimi-chart-2); }
+.kpi-delta.igual { color: var(--kimi-text-soft); }
+
+.kpi-sparkline {
+    display: block;
+    margin: 3px 0 1px;
+    width: 90px;
+    height: 28px;
+    opacity: .7;
+}
+
+/* Donut de avance en KPI */
+.kpi-avance-donut {
+    width: 50px;
+    height: 50px;
+    float: right;
+    margin: -8px 0 0 8px;
+    border-radius: 50%;
+    background: conic-gradient(var(--kimi-chart-4) calc(var(--avance, 0%) * 1%), transparent 0);
+    mask: radial-gradient(circle, transparent 60%, #000 62%);
+    -webkit-mask: radial-gradient(circle, transparent 60%, #000 62%);
+}
+
+/* Franja de estado */
+.franja-estado {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px 20px;
+    margin: -2px 2px 12px;
+    padding: 7px 12px;
+    background: color-mix(in srgb, var(--kimi-bg-card) 70%, var(--kimi-bg-suave));
+    border: 1px solid var(--kimi-color-border);
+    border-radius: var(--kimi-radio-chico);
+    color: var(--kimi-text-soft);
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+}
+
+.franja-estado strong {
+    color: var(--kimi-text);
+    font-weight: 600;
+}
+
+/* Top 3 provincias */
+.provincia-top3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.provincia-top3-item {
+    padding: 7px 10px 6px;
+    background: color-mix(in srgb, var(--kimi-bg-card) 70%, var(--kimi-bg-suave));
+    border: 1px solid var(--kimi-color-border);
+    border-radius: var(--kimi-radio-chico);
+    font-size: 11px;
+}
+
+.provincia-top3-item.fila-1 { border-left: 3px solid #c9862e; }
+.provincia-top3-item.fila-2 { border-left: 3px solid #9e9e9e; }
+.provincia-top3-item.fila-3 { border-left: 3px solid #a06a40; }
+
+.provincia-top3-item .provincia-top3-nombre {
+    display: block;
+    color: var(--kimi-text);
+    font-weight: 600;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.provincia-top3-item .provincia-top3-pct {
+    display: block;
+    margin-top: 2px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+.provincia-top3-item.fila-1 .provincia-top3-pct { color: var(--kimi-chart-4); }
+.provincia-top3-item.fila-2 .provincia-top3-pct { color: var(--kimi-text-soft); }
+.provincia-top3-item.fila-3 .provincia-top3-pct { color: var(--kimi-text-soft); }
+
+.provincia-top3-item .provincia-top3-faltan {
+    display: block;
+    margin-top: 1px;
+    color: var(--kimi-text-soft);
+    font-size: 10px;
+}
+
 /* Barras de progreso en KPIs */
 .barra-progreso {
     height: 6px;

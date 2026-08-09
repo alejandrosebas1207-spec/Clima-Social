@@ -57,6 +57,8 @@
                 <h3>Encuestas totales</h3>
             </div>
             <p id="kpiTotal">0</p>
+            <canvas class="kpi-sparkline" id="sparkTotal" width="90" height="28" aria-hidden="true"></canvas>
+            <span class="kpi-delta" id="kpiTotalDelta"></span>
             <span class="kpi-meta">Trabajadores + Graduados</span>
             <span class="kpi-submeta" id="kpiTotalNoAceptaron">No aceptaron participar: 0</span>
         </div>
@@ -69,6 +71,8 @@
                 <h3>Trabajadores</h3>
             </div>
             <p id="kpiTrabajadores">0</p>
+            <canvas class="kpi-sparkline" id="sparkTrabajadores" width="90" height="28" aria-hidden="true"></canvas>
+            <span class="kpi-delta" id="kpiTrabajadoresDelta"></span>
             <div class="barra-progreso"><div class="barra-progreso-relleno" id="barraTrabajadores"></div></div>
             <span class="kpi-meta" id="metaTrabajadores">Meta: 0</span>
             <span class="kpi-submeta" id="kpiTrabajadoresNoAceptaron">No aceptaron participar: 0</span>
@@ -82,6 +86,8 @@
                 <h3>Graduados UArtes</h3>
             </div>
             <p id="kpiGraduados">0</p>
+            <canvas class="kpi-sparkline" id="sparkGraduados" width="90" height="28" aria-hidden="true"></canvas>
+            <span class="kpi-delta" id="kpiGraduadosDelta"></span>
             <div class="barra-progreso"><div class="barra-progreso-relleno" id="barraGraduados"></div></div>
             <span class="kpi-meta" id="metaGraduados">Meta: 0</span>
             <span class="kpi-submeta" id="kpiGraduadosNoAceptaron">No aceptaron participar: 0</span>
@@ -95,6 +101,9 @@
                 <h3>Avance general</h3>
             </div>
             <p id="kpiAvance">0%</p>
+            <div class="kpi-avance-donut" id="donutAvance" style="--avance:0%" aria-hidden="true"></div>
+            <canvas class="kpi-sparkline" id="sparkAvance" width="90" height="28" aria-hidden="true"></canvas>
+            <span class="kpi-delta" id="kpiAvanceDelta"></span>
             <div class="barra-progreso"><div class="barra-progreso-relleno" id="barraAvance"></div></div>
             <span class="kpi-meta" id="kpiMeta">0 de 0</span>
         </div>
@@ -118,10 +127,13 @@
                 <h3>Encuestas hoy</h3>
             </div>
             <p id="kpiHoy">0</p>
+            <span class="kpi-delta" id="kpiHoyDelta"></span>
             <span class="kpi-meta" id="kpiHoyDetalle">Trabajadores: 0 · Graduados: 0</span>
         </div>
 
     </section>
+
+    <div class="franja-estado" id="franjaEstado" aria-label="Estado de la campaña"></div>
 
     <div class="ultima-actualizacion" id="ultimaActualizacion"></div>
 

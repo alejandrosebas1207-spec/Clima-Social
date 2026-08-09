@@ -345,6 +345,26 @@ function renderizarTodo() {
     document.getElementById("kpiTrabajadoresNoAceptaron").textContent = `No aceptaron participar: ${noAceptaronTrabajadores}`;
     document.getElementById("kpiGraduadosNoAceptaron").textContent = `No aceptaron participar: ${noAceptaronGraduados}`;
 
+    // --- Deltas vs ayer ---
+    const deltaTotal = contarDelta(todos, "totalDelta");
+    const deltaTrab = contarDelta(trabajadores, "trabajadoresDelta");
+    const deltaGrad = contarDelta(graduados, "graduadosDelta");
+    document.getElementById("kpiTotalDelta").innerHTML = `Ayer: <strong>${deltaTotal.ayer}</strong> · ${deltaTotal.texto}`;
+    document.getElementById("kpiTrabajadoresDelta").innerHTML = `Ayer: <strong>${deltaTrab.ayer}</strong> · ${deltaTrab.texto}`;
+    document.getElementById("kpiGraduadosDelta").innerHTML = `Ayer: <strong>${deltaGrad.ayer}</strong> · ${deltaGrad.texto}`;
+    const deltaHoy = contarDelta(conjunto, "hoyDelta");
+    document.getElementById("kpiHoyDelta").innerHTML = `vs ayer · ${deltaHoy.texto}`;
+    document.getElementById("kpiTotalDelta").className = "kpi-delta " + deltaTotal.clase;
+    document.getElementById("kpiTrabajadoresDelta").className = "kpi-delta " + deltaTrab.clase;
+    document.getElementById("kpiGraduadosDelta").className = "kpi-delta " + deltaGrad.clase;
+    document.getElementById("kpiHoyDelta").className = "kpi-delta " + deltaHoy.clase;
+    // Ayer del avance (sin barra de progreso, es numérico)
+    document.getElementById("kpiAvanceDelta").innerHTML = `Ayer: <strong>${deltaTotal.ayer}</strong> (${deltaTotal.ayerAbs} total)`;
+    document.getElementById("kpiAvanceDelta").className = "kpi-delta " + deltaTotal.clase;
+
+    // --- Donut de avance ---
+    document.getElementById("donutAvance").style.setProperty("--avance", Math.min(100, avance).toString());
+
     // --- Avance general según filtro ---
     let metaSegmento;
     let totalSegmento;
@@ -391,6 +411,29 @@ function renderizarTodo() {
     }
     animarNumero('kpiHoy', totalHoy);
     document.getElementById('kpiHoyDetalle').textContent = detalleHoy;
+
+    // --- Sparklines en KPIs ---
+    dibujarSparkline(todos, "sparkTotal", "--kimi-chart-1");
+    dibujarSparkline(trabajadores, "sparkTrabajadores", "--kimi-chart-1");
+    dibujarSparkline(graduados, "sparkGraduados", "--kimi-chart-3");
+    dibujarSparkline(todos, "sparkAvance", "--kimi-chart-4");
+
+    // --- Franja de estado de campaña ---
+    const diasActivos = Math.max(1, Math.ceil((new Date() - new Date(Math.min(
+        ...todos.map(e => new Date(campo(e, "start") || e._submission_time)).filter(d => !isNaN(d))
+    ))) / 86400000));
+    const promedioDiario = diasActivos > 0 ? Math.round(todos.length / diasActivos) : 0;
+    const provinciasConData = new Set(todos.map(e => campo(e, "provincia")).filter(v => MAPA_PROVINCIA[v])).size;
+    const diaCounts = {};
+    todos.forEach(e => { const d = obtenerFechaDia(e); if (d) diaCounts[d] = (diaCounts[d] || 0) + 1; });
+    let mejorDia = "—";
+    let mejorDiaCount = 0;
+    Object.entries(diaCounts).forEach(([d, n]) => { if (n > mejorDiaCount) { mejorDiaCount = n; mejorDia = d.split("-").slice(1).reverse().join("/"); } });
+    document.getElementById("franjaEstado").innerHTML =
+        `<span><strong>${diasActivos}</strong> d activos</span> · ` +
+        `<span>≈ <strong>${promedioDiario}</strong> enc/día</span> · ` +
+        `<span><strong>${provinciasConData}/24</strong> provincias</span> · ` +
+        `<span>mejor día <strong>${mejorDia}</strong> (${mejorDiaCount})</span>`;
 
     // --- Visibilidad de gráficos exclusivos de graduados ---
     document.querySelectorAll('[data-segmento="graduados"]').forEach(el => {
@@ -509,6 +552,67 @@ function obtenerFechaDia(encuesta) {
 
 function hoyEcuador() {
     return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Guayaquil' });
+}
+
+function ayerEcuador() {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toLocaleDateString('en-CA', { timeZone: 'America/Guayaquil' });
+}
+
+function contarDelta(encuestas, prefix) {
+    const ayer = encuestas.filter(e => obtenerFechaDia(e) === ayerEcuador()).length;
+    const hoy = encuestas.filter(e => obtenerFechaDia(e) === hoyEcuador()).length;
+    const diff = hoy - ayer;
+    const texto = diff > 0 ? `<span>↑ +${diff}</span>` : diff < 0 ? `<span>↓ ${diff}</span>` : "→ sin cambio";
+    const clase = diff > 0 ? "subir" : diff < 0 ? "bajar" : "igual";
+    return { ayer, texto, clase, ayerAbs: ayer };
+}
+
+function dibujarSparkline(encuestas, canvasId, colorVar) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || !encuestas.length) return;
+    const ctx = canvas.getContext("2d");
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const porDia = {};
+    encuestas.forEach(e => {
+        const dia = obtenerFechaDia(e);
+        if (!dia) return;
+        porDia[dia] = (porDia[dia] || 0) + 1;
+    });
+    const dias = Object.keys(porDia).sort();
+    if (dias.length < 2) return;
+    const ultimos = dias.slice(-8);
+    const valores = ultimos.map(d => porDia[d]);
+    const max = Math.max(...valores, 1);
+    const min = Math.min(...valores);
+    const rango = Math.max(max - min, 1);
+
+    const color = getComputedStyle(document.body).getPropertyValue(colorVar).trim() || "#454a91";
+    const px = 4, py = 4;
+    const aw = w - px * 2, ah = h - py * 2;
+
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    valores.forEach((v, i) => {
+        const x = px + (aw * i) / Math.max(valores.length - 1, 1);
+        const y = py + ah - ((v - min) / rango) * ah;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    const last = valores.length - 1;
+    const lx = px + (aw * last) / Math.max(last, 1);
+    const ly = py + ah - ((valores[last] - min) / rango) * ah;
+    ctx.beginPath();
+    ctx.fillStyle = color;
+    ctx.arc(lx, ly, 2.3, 0, Math.PI * 2);
+    ctx.fill();
 }
 
 function ajustarAlturaLienzo(idCanvas, cantidadCategorias, filaPx = 34, extraPx = 46, minPx = 160) {
@@ -893,6 +997,20 @@ function mostrarPanelProvincia(filasMeta, filasSinMeta) {
     lienzo.style.display = "none";
     panel.hidden = false;
     const formatearNumero = valor => Number(valor).toLocaleString("es-EC");
+
+    const top3 = filasMeta.slice(0, 3);
+    const htmlTop3 = top3.length ? `
+        <div class="provincia-top3">
+            ${top3.map((f, i) => `
+                <div class="provincia-top3-item fila-${i + 1}">
+                    <span class="provincia-top3-nombre">${f.label}</span>
+                    <span class="provincia-top3-pct">${Number(f.valor.toFixed(1))}% de meta</span>
+                    <span class="provincia-top3-faltan">Faltan ${formatearNumero(f.meta - f.count)}</span>
+                </div>
+            `).join("")}
+        </div>
+    ` : "";
+
     const tarjetasMeta = filasMeta.map(fila => {
         const porcentaje = Number(fila.valor.toFixed(1));
         const avanceBarra = Math.min(100, Math.max(0, porcentaje));
@@ -927,6 +1045,7 @@ function mostrarPanelProvincia(filasMeta, filasSinMeta) {
         </span>`).join("");
 
     panel.innerHTML = `
+        ${htmlTop3}
         <div class="provincia-meta-lista" role="list" aria-label="Avance por meta individual">${tarjetasMeta}</div>
         ${filasSinMeta.length ? `
             <div class="provincia-sin-meta-cabecera">
