@@ -1081,19 +1081,6 @@ function mostrarPanelProvincia(filasMeta, filasSinMeta) {
     panel.hidden = false;
     const formatearNumero = valor => Number(valor).toLocaleString("es-EC");
 
-    const top3 = filasMeta.slice(0, 3);
-    const htmlTop3 = top3.length ? `
-        <div class="provincia-top3">
-            ${top3.map((f, i) => `
-                <div class="provincia-top3-item fila-${i + 1}">
-                    <span class="provincia-top3-nombre">${f.label}</span>
-                    <span class="provincia-top3-pct">${Number(f.valor.toFixed(1))}% de meta</span>
-                    <span class="provincia-top3-faltan">Faltan ${formatearNumero(f.meta - f.count)}</span>
-                </div>
-            `).join("")}
-        </div>
-    ` : "";
-
     const tarjetasMeta = filasMeta.map(fila => {
         const porcentaje = Number(fila.valor.toFixed(1));
         const avanceBarra = Math.min(100, Math.max(0, porcentaje));
@@ -1128,7 +1115,6 @@ function mostrarPanelProvincia(filasMeta, filasSinMeta) {
         </span>`).join("");
 
     panel.innerHTML = `
-        ${htmlTop3}
         <div class="provincia-meta-lista" role="list" aria-label="Avance por meta individual">${tarjetasMeta}</div>
         ${filasSinMeta.length ? `
             <div class="provincia-sin-meta-cabecera">
