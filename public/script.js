@@ -429,8 +429,6 @@ function renderizarTodo() {
     const diasActivos = fechasTodos.length
         ? Math.max(1, Math.ceil((new Date() - new Date(Math.min(...fechasTodos))) / 86400000))
         : 0;
-    const promedioDiario = diasActivos > 0 ? Math.round(todos.length / diasActivos) : 0;
-    const provinciasConData = new Set(todos.map(e => campo(e, "provincia")).filter(v => MAPA_PROVINCIA[v])).size;
     const diaCounts = {};
     todos.forEach(e => { const d = obtenerFechaDia(e); if (d) diaCounts[d] = (diaCounts[d] || 0) + 1; });
     let mejorDia = "—";
@@ -442,18 +440,6 @@ function renderizarTodo() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
             </span>
             <span><strong>${diasActivos}</strong> días</span>
-        </span>
-        <span class="franja-estado-item">
-            <span class="franja-estado-icono ritmo" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-            </span>
-            <span>≈ <strong>${promedioDiario}</strong> encuestas/día</span>
-        </span>
-        <span class="franja-estado-item">
-            <span class="franja-estado-icono provincias" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
-            </span>
-            <span><strong>${provinciasConData}/24</strong> provincias</span>
         </span>
         <span class="franja-estado-item">
             <span class="franja-estado-icono mejor-dia" aria-hidden="true">

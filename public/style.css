@@ -487,16 +487,6 @@ body.modo-oscuro .tab.activo {
     background: color-mix(in srgb, var(--kimi-chart-1) 12%, transparent);
 }
 
-.franja-estado-icono.ritmo {
-    color: var(--kimi-chart-4);
-    background: color-mix(in srgb, var(--kimi-chart-4) 15%, transparent);
-}
-
-.franja-estado-icono.provincias {
-    color: var(--kimi-chart-6);
-    background: color-mix(in srgb, var(--kimi-chart-6) 13%, transparent);
-}
-
 .franja-estado-icono.mejor-dia {
     color: var(--kimi-chart-3);
     background: color-mix(in srgb, var(--kimi-chart-3) 13%, transparent);
