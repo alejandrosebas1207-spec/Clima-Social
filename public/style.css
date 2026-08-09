@@ -420,22 +420,79 @@ body.modo-oscuro .tab.activo {
 /* Franja de estado */
 .franja-estado {
     display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 10px 20px;
+    align-items: center;
+    gap: 0;
     margin: -2px 2px 12px;
-    padding: 7px 12px;
+    padding: 5px 8px;
     background: color-mix(in srgb, var(--kimi-bg-card) 70%, var(--kimi-bg-suave));
     border: 1px solid var(--kimi-color-border);
     border-radius: var(--kimi-radio-chico);
     color: var(--kimi-text-soft);
     font-size: 11.5px;
     font-variant-numeric: tabular-nums;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.franja-estado::-webkit-scrollbar {
+    display: none;
+}
+
+.franja-estado-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: max-content;
+    padding: 2px 14px;
+    border-right: 1px solid var(--kimi-color-border);
+}
+
+.franja-estado-item:first-child {
+    padding-left: 4px;
+}
+
+.franja-estado-item:last-child {
+    border-right: none;
 }
 
 .franja-estado strong {
     color: var(--kimi-text);
     font-weight: 600;
+}
+
+.franja-estado-icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 23px;
+    height: 23px;
+    border-radius: 7px;
+    flex-shrink: 0;
+}
+
+.franja-estado-icono svg {
+    width: 13px;
+    height: 13px;
+}
+
+.franja-estado-icono.campana {
+    color: var(--kimi-chart-1);
+    background: color-mix(in srgb, var(--kimi-chart-1) 12%, transparent);
+}
+
+.franja-estado-icono.ritmo {
+    color: var(--kimi-chart-4);
+    background: color-mix(in srgb, var(--kimi-chart-4) 15%, transparent);
+}
+
+.franja-estado-icono.provincias {
+    color: var(--kimi-chart-6);
+    background: color-mix(in srgb, var(--kimi-chart-6) 13%, transparent);
+}
+
+.franja-estado-icono.mejor-dia {
+    color: var(--kimi-chart-3);
+    background: color-mix(in srgb, var(--kimi-chart-3) 13%, transparent);
 }
 
 /* Top 3 provincias */

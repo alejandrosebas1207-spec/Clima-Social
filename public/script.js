@@ -434,11 +434,32 @@ function renderizarTodo() {
     let mejorDia = "—";
     let mejorDiaCount = 0;
     Object.entries(diaCounts).forEach(([d, n]) => { if (n > mejorDiaCount) { mejorDiaCount = n; mejorDia = d.split("-").slice(1).reverse().join("/"); } });
-    document.getElementById("franjaEstado").innerHTML =
-        `<span><strong>${diasActivos}</strong> d activos</span> · ` +
-        `<span>≈ <strong>${promedioDiario}</strong> enc/día</span> · ` +
-        `<span><strong>${provinciasConData}/24</strong> provincias</span> · ` +
-        `<span>mejor día <strong>${mejorDia}</strong> (${mejorDiaCount})</span>`;
+    document.getElementById("franjaEstado").innerHTML = `
+        <span class="franja-estado-item">
+            <span class="franja-estado-icono campana" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+            </span>
+            <span><strong>${diasActivos}</strong> días de campaña</span>
+        </span>
+        <span class="franja-estado-item">
+            <span class="franja-estado-icono ritmo" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </span>
+            <span>≈ <strong>${promedioDiario}</strong> encuestas/día</span>
+        </span>
+        <span class="franja-estado-item">
+            <span class="franja-estado-icono provincias" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+            </span>
+            <span><strong>${provinciasConData}/24</strong> provincias</span>
+        </span>
+        <span class="franja-estado-item">
+            <span class="franja-estado-icono mejor-dia" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10"/><path d="M17 4v4a5 5 0 0 1-10 0V4"/><path d="M5 4H3v3a4 4 0 0 0 4 4"/><path d="M19 4h2v3a4 4 0 0 1-4 4"/></svg>
+            </span>
+            <span>mejor día <strong>${mejorDia}</strong> (${mejorDiaCount})</span>
+        </span>
+    `;
 
     // --- Visibilidad de gráficos exclusivos de graduados ---
     document.querySelectorAll('[data-segmento="graduados"]').forEach(el => {
