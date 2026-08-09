@@ -345,6 +345,13 @@ function renderizarTodo() {
     document.getElementById("kpiTrabajadoresNoAceptaron").textContent = `No aceptaron participar: ${noAceptaronTrabajadores}`;
     document.getElementById("kpiGraduadosNoAceptaron").textContent = `No aceptaron participar: ${noAceptaronGraduados}`;
 
+    // --- Elegir conjunto de datos según filtro ---
+    let conjunto;
+    if (filtroActual === "todos") conjunto = todos;
+    else if (filtroActual === "trabajadores") conjunto = trabajadores;
+    else if (filtroActual === "graduados") conjunto = graduados;
+    else conjunto = todos;
+
     // --- Deltas vs ayer ---
     const deltaTotal = contarDelta(todos, "totalDelta");
     const deltaTrab = contarDelta(trabajadores, "trabajadoresDelta");
@@ -362,9 +369,6 @@ function renderizarTodo() {
     document.getElementById("kpiAvanceDelta").innerHTML = `Ayer: <strong>${deltaTotal.ayer}</strong> (${deltaTotal.ayerAbs} total)`;
     document.getElementById("kpiAvanceDelta").className = "kpi-delta " + deltaTotal.clase;
 
-    // --- Donut de avance ---
-    document.getElementById("donutAvance").style.setProperty("--avance", Math.min(100, avance).toString());
-
     // --- Avance general según filtro ---
     let metaSegmento;
     let totalSegmento;
@@ -377,8 +381,12 @@ function renderizarTodo() {
     } else if (filtroActual === "graduados") {
         metaSegmento = META_GRADUADOS;
         totalSegmento = graduados.length;
+    } else {
+        metaSegmento = metaTotal;
+        totalSegmento = todos.length;
     }
     const avance = metaSegmento > 0 ? ((totalSegmento / metaSegmento) * 100) : 0;
+    document.getElementById("donutAvance").style.setProperty("--avance", Math.min(100, avance).toString());
     animarNumero("kpiAvance", Number(avance.toFixed(1)), "%");
     document.getElementById("kpiMeta").textContent = `${totalSegmento} de ${metaSegmento}`;
     setBarra("barraAvance", totalSegmento, metaSegmento);
@@ -387,12 +395,6 @@ function renderizarTodo() {
     const duracionProm = calcularDuracionPromedio(todos);
     document.getElementById("kpiDuracion").textContent =
         duracionProm !== null ? formatearDuracion(duracionProm) : "--";
-
-    // --- Elegir conjunto de datos según filtro ---
-    let conjunto;
-    if (filtroActual === "todos") conjunto = todos;
-    else if (filtroActual === "trabajadores") conjunto = trabajadores;
-    else if (filtroActual === "graduados") conjunto = graduados;
 
     // --- KPI: Encuestas hoy ---
     const hoy = hoyEcuador();
@@ -419,9 +421,12 @@ function renderizarTodo() {
     dibujarSparkline(todos, "sparkAvance", "--kimi-chart-4");
 
     // --- Franja de estado de campaña ---
-    const diasActivos = Math.max(1, Math.ceil((new Date() - new Date(Math.min(
-        ...todos.map(e => new Date(campo(e, "start") || e._submission_time)).filter(d => !isNaN(d))
-    ))) / 86400000));
+    const fechasTodos = todos
+        .map(e => new Date(campo(e, "start") || e._submission_time))
+        .filter(d => !isNaN(d));
+    const diasActivos = fechasTodos.length
+        ? Math.max(1, Math.ceil((new Date() - new Date(Math.min(...fechasTodos))) / 86400000))
+        : 0;
     const promedioDiario = diasActivos > 0 ? Math.round(todos.length / diasActivos) : 0;
     const provinciasConData = new Set(todos.map(e => campo(e, "provincia")).filter(v => MAPA_PROVINCIA[v])).size;
     const diaCounts = {};
@@ -571,10 +576,11 @@ function contarDelta(encuestas, prefix) {
 
 function dibujarSparkline(encuestas, canvasId, colorVar) {
     const canvas = document.getElementById(canvasId);
-    if (!canvas || !encuestas.length) return;
+    if (!canvas) return;
     const ctx = canvas.getContext("2d");
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0, 0, w, h);
+    if (!encuestas.length) return;
 
     const porDia = {};
     encuestas.forEach(e => {
