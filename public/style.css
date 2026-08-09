@@ -421,6 +421,7 @@ body.modo-oscuro .tab.activo {
 .franja-estado {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0;
     margin: -2px 2px 12px;
     padding: 5px 8px;
@@ -453,6 +454,12 @@ body.modo-oscuro .tab.activo {
 
 .franja-estado-item:last-child {
     border-right: none;
+}
+
+@media (max-width: 600px) {
+    .franja-estado {
+        justify-content: flex-start;
+    }
 }
 
 .franja-estado strong {
