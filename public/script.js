@@ -114,15 +114,15 @@ async function obtenerDatos(silencioso = false) {
             }
         }
 
+        ocultarCarga();
+        ocultarError();
         procesarDatos(datos);
         ultimaActualizacionExitos = new Date();
         actualizarTimestamp();
-        ocultarCarga();
-        ocultarError();
     } catch (error) {
-        console.error(error);
+        console.error("Error al obtener datos:", error);
+        ocultarCarga();
         if (!silencioso) {
-            ocultarCarga();
             mostrarError();
         }
     }
@@ -154,6 +154,7 @@ function ocultarCarga() {
     const overlay = document.getElementById("cargaOverlay");
     if (overlay) {
         overlay.classList.add("oculto");
+        overlay.style.display = "none";
         overlay.setAttribute("aria-hidden", "true");
     }
 }
@@ -181,18 +182,36 @@ function mostrarCarga() {
     const overlay = document.getElementById("cargaOverlay");
     if (overlay) {
         overlay.classList.remove("oculto");
+        overlay.style.display = "flex";
         overlay.setAttribute("aria-hidden", "false");
     }
 }
 
-inicializarModoOscuro();
-obtenerDatos();
+// Inicialización diferida al cargar el DOM
+document.addEventListener("DOMContentLoaded", () => {
+    inicializarModoOscuro();
+    obtenerDatos();
+});
 
 // ==========================================
 // PROCESAMIENTO PRINCIPAL — CONTEO DISJUNTO
 // ==========================================
 
 function procesarDatos(datos) {
+    if (!datos || !Array.isArray(datos.resultados)) {
+        console.warn("Los datos recibidos no contienen la lista 'resultados'.", datos);
+        ultimosDatosCargados = {
+            trabajadores: [],
+            graduados: [],
+            todos: [],
+            noAceptaronTrabajadores: 0,
+            noAceptaronGraduados: 0,
+            noAceptaronTotal: 0
+        };
+        renderizarTodo();
+        return;
+    }
+
     ultimosDatosCargados = datos;
 
     const esGraduado = e => campo(e, "grad") === "1" && campo(e, "consentuartes") === VALOR_SI;
