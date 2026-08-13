@@ -93,6 +93,39 @@ function exportarDatosCSV() {
 
 document.addEventListener("DOMContentLoaded", inicializarAccionesCabecera);
 
+// ==========================================
+// MODO OSCURO (persistente)
+// ==========================================
+
+const CLAVE_MODO = "clima-social-modo";
+
+function aplicarModoOscuro(activo) {
+    document.body.classList.toggle("modo-oscuro", activo);
+    const boton = document.getElementById("botonModoOscuro");
+    if (boton) {
+        boton.textContent = activo ? "☀️" : "🌙";
+        boton.title = activo ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
+        boton.setAttribute("aria-pressed", String(activo));
+    }
+    requestAnimationFrame(() => {
+        if (ultimosDatosCargados) renderizarTodo();
+    });
+}
+
+function inicializarModoOscuro() {
+    const activo = localStorage.getItem(CLAVE_MODO) === "1";
+    aplicarModoOscuro(activo);
+    const botonModoOscuro = document.getElementById("botonModoOscuro");
+    if (botonModoOscuro && !botonModoOscuro.dataset.vinculado) {
+        botonModoOscuro.dataset.vinculado = "true";
+        botonModoOscuro.addEventListener("click", () => {
+            const activo = !esModoOscuro();
+            localStorage.setItem(CLAVE_MODO, activo ? "1" : "0");
+            aplicarModoOscuro(activo);
+        });
+    }
+}
+
 async function obtenerDatos(silencioso = false) {
     try {
         if (!silencioso) await obtenerConfig();
