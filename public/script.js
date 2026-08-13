@@ -97,7 +97,7 @@ async function obtenerDatos(silencioso = false) {
     try {
         if (!silencioso) await obtenerConfig();
         const respuesta = await fetch("/api/encuestas");
-        if (!respuesta.ok) throw new Error("No fue posible obtener los datos.");
+        if (!respuesta.ok) throw new Error("Servidor Node o API Kobo no respondió.");
         const datos = await respuesta.json();
         
         // Manejar distintivo de datos en respaldo
@@ -105,10 +105,7 @@ async function obtenerDatos(silencioso = false) {
         if (bannerFallback) {
             if (datos.esCacheFallback) {
                 bannerFallback.style.display = "flex";
-                const fechaEl = document.getElementById("fechaFallback");
-                if (fechaEl && datos.obtenidoEn) {
-                    fechaEl.textContent = new Date(datos.obtenidoEn).toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit" });
-                }
+                bannerFallback.innerHTML = `<span class="icono-fallback">💾</span> <span><strong>Modo Respaldo:</strong> Mostrando última versión guardada de los datos (${new Date(datos.obtenidoEn || Date.now()).toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit" })}).</span>`;
             } else {
                 bannerFallback.style.display = "none";
             }
@@ -120,12 +117,57 @@ async function obtenerDatos(silencioso = false) {
         ultimaActualizacionExitos = new Date();
         actualizarTimestamp();
     } catch (error) {
-        console.error("Error al obtener datos:", error);
-        ocultarCarga();
-        if (!silencioso) {
-            mostrarError();
+        console.warn("[CLIMA-SOCIAL] ⚠ Servidor Node.js no detectado o sin credenciales de Kobo. Activando vista estática de demostración:", error.message);
+        
+        // Cargar datos estáticos de demostración para no bloquear la interfaz jamás
+        const datosDemo = generarDatosDemoEstaticos();
+        const bannerFallback = document.getElementById("bannerFallback");
+        if (bannerFallback) {
+            bannerFallback.style.display = "flex";
+            bannerFallback.innerHTML = `<span class="icono-fallback">⚡</span> <span><strong>Vista Estática / Demostración:</strong> Servidor Node.js no activo. Para conectar con Kobo en vivo, ejecuta <code>npm start</code> en tu terminal y abre <a href="http://localhost:3000" style="color:inherit;font-weight:bold;">http://localhost:3000</a>.</span>`;
         }
+
+        ocultarCarga();
+        ocultarError();
+        procesarDatos(datosDemo);
+        ultimaActualizacionExitos = new Date();
+        actualizarTimestamp();
     }
+}
+
+function generarDatosDemoEstaticos() {
+    const provinces = ['9','9','9','9','14','14','14','1','16','10','7','5','8','6','17','21','20','11','19','12'];
+    const generos = ['1','1','2','2','3','0'];
+    const actividades = ['1','2','3','4','5','6','7','8','10'];
+    const medios = ['1','2','3','4','5'];
+    const titulos = ['1','2','3','4','5','6','6_1','7','8','9'];
+    const anios = ['2019','2020','2021','2022','2023','2024','2025'];
+    const resultados = [];
+    const baseDate = new Date();
+    baseDate.setDate(baseDate.getDate() - 12);
+
+    for (let i = 0; i < 480; i++) {
+        const isTrab = i % 3 !== 0;
+        const d = new Date(baseDate.getTime() + Math.floor(Math.random() * 12 * 86400000));
+        const start = d.toISOString();
+        const end = new Date(d.getTime() + (10 + Math.floor(Math.random() * 20)) * 60000).toISOString();
+        resultados.push({
+            _id: i + 1,
+            grad: isTrab ? '2' : '1',
+            consent: '1',
+            consentuartes: '1',
+            prov: provinces[Math.floor(Math.random() * provinces.length)],
+            genero: generos[Math.floor(Math.random() * generos.length)],
+            act_principal: actividades[Math.floor(Math.random() * actividades.length)],
+            medio: medios[Math.floor(Math.random() * medios.length)],
+            anio_grad: anios[Math.floor(Math.random() * anios.length)],
+            titulo_obtenido: titulos[Math.floor(Math.random() * titulos.length)],
+            start,
+            end,
+            _submission_time: start
+        });
+    }
+    return { total: resultados.length, resultados, esCacheFallback: true, obtenidoEn: Date.now() };
 }
 
 function actualizarTimestamp() {
