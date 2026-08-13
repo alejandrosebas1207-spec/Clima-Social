@@ -30,6 +30,129 @@ const COLOR_TITULO = () => esModoOscuro() ? "#f2ecdf" : "#241e15";
 const COLOR_GRID = () => esModoOscuro() ? "#3d3225" : "#e7dfd0";
 
 // ==========================================
+// RESOLVER DE CAMPOS (Kobo anida en grupos)
+// ==========================================
+
+function campo(encuesta, nombreCorto) {
+    if (!encuesta) return undefined;
+    if (encuesta[nombreCorto] !== undefined) return encuesta[nombreCorto];
+    const clavePrefijo = Object.keys(encuesta).find(k => k.endsWith("/" + nombreCorto));
+    if (clavePrefijo) return encuesta[clavePrefijo];
+    for (let key in encuesta) {
+        if (typeof encuesta[key] === 'object' && encuesta[key] !== null) {
+            const val = campo(encuesta[key], nombreCorto);
+            if (val !== undefined) return val;
+        }
+    }
+    return undefined;
+}
+
+// ==========================================
+// MAPAS DE ETIQUETAS
+// ==========================================
+
+const MAPA_PROVINCIA = {
+    "1": "Azuay", "2": "Bolívar", "3": "Cañar", "4": "Carchi",
+    "5": "Chimborazo", "6": "Cotopaxi", "7": "Imbabura", "8": "Loja",
+    "9": "Pichincha", "10": "Tungurahua", "11": "Santo Domingo", "12": "El Oro",
+    "13": "Esmeraldas", "14": "Guayas", "15": "Los Ríos", "16": "Manabí",
+    "17": "Santa Elena", "18": "Morona Santiago", "19": "Napo", "20": "Orellana",
+    "21": "Pastaza", "22": "Sucumbíos", "23": "Zamora Chinchipe", "24": "Galápagos"
+};
+
+// Metas de trabajadores por provincia (suma = 2100)
+const META_PROVINCIA = {
+    "9": 740,   // Pichincha
+    "14": 340,  // Guayas
+    "1": 160,   // Azuay
+    "16": 135,  // Manabí
+    "10": 110,  // Tungurahua
+    "7": 105,   // Imbabura
+    "5": 65,    // Chimborazo
+    "8": 65,    // Loja
+    "6": 65,    // Cotopaxi
+    "17": 60,   // Santa Elena
+    "21": 55,   // Pastaza
+    "20": 55,   // Orellana
+    "11": 55,   // Santo Domingo
+    "19": 50,   // Napo
+    "12": 40    // El Oro
+};
+
+const MAPA_GENERO = {
+    "1": "Femenino", "2": "Masculino", "3": "No binario", "0": "Prefiere no responder"
+};
+
+const MAPA_MEDIO = {
+    "1": "Link por correo electrónico",
+    "2": "Llamada telefónica (WhatsApp)",
+    "3": "Código QR",
+    "4": "Facilitador",
+    "5": "Redes sociales"
+};
+
+const MAPA_TITULO = {
+    "1": "Lic. Artes Visuales",
+    "2": "Lic. Artes Musicales",
+    "3": "Lic. Creación Teatral",
+    "4": "Lic. Cine",
+    "5": "Lic. Literatura",
+    "6": "Lic. Producción Musical",
+    "6_1": "Lic. Danza",
+    "7": "Máster Cine Documental",
+    "8": "Máster Artes Visuales y Nuevos Medios",
+    "9": "Máster Artes Escénicas",
+    "10": "Máster Composición Musical",
+    "11": "Máster Escritura Creativa",
+    "12": "Máster Políticas Culturales",
+    "13": "Máster Fotografía y Sociedad"
+};
+
+const MAPA_ACTIVIDAD_BUCKET = {
+    "1": "Artes musicales",
+    "2": "Literatura",
+    "3": "Audiovisual",
+    "4": "Escénicas",
+    "5": "Visuales",
+    "6": "Visuales",
+    "7": "Otras",
+    "8": "Audiovisual",
+    "9": "Otras",
+    "10": "Gestión cultural",
+    "11": "Otras",
+    "12": "Otras"
+};
+
+const ORDEN_ACTIVIDAD = ["Artes musicales", "Visuales", "Escénicas", "Gestión cultural", "Audiovisual", "Literatura", "Otras"];
+
+const COLORES_ACTIVIDAD = {
+    "Artes musicales": "var(--kimi-chart-1)",
+    "Visuales": "var(--kimi-chart-4)",
+    "Escénicas": "var(--kimi-chart-2)",
+    "Gestión cultural": "var(--kimi-chart-3)",
+    "Audiovisual": "#8a4b6b",
+    "Literatura": "var(--kimi-chart-6)",
+    "Otras": "var(--kimi-chart-5)"
+};
+
+async function obtenerConfig() {
+    try {
+        const respuesta = await fetch("/api/config");
+        if (!respuesta.ok) throw new Error("No se pudo obtener configuración");
+        const config = await respuesta.json();
+        META_TRABAJADORES = Number(config.metaTrabajadores) || 2100;
+        META_GRADUADOS = Number(config.metaGraduados) || 400;
+        VALOR_SI = config.valorConsentimientoSi || "1";
+        FECHA_CIERRE = config.fechaCierre || "2026-09-19";
+        const elTitulo = document.getElementById("tituloProyecto");
+        if (elTitulo) elTitulo.textContent = config.nombreProyecto || "Encuesta Artes y Cultura";
+        document.title = config.nombreProyecto || "Encuesta Artes y Cultura";
+    } catch (error) {
+        console.warn("Usando configuración por defecto", error);
+    }
+}
+
+// ==========================================
 // ACCIONES DE CABECERA (CSV / PDF)
 // ==========================================
 
