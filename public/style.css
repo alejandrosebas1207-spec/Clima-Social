@@ -22,9 +22,9 @@
     --kimi-sombra-card-hover: 0 2px 4px rgba(36, 30, 21, .06), 0 14px 32px -12px rgba(36, 30, 21, .18);
     --kimi-sombra-flotante: 0 10px 30px -8px rgba(36, 30, 21, .25);
 
-    --kimi-radio: 14px;
+    --kimi-radio: 16px;
     --kimi-radio-chico: 10px;
-    --kimi-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --kimi-font: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 body.modo-oscuro {
@@ -1192,5 +1192,289 @@ body.modo-oscuro .error-banner {
         animation-duration: .01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: .01ms !important;
+    }
+}
+
+/* ==========================================
+   ESTILOS V2 · ACCIONES, MODULOS, MAPA Y PRINT
+========================================== */
+
+.acciones-cabecera {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-accion {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--kimi-bg-suave);
+    border: 1px solid var(--kimi-color-border);
+    color: var(--kimi-text);
+    padding: 7px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s ease;
+    white-space: nowrap;
+}
+
+.btn-accion:hover {
+    background: var(--kimi-bg-card);
+    border-color: var(--kimi-chart-1);
+    color: var(--kimi-chart-1);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.banner-fallback {
+    background: #fef3c7;
+    color: #92400e;
+    border-bottom: 1px solid #fde68a;
+    padding: 8px 20px;
+    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+
+body.modo-oscuro .banner-fallback {
+    background: #451a03;
+    color: #fef3c7;
+    border-color: #78350f;
+}
+
+.bloque-modulo {
+    margin-bottom: 36px;
+}
+
+.seccion-encabezado {
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--kimi-color-border);
+}
+
+.seccion-encabezado h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--kimi-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.seccion-bajada {
+    font-size: 13px;
+    color: var(--kimi-text-soft);
+    margin-top: 2px;
+    display: block;
+}
+
+.franja-filtro-activo {
+    background: color-mix(in srgb, var(--kimi-chart-1) 12%, var(--kimi-bg-card));
+    border: 1px solid var(--kimi-chart-1);
+    color: var(--kimi-text);
+    padding: 10px 18px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    box-shadow: var(--kimi-sombra-card);
+}
+
+.btn-limpiar-filtro {
+    background: var(--kimi-chart-1);
+    color: #ffffff;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .2s ease;
+}
+
+.btn-limpiar-filtro:hover {
+    opacity: 0.9;
+}
+
+.grid-geografia {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 900px) {
+    .grid-geografia {
+        grid-template-columns: 1fr;
+    }
+}
+
+.grid-graficos-doble {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 900px) {
+    .grid-graficos-doble {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==========================================
+   MAPA DE ECUADOR (SVG)
+========================================== */
+
+.mapa-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.grafico-subtitulo {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--kimi-text-soft);
+    margin-left: auto;
+}
+
+.mapa-ecuador-contenedor {
+    position: relative;
+    width: 100%;
+    height: 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+}
+
+.mapa-ecuador-contenedor svg {
+    width: 100%;
+    height: 100%;
+    max-height: 360px;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.06));
+}
+
+.provincia-path {
+    cursor: pointer;
+    stroke: var(--kimi-bg-card);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    transition: all .2s ease;
+}
+
+.provincia-path:hover {
+    filter: brightness(1.15) contrast(1.1);
+    stroke: var(--kimi-text);
+    stroke-width: 2.5;
+}
+
+.provincia-path.activa {
+    stroke: var(--kimi-chart-1);
+    stroke-width: 3;
+    filter: drop-shadow(0 0 6px var(--kimi-chart-1));
+}
+
+.mapa-tooltip {
+    position: absolute;
+    background: rgba(20, 20, 25, 0.9);
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    pointer-events: none;
+    z-index: 50;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.1);
+    transform: translate(-50%, -120%);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity .15s ease;
+}
+
+.mapa-tooltip.visible {
+    opacity: 1;
+}
+
+.mapa-leyenda {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--kimi-color-border);
+    font-size: 12px;
+    color: var(--kimi-text-soft);
+}
+
+.leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.punto-color {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.pie-separador {
+    margin: 0 8px;
+    opacity: 0.5;
+}
+
+/* ==========================================
+   REGLAS DE IMPRESIÓN (PDF)
+========================================== */
+
+@media print {
+    .cabecera-derecha,
+    .acciones-cabecera,
+    .boton-modo-oscuro,
+    .carga-overlay,
+    .error-banner,
+    .franja-textil,
+    .boton-reintentar {
+        display: none !important;
+    }
+
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+
+    .cabecera {
+        position: relative !important;
+        border-bottom: 2px solid #000 !important;
+        background: #fff !important;
+    }
+
+    .contenedor {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .kpi-card,
+    .grafico-card {
+        break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+    }
+
+    .pie-pagina {
+        margin-top: 20px;
+        border-top: 1px solid #ccc;
     }
 }

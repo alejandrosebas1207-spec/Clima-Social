@@ -10,6 +10,7 @@ let VALOR_SI = "1";
 let FECHA_CIERRE = "2026-09-19";
 
 let filtroActual = "todos";
+let filtroProvinciaActual = null;
 let ultimosDatosCargados = null;
 let ultimaActualizacionExitos = null;
 
@@ -29,184 +30,68 @@ const COLOR_TITULO = () => esModoOscuro() ? "#f2ecdf" : "#241e15";
 const COLOR_GRID = () => esModoOscuro() ? "#3d3225" : "#e7dfd0";
 
 // ==========================================
-// RESOLVER DE CAMPOS (Kobo anida en grupos)
+// ACCIONES DE CABECERA (CSV / PDF)
 // ==========================================
 
-function campo(encuesta, nombreCorto) {
-    if (encuesta[nombreCorto] !== undefined) return encuesta[nombreCorto];
-    const clavePrefijo = Object.keys(encuesta).find(k => k.endsWith("/" + nombreCorto));
-    if (clavePrefijo) return encuesta[clavePrefijo];
-    for (let key in encuesta) {
-        if (typeof encuesta[key] === 'object' && encuesta[key] !== null) {
-            const val = campo(encuesta[key], nombreCorto);
-            if (val !== undefined) return val;
-        }
+function inicializarAccionesCabecera() {
+    const btnExportar = document.getElementById("btnExportarCSV");
+    if (btnExportar) {
+        btnExportar.addEventListener("click", exportarDatosCSV);
     }
-    return undefined;
-}
-
-// ==========================================
-// MAPAS DE ETIQUETAS
-// ==========================================
-
-const MAPA_PROVINCIA = {
-    "1": "Azuay", "2": "Bolívar", "3": "Cañar", "4": "Carchi",
-    "5": "Chimborazo", "6": "Cotopaxi", "7": "Imbabura", "8": "Loja",
-    "9": "Pichincha", "10": "Tungurahua", "11": "Santo Domingo", "12": "El Oro",
-    "13": "Esmeraldas", "14": "Guayas", "15": "Los Ríos", "16": "Manabí",
-    "17": "Santa Elena", "18": "Morona Santiago", "19": "Napo", "20": "Orellana",
-    "21": "Pastaza", "22": "Sucumbíos", "23": "Zamora Chinchipe", "24": "Galápagos"
-};
-
-// Metas de trabajadores por provincia (suma = 2100)
-const META_PROVINCIA = {
-    "9": 740,   // Pichincha
-    "14": 340,  // Guayas
-    "1": 160,   // Azuay
-    "16": 135,  // Manabí
-    "10": 110,  // Tungurahua
-    "7": 105,   // Imbabura
-    "5": 65,    // Chimborazo
-    "8": 65,    // Loja
-    "6": 65,    // Cotopaxi
-    "17": 60,   // Santa Elena
-    "21": 55,   // Pastaza
-    "20": 55,   // Orellana
-    "11": 55,   // Santo Domingo
-    "19": 50,   // Napo
-    "12": 40    // El Oro
-};
-
-const MAPA_GENERO = {
-    "1": "Femenino", "2": "Masculino", "3": "No binario", "0": "Prefiere no responder"
-};
-
-const MAPA_MEDIO = {
-    "1": "Link por correo electrónico",
-    "2": "Llamada telefónica (WhatsApp)",
-    "3": "Código QR",
-    "4": "Facilitador",
-    "5": "Redes sociales"
-};
-
-const MAPA_TITULO = {
-    "1": "Lic. Artes Visuales",
-    "2": "Lic. Artes Musicales",
-    "3": "Lic. Creación Teatral",
-    "4": "Lic. Cine",
-    "5": "Lic. Literatura",
-    "6": "Lic. Producción Musical",
-    "6_1": "Lic. Danza",
-    "7": "Máster Cine Documental",
-    "8": "Máster Artes Visuales y Nuevos Medios",
-    "9": "Máster Artes Escénicas",
-    "10": "Máster Composición Musical",
-    "11": "Máster Escritura Creativa",
-    "12": "Máster Políticas Culturales",
-    "13": "Máster Fotografía y Sociedad"
-};
-
-const MAPA_ACTIVIDAD_BUCKET = {
-    "1": "Artes musicales",
-    "2": "Literatura",
-    "3": "Audiovisual",
-    "4": "Escénicas",
-    "5": "Visuales",
-    "6": "Visuales",
-    "7": "Otras",
-    "8": "Audiovisual",
-    "9": "Otras",
-    "10": "Gestión cultural",
-    "11": "Otras",
-    "12": "Otras"
-};
-
-const ORDEN_ACTIVIDAD = ["Artes musicales", "Visuales", "Escénicas", "Gestión cultural", "Audiovisual", "Literatura", "Otras"];
-
-const COLORES_ACTIVIDAD = {
-    "Artes musicales": "var(--kimi-chart-1)",
-    "Visuales": "var(--kimi-chart-4)",
-    "Escénicas": "var(--kimi-chart-2)",
-    "Gestión cultural": "var(--kimi-chart-3)",
-    "Audiovisual": "#8a4b6b",
-    "Literatura": "var(--kimi-chart-6)",
-    "Otras": "var(--kimi-chart-5)"
-};
-
-// ==========================================
-// RELOJ + FECHA
-// ==========================================
-
-function actualizarHora() {
-    const ahora = new Date();
-    document.getElementById("hora").textContent =
-        ahora.toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit" }).replace(/ /g, "\u00A0");
-    const fechaEl = document.getElementById("fecha");
-    if (fechaEl) {
-        fechaEl.textContent = ahora.toLocaleDateString("es-EC", {
-            weekday: "long", day: "numeric", month: "long"
+    const btnPDF = document.getElementById("btnImprimirPDF");
+    if (btnPDF) {
+        btnPDF.addEventListener("click", () => window.print());
+    }
+    const btnLimpiar = document.getElementById("btnLimpiarFiltroProvincia");
+    if (btnLimpiar) {
+        btnLimpiar.addEventListener("click", () => {
+            filtroProvinciaActual = null;
+            const franja = document.getElementById("franjaFiltroActivo");
+            if (franja) franja.style.display = "none";
+            renderizarTodo();
         });
     }
 }
-actualizarHora();
-setInterval(actualizarHora, 30000);
 
-// ==========================================
-// MODO OSCURO (persistente)
-// ==========================================
-
-const CLAVE_MODO = "clima-social-modo";
-
-function aplicarModoOscuro(activo) {
-    document.body.classList.toggle("modo-oscuro", activo);
-    const boton = document.getElementById("botonModoOscuro");
-    if (boton) {
-        boton.textContent = activo ? "☀️" : "🌙";
-        boton.title = activo ? "Cambiar a modo claro" : "Cambiar a modo oscuro";
-        boton.setAttribute("aria-pressed", String(activo));
+function exportarDatosCSV() {
+    if (!ultimosDatosCargados || !ultimosDatosCargados.todos) {
+        alert("Aún no hay datos cargados para exportar.");
+        return;
     }
-    // Re-renderiza en el siguiente frame para que el canvas lea
-    // los colores ya aplicados por la clase -> modo-oscuro
-    requestAnimationFrame(() => {
-        if (ultimosDatosCargados) renderizarTodo();
+    const datos = ultimosDatosCargados.todos;
+    const filas = [
+        ["ID", "Fecha_Submission", "Tipo_Encuesta", "Provincia", "Genero", "Actividad_Principal", "Medio_Captura"]
+    ];
+
+    datos.forEach((e, idx) => {
+        const id = e._id || (idx + 1);
+        const fecha = obtenerFechaDia(e) || "";
+        const gradVal = campo(e, "grad");
+        const tipo = gradVal === "1" ? "Graduado UArtes" : "Trabajador";
+        const provCode = campo(e, "prov");
+        const provNombre = MAPA_PROVINCIA[provCode] || "No especificado";
+        const genCode = campo(e, "genero");
+        const genNombre = MAPA_GENERO[genCode] || "No especificado";
+        const actCode = campo(e, "act_principal");
+        const actBucket = MAPA_ACTIVIDAD_BUCKET[actCode] || "Otras";
+        const medioCode = campo(e, "medio");
+        const medioNombre = MAPA_MEDIO[medioCode] || "No especificado";
+
+        filas.push([id, fecha, tipo, provNombre, genNombre, actBucket, medioNombre]);
     });
+
+    const contenidoCSV = "\uFEFF" + filas.map(f => f.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([contenidoCSV], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Clima_Social_Reporte_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
-// El tablero arranca SIEMPRE en modo claro. La preferencia del usuario
-// solo se usa si la guardó antes con el botón.
-function inicializarModoOscuro() {
-    const activo = localStorage.getItem(CLAVE_MODO) === "1";
-    aplicarModoOscuro(activo);
-}
-
-const botonModoOscuro = document.getElementById("botonModoOscuro");
-if (botonModoOscuro) {
-    botonModoOscuro.addEventListener("click", () => {
-        const activo = !esModoOscuro();
-        localStorage.setItem(CLAVE_MODO, activo ? "1" : "0");
-        aplicarModoOscuro(activo);
-    });
-}
-
-// ==========================================
-// CONFIG + DATOS
-// ==========================================
-
-async function obtenerConfig() {
-    try {
-        const respuesta = await fetch("/api/config");
-        if (!respuesta.ok) throw new Error("No se pudo obtener configuración");
-        const config = await respuesta.json();
-        META_TRABAJADORES = Number(config.metaTrabajadores) || 2100;
-        META_GRADUADOS = Number(config.metaGraduados) || 400;
-        VALOR_SI = config.valorConsentimientoSi || "1";
-        FECHA_CIERRE = config.fechaCierre || "2026-09-19";
-        document.getElementById("tituloProyecto").textContent = config.nombreProyecto || "Encuesta Artes y Cultura";
-        document.title = document.getElementById("tituloProyecto").textContent;
-    } catch (error) {
-        console.warn("Usando configuración por defecto", error);
-    }
-}
+document.addEventListener("DOMContentLoaded", inicializarAccionesCabecera);
 
 async function obtenerDatos(silencioso = false) {
     try {
@@ -214,6 +99,21 @@ async function obtenerDatos(silencioso = false) {
         const respuesta = await fetch("/api/encuestas");
         if (!respuesta.ok) throw new Error("No fue posible obtener los datos.");
         const datos = await respuesta.json();
+        
+        // Manejar distintivo de datos en respaldo
+        const bannerFallback = document.getElementById("bannerFallback");
+        if (bannerFallback) {
+            if (datos.esCacheFallback) {
+                bannerFallback.style.display = "flex";
+                const fechaEl = document.getElementById("fechaFallback");
+                if (fechaEl && datos.obtenidoEn) {
+                    fechaEl.textContent = new Date(datos.obtenidoEn).toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit" });
+                }
+            } else {
+                bannerFallback.style.display = "none";
+            }
+        }
+
         procesarDatos(datos);
         ultimaActualizacionExitos = new Date();
         actualizarTimestamp();
@@ -460,7 +360,19 @@ function renderizarTodo() {
         el.style.display = (filtroActual === "todos") ? 'inline-block' : 'none';
     });
 
-    // --- Gráficos siempre visibles ---
+    // --- Aplicar filtro de provincia si está activo ---
+    if (filtroProvinciaActual) {
+        conjunto = conjunto.filter(e => String(campo(e, "prov")) === String(filtroProvinciaActual));
+        const franja = document.getElementById("franjaFiltroActivo");
+        const nombreEl = document.getElementById("nombreProvinciaFiltro");
+        if (franja && nombreEl) {
+            franja.style.display = "flex";
+            nombreEl.textContent = MAPA_PROVINCIA[filtroProvinciaActual] || "Desconocida";
+        }
+    }
+
+    // --- Gráficos y mapa ---
+    generarGraficoSeguro("generarMapaEcuador", trabajadores, graduados, todos);
     generarGraficoSeguro("generarGraficoAvanceDia", trabajadores, graduados);
     generarGraficoSeguro("generarGraficoMedio", conjunto);
     generarGraficoSeguro("generarGraficoProvincia", conjunto);
@@ -484,6 +396,145 @@ function renderizarTodo() {
         mostrarN("nAnioGraduacion", 0);
         mostrarN("nTitulo", 0);
     }
+}
+
+// ==========================================
+// MAPA SVG INTERACTIVO DE ECUADOR
+// ==========================================
+
+const RUTAS_PROVINCIAS_SVG = {
+    "4": { n: "Carchi", d: "M 270,30 L 300,20 L 310,45 L 285,55 Z" },
+    "13": { n: "Esmeraldas", d: "M 180,35 L 270,30 L 255,85 L 175,90 Z" },
+    "7": { n: "Imbabura", d: "M 270,55 L 310,45 L 305,80 L 265,80 Z" },
+    "9": { n: "Pichincha", d: "M 235,85 L 305,80 L 295,125 L 225,120 Z" },
+    "11": { n: "Santo Domingo", d: "M 185,90 L 235,85 L 225,135 L 180,125 Z" },
+    "16": { n: "Manabí", d: "M 110,95 L 185,90 L 175,190 L 100,165 Z" },
+    "6": { n: "Cotopaxi", d: "M 225,120 L 295,125 L 285,160 L 220,155 Z" },
+    "10": { n: "Tungurahua", d: "M 255,160 L 300,155 L 295,190 L 250,190 Z" },
+    "15": { n: "Los Ríos", d: "M 175,135 L 225,130 L 215,215 L 165,205 Z" },
+    "2": { n: "Bolívar", d: "M 215,160 L 255,160 L 245,210 L 210,200 Z" },
+    "5": { n: "Chimborazo", d: "M 245,190 L 305,185 L 295,240 L 235,235 Z" },
+    "14": { n: "Guayas", d: "M 140,195 L 215,205 L 205,295 L 130,285 Z" },
+    "17": { n: "Santa Elena", d: "M 75,215 L 140,195 L 130,270 L 65,260 Z" },
+    "3": { n: "Cañar", d: "M 205,240 L 275,235 L 265,275 L 195,275 Z" },
+    "1": { n: "Azuay", d: "M 195,275 L 285,270 L 275,335 L 185,330 Z" },
+    "12": { n: "El Oro", d: "M 130,290 L 195,300 L 185,360 L 120,345 Z" },
+    "8": { n: "Loja", d: "M 175,330 L 255,325 L 240,410 L 160,400 Z" },
+    "22": { n: "Sucumbíos", d: "M 310,20 L 440,30 L 415,100 L 305,80 Z" },
+    "19": { n: "Napo", d: "M 295,125 L 395,115 L 380,175 L 290,165 Z" },
+    "20": { n: "Orellana", d: "M 380,100 L 475,110 L 455,180 L 365,165 Z" },
+    "21": { n: "Pastaza", d: "M 295,175 L 460,180 L 435,255 L 285,240 Z" },
+    "18": { n: "Morona Santiago", d: "M 275,240 L 435,255 L 405,345 L 265,325 Z" },
+    "23": { n: "Zamora Chinchipe", d: "M 255,325 L 395,340 L 370,415 L 240,400 Z" },
+    "24": { n: "Galápagos", d: "M 20,130 A 15,15 0 1,0 50,130 A 15,15 0 1,0 20,130 M 45,170 A 10,10 0 1,0 65,170 A 10,10 0 1,0 45,170" }
+};
+
+function generarMapaEcuador(trabajadores, graduados, todos) {
+    const contenedor = document.getElementById("mapaEcuadorContenedor");
+    if (!contenedor) return;
+
+    // Calcular conteos por provincia
+    const conteo = {};
+    const dataset = filtroActual === "trabajadores" ? trabajadores : filtroActual === "graduados" ? graduados : todos;
+    dataset.forEach(e => {
+        const prov = String(campo(e, "prov") || "");
+        if (prov) conteo[prov] = (conteo[prov] || 0) + 1;
+    });
+
+    let tooltip = document.getElementById("mapaTooltipEl");
+    if (!tooltip) {
+        tooltip = document.createElement("div");
+        tooltip.id = "mapaTooltipEl";
+        tooltip.className = "mapa-tooltip";
+        contenedor.appendChild(tooltip);
+    }
+
+    let svgHTML = `<svg viewBox="0 0 500 440" xmlns="http://www.w3.org/2000/svg">`;
+    Object.entries(RUTAS_PROVINCIAS_SVG).forEach(([code, data]) => {
+        const totalProv = conteo[code] || 0;
+        const metaProv = META_PROVINCIA[code] || 0;
+        let color = "#8c7a67"; // Sin meta
+
+        if (metaProv > 0) {
+            const pct = (totalProv / metaProv) * 100;
+            if (pct >= 100) color = "#2f6b45";
+            else if (pct >= 50) color = "#c9862e";
+            else color = "#b23a2e";
+        } else if (totalProv > 0) {
+            color = "#454a91";
+        }
+
+        const activa = String(filtroProvinciaActual) === String(code) ? "activa" : "";
+
+        svgHTML += `<path d="${data.d}" class="provincia-path ${activa}" data-code="${code}" data-nombre="${data.n}" data-total="${totalProv}" data-meta="${metaProv}" fill="${color}" opacity="0.88" />`;
+        // Etiqueta del nombre de la provincia principal
+        if (["9","14","1","16","10","7","8"].includes(code)) {
+            const cx = getCentroidX(data.d);
+            const cy = getCentroidY(data.d);
+            svgHTML += `<text x="${cx}" y="${cy}" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle" pointer-events="none">${data.n.substring(0, 4)}</text>`;
+        }
+    });
+    svgHTML += `</svg>`;
+    contenedor.innerHTML = svgHTML + tooltip.outerHTML;
+
+    // Re-vincular eventos
+    contenedor.querySelectorAll(".provincia-path").forEach(path => {
+        path.addEventListener("mouseenter", e => {
+            const code = path.dataset.code;
+            const nombre = path.dataset.nombre;
+            const total = path.dataset.total;
+            const meta = path.dataset.meta;
+            const pctText = meta > 0 ? ` (${Math.round((total / meta) * 100)}% de meta ${meta})` : "";
+            
+            const tt = document.getElementById("mapaTooltipEl");
+            if (tt) {
+                tt.innerHTML = `<strong>${nombre}</strong>: ${total} encuestas${pctText}`;
+                tt.classList.add("visible");
+            }
+        });
+
+        path.addEventListener("mousemove", e => {
+            const tt = document.getElementById("mapaTooltipEl");
+            if (tt) {
+                const rect = contenedor.getBoundingClientRect();
+                tt.style.left = `${e.clientX - rect.left}px`;
+                tt.style.top = `${e.clientY - rect.top}px`;
+            }
+        });
+
+        path.addEventListener("mouseleave", () => {
+            const tt = document.getElementById("mapaTooltipEl");
+            if (tt) tt.classList.remove("visible");
+        });
+
+        path.addEventListener("click", () => {
+            const code = path.dataset.code;
+            if (filtroProvinciaActual === code) {
+                filtroProvinciaActual = null;
+                const franja = document.getElementById("franjaFiltroActivo");
+                if (franja) franja.style.display = "none";
+            } else {
+                filtroProvinciaActual = code;
+            }
+            renderizarTodo();
+        });
+    });
+}
+
+function getCentroidX(pathStr) {
+    const numbers = pathStr.match(/\d+/g);
+    if (!numbers) return 250;
+    let sum = 0;
+    for (let i = 0; i < numbers.length; i += 2) sum += Number(numbers[i]);
+    return sum / (numbers.length / 2);
+}
+
+function getCentroidY(pathStr) {
+    const numbers = pathStr.match(/\d+/g);
+    if (!numbers) return 220;
+    let sum = 0;
+    for (let i = 1; i < numbers.length; i += 2) sum += Number(numbers[i]);
+    return sum / (numbers.length / 2);
 }
 
 // Aísla cada gráfico: si uno falla al renderizar (p. ej. al cambiar

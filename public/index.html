@@ -4,10 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#faf6ef">
-<meta name="description" content="Tablero en tiempo real del Clima Social - Encuesta Artes y Cultura">
-<title>Clima Social · Tablero</title>
+<meta name="description" content="Tablero en tiempo real del Clima Social - Encuesta Artes y Cultura v2">
+<title>Clima Social · Tablero de Analítica</title>
 <link rel="icon" type="image/png" href="assets/icono.png">
-<link rel="stylesheet" href="style.css?v=5fd6d52">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=v2">
 </head>
 <body>
 
@@ -17,8 +20,13 @@
 </div>
 
 <div class="error-banner" id="errorBanner" role="alert" style="display:none;">
-    <span>No fue posible cargar los datos. Verifica la conexión con Kobo.</span>
+    <span>No fue posible conectar directamente con Kobo.</span>
     <button type="button" class="boton-reintentar" id="botonReintentar">Reintentar</button>
+</div>
+
+<div class="banner-fallback" id="bannerFallback" style="display:none;" role="status">
+    <span class="icono-fallback">💾</span>
+    <span><strong>Modo Respaldo:</strong> Mostrando última versión guardada de los datos (<span id="fechaFallback"></span>).</span>
 </div>
 
 <header class="cabecera">
@@ -35,6 +43,16 @@
             <button class="tab" role="tab" aria-selected="false" data-tab="trabajadores">Trabajadores</button>
             <button class="tab" role="tab" aria-selected="false" data-tab="graduados">Graduados UArtes</button>
         </div>
+        <div class="acciones-cabecera">
+            <button type="button" class="btn-accion" id="btnExportarCSV" title="Exportar reporte estructurado en CSV">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Exportar CSV</span>
+            </button>
+            <button type="button" class="btn-accion" id="btnImprimirPDF" title="Generar o guardar vista de impresión en PDF">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                <span>Imprimir PDF</span>
+            </button>
+        </div>
         <div class="cabecera-fecha">
             <span class="reloj" id="hora"></span>
             <span class="fecha" id="fecha"></span>
@@ -47,161 +65,224 @@
 
 <main class="contenedor">
 
-    <section class="kpis" aria-label="Indicadores clave">
+    <!-- BANNER DE FILTRO ACTIVO -->
+    <div class="franja-filtro-activo" id="franjaFiltroActivo" style="display: none;">
+        <span>🔍 Filtro de provincia activo: <strong id="nombreProvinciaFiltro">---</strong></span>
+        <button type="button" id="btnLimpiarFiltroProvincia" class="btn-limpiar-filtro">✕ Limpiar filtro</button>
+    </div>
 
-        <div class="kpi-card">
-            <div class="kpi-encabezado">
-                <span class="kpi-icono kpi-icono-total" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>
-                </span>
-                <h3>Encuestas totales</h3>
-            </div>
-            <p id="kpiTotal">0</p>
-            <canvas class="kpi-sparkline" id="sparkTotal" width="90" height="28" aria-hidden="true"></canvas>
-            <span class="kpi-delta" id="kpiTotalDelta"></span>
-            <span class="kpi-meta">Trabajadores + Graduados</span>
-            <span class="kpi-submeta" id="kpiTotalNoAceptaron">No aceptaron participar: 0</span>
+    <!-- SECCIÓN 1: RITMO Y METAS -->
+    <section class="bloque-modulo">
+        <div class="seccion-encabezado">
+            <h2>📈 Ritmo & Metas de Campaña</h2>
+            <span class="seccion-bajada">Indicadores acumulados, ritmo necesario y tendencia por día</span>
         </div>
 
-        <div class="kpi-card kpi-trabajadores">
-            <div class="kpi-encabezado">
-                <span class="kpi-icono" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                </span>
-                <h3>Trabajadores</h3>
+        <section class="kpis" aria-label="Indicadores clave">
+
+            <div class="kpi-card">
+                <div class="kpi-encabezado">
+                    <span class="kpi-icono kpi-icono-total" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>
+                    </span>
+                    <h3>Encuestas totales</h3>
+                </div>
+                <p id="kpiTotal">0</p>
+                <canvas class="kpi-sparkline" id="sparkTotal" width="90" height="28" aria-hidden="true"></canvas>
+                <span class="kpi-delta" id="kpiTotalDelta"></span>
+                <span class="kpi-meta">Trabajadores + Graduados</span>
+                <span class="kpi-submeta" id="kpiTotalNoAceptaron">No aceptaron participar: 0</span>
             </div>
-            <p id="kpiTrabajadores">0</p>
-            <canvas class="kpi-sparkline" id="sparkTrabajadores" width="90" height="28" aria-hidden="true"></canvas>
-            <span class="kpi-delta" id="kpiTrabajadoresDelta"></span>
-            <div class="barra-progreso"><div class="barra-progreso-relleno" id="barraTrabajadores"></div></div>
-            <span class="kpi-meta" id="metaTrabajadores">Meta: 0</span>
-            <span class="kpi-submeta" id="kpiTrabajadoresNoAceptaron">No aceptaron participar: 0</span>
-        </div>
 
-        <div class="kpi-card kpi-graduados">
-            <div class="kpi-encabezado">
-                <span class="kpi-icono" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
-                </span>
-                <h3>Graduados UArtes</h3>
+            <div class="kpi-card kpi-trabajadores">
+                <div class="kpi-encabezado">
+                    <span class="kpi-icono" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </span>
+                    <h3>Trabajadores</h3>
+                </div>
+                <p id="kpiTrabajadores">0</p>
+                <canvas class="kpi-sparkline" id="sparkTrabajadores" width="90" height="28" aria-hidden="true"></canvas>
+                <span class="kpi-delta" id="kpiTrabajadoresDelta"></span>
+                <div class="barra-progreso"><div class="barra-progreso-relleno" id="barraTrabajadores"></div></div>
+                <span class="kpi-meta" id="metaTrabajadores">Meta: 0</span>
+                <span class="kpi-submeta" id="kpiTrabajadoresNoAceptaron">No aceptaron participar: 0</span>
             </div>
-            <p id="kpiGraduados">0</p>
-            <canvas class="kpi-sparkline" id="sparkGraduados" width="90" height="28" aria-hidden="true"></canvas>
-            <span class="kpi-delta" id="kpiGraduadosDelta"></span>
-            <div class="barra-progreso"><div class="barra-progreso-relleno" id="barraGraduados"></div></div>
-            <span class="kpi-meta" id="metaGraduados">Meta: 0</span>
-            <span class="kpi-submeta" id="kpiGraduadosNoAceptaron">No aceptaron participar: 0</span>
-        </div>
 
-        <div class="kpi-card kpi-avance">
-            <div class="kpi-encabezado">
-                <span class="kpi-icono" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>
-                </span>
-                <h3>Avance general</h3>
+            <div class="kpi-card kpi-graduados">
+                <div class="kpi-encabezado">
+                    <span class="kpi-icono" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
+                    </span>
+                    <h3>Graduados UArtes</h3>
+                </div>
+                <p id="kpiGraduados">0</p>
+                <canvas class="kpi-sparkline" id="sparkGraduados" width="90" height="28" aria-hidden="true"></canvas>
+                <span class="kpi-delta" id="kpiGraduadosDelta"></span>
+                <div class="barra-progreso"><div class="barra-progreso-relleno" id="barraGraduados"></div></div>
+                <span class="kpi-meta" id="metaGraduados">Meta: 0</span>
+                <span class="kpi-submeta" id="kpiGraduadosNoAceptaron">No aceptaron participar: 0</span>
             </div>
-            <p id="kpiAvance">0%</p>
-            <div class="kpi-avance-donut" id="donutAvance" style="--avance:0%" aria-hidden="true"></div>
-            <canvas class="kpi-sparkline" id="sparkAvance" width="90" height="28" aria-hidden="true"></canvas>
-            <span class="kpi-delta" id="kpiAvanceDelta"></span>
-            <div class="barra-progreso"><div class="barra-progreso-relleno" id="barraAvance"></div></div>
-            <span class="kpi-meta" id="kpiMeta">0 de 0</span>
-        </div>
 
-        <div class="kpi-card">
-            <div class="kpi-encabezado">
-                <span class="kpi-icono" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                </span>
-                <h3>Duración promedio</h3>
+            <div class="kpi-card kpi-avance">
+                <div class="kpi-encabezado">
+                    <span class="kpi-icono" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>
+                    </span>
+                    <h3>Avance general</h3>
+                </div>
+                <p id="kpiAvance">0%</p>
+                <div class="kpi-avance-donut" id="donutAvance" style="--avance:0%" aria-hidden="true"></div>
+                <canvas class="kpi-sparkline" id="sparkAvance" width="90" height="28" aria-hidden="true"></canvas>
+                <span class="kpi-delta" id="kpiAvanceDelta"></span>
+                <div class="barra-progreso"><div class="barra-progreso-relleno" id="barraAvance"></div></div>
+                <span class="kpi-meta" id="kpiMeta">0 de 0</span>
             </div>
-            <p id="kpiDuracion">--</p>
-            <span class="kpi-meta">Por encuesta completada</span>
-        </div>
 
-        <div class="kpi-card kpi-hoy">
-            <div class="kpi-encabezado">
-                <span class="kpi-icono" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
-                </span>
-                <h3>Encuestas hoy</h3>
+            <div class="kpi-card">
+                <div class="kpi-encabezado">
+                    <span class="kpi-icono" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </span>
+                    <h3>Duración promedio</h3>
+                </div>
+                <p id="kpiDuracion">--</p>
+                <span class="kpi-meta">Por encuesta completada</span>
             </div>
-            <p id="kpiHoy">0</p>
-            <span class="kpi-delta" id="kpiHoyDelta"></span>
-            <span class="kpi-meta" id="kpiHoyDetalle">Trabajadores: 0 · Graduados: 0</span>
-        </div>
 
-    </section>
+            <div class="kpi-card kpi-hoy">
+                <div class="kpi-encabezado">
+                    <span class="kpi-icono" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+                    </span>
+                    <h3>Encuestas hoy</h3>
+                </div>
+                <p id="kpiHoy">0</p>
+                <span class="kpi-delta" id="kpiHoyDelta"></span>
+                <span class="kpi-meta" id="kpiHoyDetalle">Trabajadores: 0 · Graduados: 0</span>
+            </div>
 
-    <div class="franja-estado" id="franjaEstado" aria-label="Estado de la campaña"></div>
-    <div class="franja-cierre" id="franjaCierre" aria-label="Cuenta regresiva y ritmo para la fecha límite"></div>
+        </section>
 
-    <div class="ultima-actualizacion" id="ultimaActualizacion"></div>
+        <div class="franja-estado" id="franjaEstado" aria-label="Estado de la campaña"></div>
+        <div class="franja-cierre" id="franjaCierre" aria-label="Cuenta regresiva y ritmo para la fecha límite"></div>
 
-    <section class="grid-graficos" aria-label="Gráficos de la encuesta">
+        <div class="ultima-actualizacion" id="ultimaActualizacion"></div>
 
         <div class="grafico-card grafico-ancho">
             <h2>
                 <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-                Avance por día
+                Avance diario de encuestas
                 <span id="leyendaAvanceDia" class="leyenda-pildoras"></span>
             </h2>
             <div class="lienzo lienzo-linea" data-vacio="Aún no hay encuestas registradas">
                 <canvas id="graficoAvanceDia"></canvas>
             </div>
         </div>
+    </section>
 
-        <div class="grafico-card grafico-ancho" data-segmento="todos">
-            <h2>
-                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
-                <span id="tituloProvincia">Avance por provincia</span>
-                <span class="grafico-n" id="nProvincia"></span>
-            </h2>
-            <div class="lienzo lienzo-provincia" id="lienzoProvincia" data-vacio="Sin respuestas de provincia">
-                <canvas id="graficoProvincia"></canvas>
-            </div>
-            <div id="panelProvincia" class="panel-provincia" role="region" aria-label="Provincias sin meta asignada" hidden></div>
+    <!-- SECCIÓN 2: GEOVISUALIZACIÓN Y DEMOGRAFÍA -->
+    <section class="bloque-modulo">
+        <div class="seccion-encabezado">
+            <h2>🗺️ Cobertura Territorial & Demografía</h2>
+            <span class="seccion-bajada">Mapa interactivo de Ecuador, avance por provincias y desglose de participantes</span>
         </div>
 
-        <div class="grafico-card grafico-ancho" data-segmento="todos">
-            <h2>
-                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 20h4"/><path d="M12 16v4"/><path d="M12 2v6"/><path d="M17.73 7.27a2.5 2.5 0 1 1 3.54 3.54"/><path d="M17.73 10.73 21 14"/><path d="M10.27 7.27a2.5 2.5 0 1 0-3.54 3.54"/><path d="M10.27 10.73 7 14"/></svg>
-                Género
-                <span class="grafico-n" id="nGenero"></span>
-            </h2>
-            <div class="lienzo lienzo-horizontal-chica" data-vacio="Sin respuestas de género">
-                <canvas id="graficoGenero"></canvas>
+        <div class="grid-geografia">
+            <!-- MAPA SVG DE ECUADOR -->
+            <div class="grafico-card mapa-card">
+                <h2>
+                    <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                    Geovisualización de Ecuador
+                    <span class="grafico-subtitulo">Haz clic en una provincia para filtrar</span>
+                </h2>
+                <div class="mapa-ecuador-contenedor" id="mapaEcuadorContenedor">
+                    <!-- El mapa SVG se inserta dinámicamente mediante JS -->
+                </div>
+                <div class="mapa-leyenda">
+                    <span class="leyenda-item"><span class="punto-color" style="background:#2f6b45;"></span> Meta 100%+</span>
+                    <span class="leyenda-item"><span class="punto-color" style="background:#c9862e;"></span> 50% - 99%</span>
+                    <span class="leyenda-item"><span class="punto-color" style="background:#b23a2e;"></span> &lt; 50%</span>
+                    <span class="leyenda-item"><span class="punto-color" style="background:#8c7a67;"></span> Sin meta</span>
+                </div>
+            </div>
+
+            <!-- BARRAS POR PROVINCIA -->
+            <div class="grafico-card" data-segmento="todos">
+                <h2>
+                    <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+                    <span id="tituloProvincia">Avance por provincia</span>
+                    <span class="grafico-n" id="nProvincia"></span>
+                </h2>
+                <div class="lienzo lienzo-provincia" id="lienzoProvincia" data-vacio="Sin respuestas de provincia">
+                    <canvas id="graficoProvincia"></canvas>
+                </div>
+                <div id="panelProvincia" class="panel-provincia" role="region" aria-label="Provincias sin meta asignada" hidden></div>
             </div>
         </div>
 
-        <div class="grafico-card grafico-ancho" data-segmento="todos">
-            <h2>
-                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
-                Principal actividad
-                <span class="grafico-n" id="nActividad"></span>
-            </h2>
-            <div class="lienzo lienzo-horizontal" data-vacio="Sin respuestas de actividad">
-                <canvas id="graficoActividad"></canvas>
+        <div class="grid-graficos-doble">
+            <div class="grafico-card" data-segmento="todos">
+                <h2>
+                    <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 20h4"/><path d="M12 16v4"/><path d="M12 2v6"/><path d="M17.73 7.27a2.5 2.5 0 1 1 3.54 3.54"/><path d="M17.73 10.73 21 14"/><path d="M10.27 7.27a2.5 2.5 0 1 0-3.54 3.54"/><path d="M10.27 10.73 7 14"/></svg>
+                    Distribución por género
+                    <span class="grafico-n" id="nGenero"></span>
+                </h2>
+                <div class="lienzo lienzo-horizontal-chica" data-vacio="Sin respuestas de género">
+                    <canvas id="graficoGenero"></canvas>
+                </div>
             </div>
-            <div class="dona-total" id="donaTotalActividad"></div>
+
+            <div class="grafico-card" data-segmento="todos">
+                <h2>
+                    <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.112z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+                    Medio de captura de encuesta
+                    <span class="grafico-n" id="nMedio"></span>
+                </h2>
+                <div class="lienzo lienzo-horizontal-chica" data-vacio="Sin respuestas de medio">
+                    <canvas id="graficoMedio"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN 3: PERFIL PROFESIONAL Y ACADÉMICO -->
+    <section class="bloque-modulo">
+        <div class="seccion-encabezado">
+            <h2>🎓 Perfil Profesional & Formación</h2>
+            <span class="seccion-bajada">Sectores artísticos, titulaciones y promociones de egresados UArtes</span>
         </div>
 
-        <div class="grafico-card grafico-ancho" data-segmento="graduados">
-            <h2>
-                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
-                Año de graduación
-                <span class="grafico-n" id="nAnioGraduacion"></span>
-                <span class="badge-segmento">Solo graduados UArtes</span>
-            </h2>
-            <div class="lienzo" data-vacio="Sin datos de graduación">
-                <canvas id="graficoAnioGraduacion"></canvas>
+        <div class="grid-graficos-doble">
+            <div class="grafico-card" data-segmento="todos">
+                <h2>
+                    <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+                    Principal actividad artística / cultural
+                    <span class="grafico-n" id="nActividad"></span>
+                </h2>
+                <div class="lienzo lienzo-horizontal" data-vacio="Sin respuestas de actividad">
+                    <canvas id="graficoActividad"></canvas>
+                </div>
+                <div class="dona-total" id="donaTotalActividad"></div>
+            </div>
+
+            <div class="grafico-card" data-segmento="graduados">
+                <h2>
+                    <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
+                    Año de graduación
+                    <span class="grafico-n" id="nAnioGraduacion"></span>
+                    <span class="badge-segmento">Solo graduados UArtes</span>
+                </h2>
+                <div class="lienzo" data-vacio="Sin datos de graduación">
+                    <canvas id="graficoAnioGraduacion"></canvas>
+                </div>
             </div>
         </div>
 
         <div class="grafico-card grafico-ancho" data-segmento="graduados">
             <h2>
                 <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>
-                Título obtenido
+                Título obtenido en UArtes
                 <span class="grafico-n" id="nTitulo"></span>
                 <span class="badge-segmento">Solo graduados UArtes</span>
             </h2>
@@ -210,24 +291,17 @@
             </div>
         </div>
 
-        <div class="grafico-card grafico-ancho" data-segmento="todos">
-            <h2>
-                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.112z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
-                Medio por el cual llena la encuesta
-                <span class="grafico-n" id="nMedio"></span>
-            </h2>
-            <div class="lienzo lienzo-horizontal-chica" data-vacio="Sin respuestas de medio">
-                <canvas id="graficoMedio"></canvas>
-            </div>
-        </div>
-
     </section>
 
-    <footer class="pie-pagina">Clima Social · Tablero en tiempo real</footer>
+    <footer class="pie-pagina">
+        <span>Clima Social · Tablero en tiempo real</span>
+        <span class="pie-separador">•</span>
+        <span>Ministerio de Cultura / UArtes Ecuador 2026</span>
+    </footer>
 
 </main>
 
 <script src="vendor/chart.umd.min.js"></script>
-<script src="script.js?v=5fd6d52"></script>
+<script src="script.js?v=v2"></script>
 </body>
 </html>
