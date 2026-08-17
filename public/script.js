@@ -510,14 +510,14 @@ function renderizarTodo() {
     document.getElementById("kpiMeta").textContent = `${totalSegmento} de ${metaSegmento}`;
     setBarra("barraAvance", totalSegmento, metaSegmento);
 
-    // --- Duración promedio (distinguida por Trabajadores y Graduados) ---
-    const durTrab = calcularDuracionPromedio(trabajadores);
-    const durGrad = calcularDuracionPromedio(graduados);
-    const durConjunto = calcularDuracionPromedio(conjunto);
+    // --- Duración promedio y Desviación estándar (distinguida por Trabajadores y Graduados) ---
+    const statsTrab = calcularEstadisticasDuracion(trabajadores);
+    const statsGrad = calcularEstadisticasDuracion(graduados);
+    const statsConjunto = calcularEstadisticasDuracion(conjunto);
 
-    const txtTrab = durTrab !== null ? formatearDuracion(durTrab) : "--";
-    const txtGrad = durGrad !== null ? formatearDuracion(durGrad) : "--";
-    const txtConjunto = durConjunto !== null ? formatearDuracion(durConjunto) : "--";
+    const txtTrab = formatearEstadisticaDuracion(statsTrab);
+    const txtGrad = formatearEstadisticaDuracion(statsGrad);
+    const txtConjunto = formatearEstadisticaDuracion(statsConjunto);
 
     const elDuracion = document.getElementById("kpiDuracion");
     if (elDuracion) {
@@ -802,11 +802,11 @@ document.querySelectorAll(".tab").forEach(boton => {
 });
 
 // ==========================================
-// DURACIÓN PROMEDIO
+// DURACIÓN PROMEDIO Y DESVIACIÓN ESTÁNDAR
 // ==========================================
 
-function calcularDuracionPromedio(registros) {
-    let sumaMinutos = 0, contador = 0;
+function calcularEstadisticasDuracion(registros) {
+    const minutosLista = [];
     registros.forEach(encuesta => {
         const inicio = campo(encuesta, "start");
         const fin = campo(encuesta, "end");
@@ -815,17 +815,41 @@ function calcularDuracionPromedio(registros) {
         const t2 = new Date(fin).getTime();
         if (isNaN(t1) || isNaN(t2) || t2 <= t1) return;
         const minutos = (t2 - t1) / 60000;
-        if (minutos > 180) return;
-        sumaMinutos += minutos;
-        contador++;
+        if (minutos > 180) return; // Filtrar valores atípicos (> 3 horas)
+        minutosLista.push(minutos);
     });
-    return contador === 0 ? null : sumaMinutos / contador;
+
+    const n = minutosLista.length;
+    if (n === 0) return null;
+
+    const promedio = minutosLista.reduce((acc, m) => acc + m, 0) / n;
+    
+    let desviacion = 0;
+    if (n > 1) {
+        const sumaVarianza = minutosLista.reduce((acc, m) => acc + Math.pow(m - promedio, 2), 0);
+        desviacion = Math.sqrt(sumaVarianza / (n - 1));
+    }
+
+    return { promedio, desviacion, n };
+}
+
+function calcularDuracionPromedio(registros) {
+    const stats = calcularEstadisticasDuracion(registros);
+    return stats ? stats.promedio : null;
 }
 
 function formatearDuracion(minutosDecimal) {
+    if (minutosDecimal === null || isNaN(minutosDecimal)) return "--";
     const minutos = Math.floor(minutosDecimal);
     const segundos = Math.round((minutosDecimal - minutos) * 60);
     return `${minutos}m ${segundos}s`;
+}
+
+function formatearEstadisticaDuracion(stats) {
+    if (!stats || stats.promedio === null) return "--";
+    const promTexto = formatearDuracion(stats.promedio);
+    const desvTexto = stats.desviacion > 0 ? ` (±${formatearDuracion(stats.desviacion)})` : "";
+    return `${promTexto}${desvTexto}`;
 }
 
 // ==========================================
