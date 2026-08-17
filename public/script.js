@@ -510,10 +510,30 @@ function renderizarTodo() {
     document.getElementById("kpiMeta").textContent = `${totalSegmento} de ${metaSegmento}`;
     setBarra("barraAvance", totalSegmento, metaSegmento);
 
-    // --- Duración promedio (siempre sobre todos) ---
-    const duracionProm = calcularDuracionPromedio(todos);
-    document.getElementById("kpiDuracion").textContent =
-        duracionProm !== null ? formatearDuracion(duracionProm) : "--";
+    // --- Duración promedio (distinguida por Trabajadores y Graduados) ---
+    const durTrab = calcularDuracionPromedio(trabajadores);
+    const durGrad = calcularDuracionPromedio(graduados);
+    const durConjunto = calcularDuracionPromedio(conjunto);
+
+    const txtTrab = durTrab !== null ? formatearDuracion(durTrab) : "--";
+    const txtGrad = durGrad !== null ? formatearDuracion(durGrad) : "--";
+    const txtConjunto = durConjunto !== null ? formatearDuracion(durConjunto) : "--";
+
+    const elDuracion = document.getElementById("kpiDuracion");
+    if (elDuracion) {
+        elDuracion.textContent = txtConjunto;
+    }
+
+    const elDurDetalle = document.getElementById("kpiDuracionDetalle");
+    if (elDurDetalle) {
+        if (filtroActual === "todos") {
+            elDurDetalle.textContent = `Trabajadores: ${txtTrab} · Graduados: ${txtGrad}`;
+        } else if (filtroActual === "trabajadores") {
+            elDurDetalle.textContent = `Trabajadores: ${txtTrab}`;
+        } else if (filtroActual === "graduados") {
+            elDurDetalle.textContent = `Graduados: ${txtGrad}`;
+        }
+    }
 
     // --- KPI: Encuestas hoy ---
     const hoy = hoyEcuador();
