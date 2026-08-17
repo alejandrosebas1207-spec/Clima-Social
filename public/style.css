@@ -376,6 +376,11 @@ body.modo-oscuro .tab.activo {
     color: var(--kimi-text-soft);
 }
 
+.kpi-meta div {
+    line-height: 1.35;
+    margin-top: 2px;
+}
+
 .kpi-submeta {
     display: block;
     margin-top: 3px;

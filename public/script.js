@@ -531,11 +531,13 @@ function renderizarTodo() {
         if (filtroActual === "todos") {
             const partTrab = devTrab ? `${txtTrab} (${devTrab})` : txtTrab;
             const partGrad = devGrad ? `${txtGrad} (${devGrad})` : txtGrad;
-            elDurDetalle.textContent = `Trabajadores: ${partTrab} · Graduados: ${partGrad}`;
+            elDurDetalle.innerHTML = `<div>Trabajadores: ${partTrab}</div><div>Graduados: ${partGrad}</div>`;
         } else if (filtroActual === "trabajadores") {
-            elDurDetalle.textContent = devTrab ? `Trabajadores: ${txtTrab} (${devTrab}) · Sesiones ≤ 45 min` : `Trabajadores: ${txtTrab}`;
+            const partTrab = devTrab ? `${txtTrab} (${devTrab})` : txtTrab;
+            elDurDetalle.innerHTML = `<div>Trabajadores: ${partTrab}</div><div>Sesiones ≤ 45 min</div>`;
         } else if (filtroActual === "graduados") {
-            elDurDetalle.textContent = devGrad ? `Graduados: ${txtGrad} (${devGrad}) · Sesiones ≤ 45 min` : `Graduados: ${txtGrad}`;
+            const partGrad = devGrad ? `${txtGrad} (${devGrad})` : txtGrad;
+            elDurDetalle.innerHTML = `<div>Graduados: ${partGrad}</div><div>Sesiones ≤ 45 min</div>`;
         }
     }
 
