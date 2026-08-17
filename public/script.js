@@ -510,14 +510,16 @@ function renderizarTodo() {
     document.getElementById("kpiMeta").textContent = `${totalSegmento} de ${metaSegmento}`;
     setBarra("barraAvance", totalSegmento, metaSegmento);
 
-    // --- Duración promedio y Desviación estándar (distinguida por Trabajadores y Graduados) ---
+    // --- Duración promedio y Desviación estándar (con filtro <= 45 min) ---
     const statsTrab = calcularEstadisticasDuracion(trabajadores);
     const statsGrad = calcularEstadisticasDuracion(graduados);
     const statsConjunto = calcularEstadisticasDuracion(conjunto);
 
-    const txtTrab = formatearEstadisticaDuracion(statsTrab);
-    const txtGrad = formatearEstadisticaDuracion(statsGrad);
-    const txtConjunto = formatearEstadisticaDuracion(statsConjunto);
+    const txtConjunto = statsConjunto ? formatearDuracion(statsConjunto.promedio) : "--";
+    const txtTrab = statsTrab ? formatearDuracion(statsTrab.promedio) : "--";
+    const txtGrad = statsGrad ? formatearDuracion(statsGrad.promedio) : "--";
+    const devTrab = statsTrab ? formatearDesviacion(statsTrab.desviacion) : "";
+    const devGrad = statsGrad ? formatearDesviacion(statsGrad.desviacion) : "";
 
     const elDuracion = document.getElementById("kpiDuracion");
     if (elDuracion) {
@@ -527,11 +529,13 @@ function renderizarTodo() {
     const elDurDetalle = document.getElementById("kpiDuracionDetalle");
     if (elDurDetalle) {
         if (filtroActual === "todos") {
-            elDurDetalle.textContent = `Trabajadores: ${txtTrab} · Graduados: ${txtGrad}`;
+            const partTrab = devTrab ? `${txtTrab} (${devTrab})` : txtTrab;
+            const partGrad = devGrad ? `${txtGrad} (${devGrad})` : txtGrad;
+            elDurDetalle.textContent = `Trabajadores: ${partTrab} · Graduados: ${partGrad}`;
         } else if (filtroActual === "trabajadores") {
-            elDurDetalle.textContent = `Trabajadores: ${txtTrab}`;
+            elDurDetalle.textContent = devTrab ? `Trabajadores: ${txtTrab} (${devTrab}) · Sesiones ≤ 45 min` : `Trabajadores: ${txtTrab}`;
         } else if (filtroActual === "graduados") {
-            elDurDetalle.textContent = `Graduados: ${txtGrad}`;
+            elDurDetalle.textContent = devGrad ? `Graduados: ${txtGrad} (${devGrad}) · Sesiones ≤ 45 min` : `Graduados: ${txtGrad}`;
         }
     }
 
@@ -815,7 +819,7 @@ function calcularEstadisticasDuracion(registros) {
         const t2 = new Date(fin).getTime();
         if (isNaN(t1) || isNaN(t2) || t2 <= t1) return;
         const minutos = (t2 - t1) / 60000;
-        if (minutos > 180) return; // Filtrar valores atípicos (> 3 horas)
+        if (minutos > 45) return; // Filtrar sesiones inactivas/pausas (> 45 min)
         minutosLista.push(minutos);
     });
 
@@ -845,10 +849,18 @@ function formatearDuracion(minutosDecimal) {
     return `${minutos}m ${segundos}s`;
 }
 
+function formatearDesviacion(minutosDecimal) {
+    if (minutosDecimal === null || isNaN(minutosDecimal) || minutosDecimal <= 0) return "";
+    const minutos = Math.floor(minutosDecimal);
+    const segundos = Math.round((minutosDecimal - minutos) * 60);
+    if (minutos === 0) return `±${segundos}s`;
+    return `±${minutos}m ${segundos}s`;
+}
+
 function formatearEstadisticaDuracion(stats) {
     if (!stats || stats.promedio === null) return "--";
     const promTexto = formatearDuracion(stats.promedio);
-    const desvTexto = stats.desviacion > 0 ? ` (±${formatearDuracion(stats.desviacion)})` : "";
+    const desvTexto = stats.desviacion > 0 ? ` (${formatearDesviacion(stats.desviacion)})` : "";
     return `${promTexto}${desvTexto}`;
 }
 
