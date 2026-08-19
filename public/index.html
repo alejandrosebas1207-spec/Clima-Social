@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=v13_titulo">
+<link rel="stylesheet" href="style.css?v=v14_horario">
 </head>
 <body>
 
@@ -227,6 +227,19 @@
                 <canvas id="graficoMedioPorDia"></canvas>
             </div>
         </div>
+
+        <!-- DISTRIBUCIÓN POR HORARIO -->
+        <div class="grafico-card grafico-ancho" data-segmento="todos">
+            <h2>
+                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Distribución de respuestas por horario
+                <span class="grafico-n" id="nHorario"></span>
+                <span id="leyendaHorario" class="leyenda-pildoras"></span>
+            </h2>
+            <div class="lienzo lienzo-linea" data-vacio="Sin datos de horario">
+                <canvas id="graficoHorario"></canvas>
+            </div>
+        </div>
     </section>
 
     <!-- SECCIÓN 3: PERFIL PROFESIONAL Y ACADÉMICO -->
@@ -285,6 +298,6 @@
 </main>
 
 <script src="vendor/chart.umd.min.js"></script>
-<script src="script.js?v=v13_titulo"></script>
+<script src="script.js?v=v14_horario"></script>
 </body>
 </html>

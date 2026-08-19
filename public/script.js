@@ -619,6 +619,7 @@ function renderizarTodo() {
     generarGraficoSeguro("generarGraficoAvanceDia", trabajadores, graduados);
     generarGraficoSeguro("generarGraficoMedio", conjunto);
     generarGraficoSeguro("generarGraficoMedioPorDia", conjunto);
+    generarGraficoSeguro("generarGraficoHorario", conjunto);
     generarGraficoSeguro("generarGraficoProvincia", conjunto);
     generarGraficoSeguro("generarGraficoGenero", conjunto);
     generarGraficoSeguro("generarGraficoActividad", conjunto);
@@ -1995,6 +1996,125 @@ function generarGraficoMedioPorDia(encuestas) {
                     beginAtZero: true,
                     ticks: { color: COLOR_TEXTO(), precision: 0 },
                     grid: { color: COLOR_GRID() }
+                }
+            }
+        }
+    });
+}
+
+// ==========================================
+// GRÁFICO: DISTRIBUCIÓN POR HORARIO (24 Horas)
+// ==========================================
+
+let chartHorario = null;
+
+function generarGraficoHorario(encuestas) {
+    const conteoHoras = Array(24).fill(0);
+    let respondio = 0;
+
+    const formateadorHora = new Intl.DateTimeFormat("es-EC", {
+        timeZone: "America/Guayaquil",
+        hour: "numeric",
+        hour12: false
+    });
+
+    encuestas.forEach(e => {
+        const fechaStr = campo(e, "start") || e._submission_time;
+        if (!fechaStr) return;
+        const d = new Date(fechaStr);
+        if (isNaN(d)) return;
+
+        const hora = parseInt(formateadorHora.format(d), 10);
+        if (!isNaN(hora) && hora >= 0 && hora < 24) {
+            conteoHoras[hora]++;
+            respondio++;
+        }
+    });
+
+    mostrarN("nHorario", respondio);
+
+    if (chartHorario) chartHorario.destroy();
+
+    if (respondio === 0) {
+        chartHorario = null;
+        vaciarLienzo("graficoHorario");
+        return;
+    }
+    limpiarVacio("graficoHorario");
+
+    // Franjas horarias
+    const manana = conteoHoras.slice(6, 12).reduce((a, b) => a + b, 0);
+    const tarde = conteoHoras.slice(12, 18).reduce((a, b) => a + b, 0);
+    const noche = conteoHoras.slice(18, 24).reduce((a, b) => a + b, 0);
+    const madrugada = conteoHoras.slice(0, 6).reduce((a, b) => a + b, 0);
+
+    const franjas = [
+        { nombre: "Tarde (12h-18h)", count: tarde },
+        { nombre: "Mañana (06h-12h)", count: manana },
+        { nombre: "Noche (18h-24h)", count: noche },
+        { nombre: "Madrugada (00h-06h)", count: madrugada }
+    ].sort((a, b) => b.count - a.count);
+
+    const franjaPrincipal = franjas[0];
+    const pctFranja = respondio > 0 ? ((franjaPrincipal.count / respondio) * 100).toFixed(1) : "0.0";
+
+    // Hora pico
+    const maxEncuestasHora = Math.max(...conteoHoras);
+    const horaPico = conteoHoras.indexOf(maxEncuestasHora);
+    const horaPicoTexto = `${String(horaPico).padStart(2, "0")}:00 - ${String((horaPico + 1) % 24).padStart(2, "0")}:00`;
+
+    const leyenda = document.getElementById("leyendaHorario");
+    if (leyenda) {
+        leyenda.innerHTML = `
+            <span class="leyenda-pildora" style="--pill-color: var(--kimi-chart-4)">🌟 Hora pico: ${horaPicoTexto} (${maxEncuestasHora})</span>
+            <span class="leyenda-pildora" style="--pill-color: var(--kimi-chart-1)">Franja principal: ${franjaPrincipal.nombre} (${pctFranja}%)</span>
+        `;
+    }
+
+    const etiquetas = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
+    const colorBase = cssVar("--kimi-chart-1");
+    const colorPico = cssVar("--kimi-chart-4");
+
+    const coloresBarras = conteoHoras.map((c, i) => (c === maxEncuestasHora && maxEncuestasHora > 0) ? colorPico : colorBase);
+
+    chartHorario = new Chart(document.getElementById("graficoHorario"), {
+        type: "bar",
+        plugins: [pluginEtiquetaValor],
+        data: {
+            labels: etiquetas,
+            datasets: [{
+                label: "Encuestas registradas",
+                data: conteoHoras,
+                backgroundColor: coloresBarras,
+                borderRadius: 5,
+                barPercentage: 0.75,
+                categoryPercentage: 0.85
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 600, easing: "easeOutQuart" },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => {
+                            const pct = respondio > 0 ? ((ctx.parsed.y / respondio) * 100).toFixed(1) : "0.0";
+                            return `${ctx.parsed.y} encuestas (${pct}%)`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: COLOR_TEXTO(), precision: 0 },
+                    grid: { color: COLOR_GRID() }
+                },
+                x: {
+                    ticks: { color: COLOR_TEXTO(), maxRotation: 45, minRotation: 0 },
+                    grid: { display: false }
                 }
             }
         }
