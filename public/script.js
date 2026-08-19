@@ -618,6 +618,7 @@ function renderizarTodo() {
     generarGraficoSeguro("generarMapaEcuador", trabajadores, graduados, todos);
     generarGraficoSeguro("generarGraficoAvanceDia", trabajadores, graduados);
     generarGraficoSeguro("generarGraficoMedio", conjunto);
+    generarGraficoSeguro("generarGraficoMedioPorDia", conjunto);
     generarGraficoSeguro("generarGraficoProvincia", conjunto);
     generarGraficoSeguro("generarGraficoGenero", conjunto);
     generarGraficoSeguro("generarGraficoActividad", conjunto);
@@ -1887,6 +1888,113 @@ function generarGraficoMedio(encuestas) {
                 y: {
                     ticks: { color: COLOR_TEXTO(), font: { size: 12 }, autoSkip: false },
                     grid: { display: false }
+                }
+            }
+        }
+    });
+}
+
+// ==========================================
+// GRÁFICO: MEDIO DE CAPTURA POR DÍA (barras apiladas)
+// ==========================================
+
+let chartMedioPorDia = null;
+
+const COLORES_MEDIO = {
+    "1": "#4f7fc4", // Link correo (azul)
+    "2": "#2f6b45", // Llamada WhatsApp (verde bosque)
+    "3": "#d4557f", // Código QR (magenta)
+    "4": "#c9862e", // Facilitador (ámbar/dorado)
+    "5": "#8a5fc4"  // Redes sociales (violeta)
+};
+
+function generarGraficoMedioPorDia(encuestas) {
+    const diasMap = {};
+    let respondio = 0;
+
+    encuestas.forEach(e => {
+        const dia = obtenerFechaDia(e);
+        const medio = campo(e, "monitoreo");
+        if (!dia || !medio || !MAPA_MEDIO[medio]) return;
+
+        respondio++;
+        if (!diasMap[dia]) {
+            diasMap[dia] = { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0, total: 0 };
+        }
+        diasMap[dia][medio]++;
+        diasMap[dia].total++;
+    });
+
+    mostrarN("nMedioPorDia", respondio);
+
+    if (chartMedioPorDia) chartMedioPorDia.destroy();
+
+    const dias = Object.keys(diasMap).sort();
+
+    if (dias.length === 0) {
+        chartMedioPorDia = null;
+        vaciarLienzo("graficoMedioPorDia");
+        return;
+    }
+    limpiarVacio("graficoMedioPorDia");
+
+    // Formato de etiquetas de día dd/mm
+    const etiquetas = dias.map(d => {
+        const [anio, mes, diaNum] = d.split("-");
+        return `${diaNum}/${mes}`;
+    });
+
+    const leyenda = document.getElementById("leyendaMedioPorDia");
+    if (leyenda) {
+        leyenda.innerHTML = Object.entries(MAPA_MEDIO).map(([codigo, nombre]) => `
+            <span class="leyenda-pildora" style="--pill-color: ${COLORES_MEDIO[codigo]}">${nombre}</span>
+        `).join("");
+    }
+
+    const datasets = Object.keys(MAPA_MEDIO).map(codigo => ({
+        label: MAPA_MEDIO[codigo],
+        data: dias.map(d => diasMap[d][codigo]),
+        backgroundColor: COLORES_MEDIO[codigo],
+        borderRadius: 2,
+        stack: "medios"
+    }));
+
+    chartMedioPorDia = new Chart(document.getElementById("graficoMedioPorDia"), {
+        type: "bar",
+        data: {
+            labels: etiquetas,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 600, easing: "easeOutQuart" },
+            interaction: {
+                mode: "index",
+                intersect: false
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        footer: items => {
+                            const totalDia = items.reduce((s, it) => s + it.parsed.y, 0);
+                            return `Total día: ${totalDia} encuestas`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                    ticks: { color: COLOR_TEXTO(), maxRotation: 45, minRotation: 0 },
+                    grid: { display: false }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: { color: COLOR_TEXTO(), precision: 0 },
+                    grid: { color: COLOR_GRID() }
                 }
             }
         }

@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=v11_multilinea">
+<link rel="stylesheet" href="style.css?v=v12_medio_dia">
 </head>
 <body>
 
@@ -214,6 +214,19 @@
                 </div>
             </div>
         </div>
+
+        <!-- CRUCE: MEDIO DE CAPTURA POR FECHA -->
+        <div class="grafico-card grafico-ancho" data-segmento="todos">
+            <h2>
+                <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                Medio de captura por fecha (Evolución diaria)
+                <span class="grafico-n" id="nMedioPorDia"></span>
+                <span id="leyendaMedioPorDia" class="leyenda-pildoras"></span>
+            </h2>
+            <div class="lienzo lienzo-linea" data-vacio="Sin datos de medio por fecha">
+                <canvas id="graficoMedioPorDia"></canvas>
+            </div>
+        </div>
     </section>
 
     <!-- SECCIÓN 3: PERFIL PROFESIONAL Y ACADÉMICO -->
@@ -272,6 +285,6 @@
 </main>
 
 <script src="vendor/chart.umd.min.js"></script>
-<script src="script.js?v=v11_multilinea"></script>
+<script src="script.js?v=v12_medio_dia"></script>
 </body>
 </html>
