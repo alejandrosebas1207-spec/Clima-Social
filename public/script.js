@@ -2149,6 +2149,7 @@ function generarGraficoHorario(encuestas, regenerarSelect = true) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: { padding: { top: 24, left: 4, right: 4, bottom: 4 } },
             animation: { duration: 600, easing: "easeOutQuart" },
             plugins: {
                 legend: { display: false },
@@ -2164,6 +2165,7 @@ function generarGraficoHorario(encuestas, regenerarSelect = true) {
             scales: {
                 y: {
                     beginAtZero: true,
+                    suggestedMax: Math.ceil(maxEncuestasHora * 1.18) + 1,
                     ticks: { color: COLOR_TEXTO(), precision: 0 },
                     grid: { color: COLOR_GRID() }
                 },
