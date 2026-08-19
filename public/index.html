@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=v18_limpieza_grafico">
+<link rel="stylesheet" href="style.css?v=v19_banner_preliminar">
 </head>
 <body>
 
@@ -54,6 +54,19 @@
 <div class="franja-textil" aria-hidden="true"></div>
 
 <main class="contenedor">
+
+    <!-- AVISO DE DATOS PRELIMINARES -->
+    <div class="banner-aviso-monitoreo" role="status" aria-label="Aviso de datos preliminares de monitoreo">
+        <div class="banner-aviso-contenido">
+            <span class="banner-aviso-icono" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+            <span class="banner-aviso-texto">
+                DATOS PRELIMINARES (SIN PROCESAR) — USO EXCLUSIVO PARA MONITOREO
+            </span>
+            <span class="banner-aviso-tag">EN TIEMPO REAL</span>
+        </div>
+    </div>
 
     <!-- BANNER DE FILTRO ACTIVO -->
     <div class="franja-filtro-activo" id="franjaFiltroActivo" style="display: none;">
@@ -301,6 +314,6 @@
 </main>
 
 <script src="vendor/chart.umd.min.js"></script>
-<script src="script.js?v=v18_limpieza_grafico"></script>
+<script src="script.js?v=v19_banner_preliminar"></script>
 </body>
 </html>
