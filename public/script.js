@@ -1818,15 +1818,71 @@ function generarGraficoTitulo(graduados) {
 }
 
 // ==========================================
-// GRÁFICO: MEDIO DE ENCUESTA (barras horizontales)
+// GRÁFICO: MEDIO DE ENCUESTA (barras horizontales con filtro de fecha)
 // ==========================================
 
 let chartMedio = null;
+let filtroFechaMedio = "todas";
 
-function generarGraficoMedio(encuestas) {
+function actualizarSelectorFechaMedio(encuestas) {
+    const selectEl = document.getElementById("selectFechaMedio");
+    if (!selectEl) return;
+
+    const diasConteo = {};
+    encuestas.forEach(e => {
+        const valor = campo(e, "monitoreo");
+        if (!valor || !MAPA_MEDIO[valor]) return;
+        const dia = obtenerFechaDia(e);
+        if (dia) diasConteo[dia] = (diasConteo[dia] || 0) + 1;
+    });
+
+    const diasOrdenados = Object.keys(diasConteo).sort().reverse();
+    const seleccionPrevia = filtroFechaMedio;
+
+    const opciones = ['<option value="todas">Todas las fechas (Consolidado)</option>'];
+    diasOrdenados.forEach(d => {
+        const [anio, mes, diaNum] = d.split("-");
+        const etiqueta = `${diaNum}/${mes}/${anio} (${diasConteo[d]} encuestas)`;
+        opciones.push(`<option value="${d}">${etiqueta}</option>`);
+    });
+
+    selectEl.innerHTML = opciones.join("");
+    if (diasConteo[seleccionPrevia] || seleccionPrevia === "todas") {
+        selectEl.value = seleccionPrevia;
+    } else {
+        selectEl.value = "todas";
+        filtroFechaMedio = "todas";
+    }
+
+    if (!selectEl.dataset.listener) {
+        selectEl.dataset.listener = "true";
+        selectEl.addEventListener("change", () => {
+            filtroFechaMedio = selectEl.value;
+            if (ultimosDatosCargados) {
+                let conjunto;
+                if (filtroActual === "todos") conjunto = ultimosDatosCargados.todos;
+                else if (filtroActual === "trabajadores") conjunto = ultimosDatosCargados.trabajadores;
+                else if (filtroActual === "graduados") conjunto = ultimosDatosCargados.graduados;
+                else conjunto = ultimosDatosCargados.todos;
+                generarGraficoMedio(conjunto, false);
+            }
+        });
+    }
+}
+
+function generarGraficoMedio(encuestas, regenerarSelect = true) {
+    if (regenerarSelect) {
+        actualizarSelectorFechaMedio(encuestas);
+    }
+
+    let encuestasFiltradas = encuestas;
+    if (filtroFechaMedio && filtroFechaMedio !== "todas") {
+        encuestasFiltradas = encuestas.filter(e => obtenerFechaDia(e) === filtroFechaMedio);
+    }
+
     const conteo = {};
     let respondio = 0;
-    encuestas.forEach(e => {
+    encuestasFiltradas.forEach(e => {
         const valor = campo(e, "monitoreo");
         if (!valor || !MAPA_MEDIO[valor]) return;
         respondio++;

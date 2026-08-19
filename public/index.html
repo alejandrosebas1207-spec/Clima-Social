@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=v16_padding_fix">
+<link rel="stylesheet" href="style.css?v=v17_filtro_medio">
 </head>
 <body>
 
@@ -204,11 +204,19 @@
             </div>
 
             <div class="grafico-card" data-segmento="todos">
-                <h2>
-                    <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.112z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
-                    Medio de captura de encuesta
-                    <span class="grafico-n" id="nMedio"></span>
-                </h2>
+                <div class="grafico-cabecera-con-filtro">
+                    <h2>
+                        <svg class="grafico-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.112z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+                        Medio de captura de encuesta
+                        <span class="grafico-n" id="nMedio"></span>
+                    </h2>
+                    <div class="filtro-fecha-contenedor">
+                        <label for="selectFechaMedio" class="filtro-fecha-label">Fecha:</label>
+                        <select id="selectFechaMedio" class="filtro-fecha-select" aria-label="Filtrar medio por fecha">
+                            <option value="todas">Todas las fechas (Consolidado)</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="lienzo lienzo-horizontal-chica" data-vacio="Sin respuestas de medio">
                     <canvas id="graficoMedio"></canvas>
                 </div>
@@ -306,6 +314,6 @@
 </main>
 
 <script src="vendor/chart.umd.min.js"></script>
-<script src="script.js?v=v16_padding_fix"></script>
+<script src="script.js?v=v17_filtro_medio"></script>
 </body>
 </html>
