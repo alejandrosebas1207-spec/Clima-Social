@@ -718,6 +718,57 @@ body.modo-oscuro .tab.activo {
     background: var(--pill-color, var(--kimi-chart-1));
 }
 
+.grafico-cabecera-con-filtro {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.grafico-cabecera-con-filtro h2 {
+    margin-bottom: 0;
+}
+
+.filtro-fecha-contenedor {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filtro-fecha-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--kimi-text-soft);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+
+.filtro-fecha-select {
+    background: var(--kimi-bg-suave);
+    border: 1px solid var(--kimi-color-border);
+    color: var(--kimi-text);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 5px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color .2s ease, background-color .2s ease;
+}
+
+.filtro-fecha-select:hover {
+    background: var(--kimi-bg-card);
+    border-color: var(--kimi-chart-1);
+}
+
+.filtro-fecha-select:focus-visible {
+    border-color: var(--kimi-chart-1);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--kimi-chart-1) 25%, transparent);
+}
+
 .grafico-n {
     margin-left: auto;
     font-size: 12px;

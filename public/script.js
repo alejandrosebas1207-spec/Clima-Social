@@ -2003,12 +2003,66 @@ function generarGraficoMedioPorDia(encuestas) {
 }
 
 // ==========================================
-// GRÁFICO: DISTRIBUCIÓN POR HORARIO (24 Horas)
+// GRÁFICO: DISTRIBUCIÓN POR HORARIO (24 Horas con filtro de fecha)
 // ==========================================
 
 let chartHorario = null;
+let filtroFechaHorario = "todas";
 
-function generarGraficoHorario(encuestas) {
+function actualizarSelectorFechaHorario(encuestas) {
+    const selectEl = document.getElementById("selectFechaHorario");
+    if (!selectEl) return;
+
+    const diasConteo = {};
+    encuestas.forEach(e => {
+        const dia = obtenerFechaDia(e);
+        if (dia) diasConteo[dia] = (diasConteo[dia] || 0) + 1;
+    });
+
+    const diasOrdenados = Object.keys(diasConteo).sort().reverse();
+    const seleccionPrevia = filtroFechaHorario;
+
+    const opciones = ['<option value="todas">Todas las fechas (Consolidado)</option>'];
+    diasOrdenados.forEach(d => {
+        const [anio, mes, diaNum] = d.split("-");
+        const etiqueta = `${diaNum}/${mes}/${anio} (${diasConteo[d]} encuestas)`;
+        opciones.push(`<option value="${d}">${etiqueta}</option>`);
+    });
+
+    selectEl.innerHTML = opciones.join("");
+    if (diasConteo[seleccionPrevia] || seleccionPrevia === "todas") {
+        selectEl.value = seleccionPrevia;
+    } else {
+        selectEl.value = "todas";
+        filtroFechaHorario = "todas";
+    }
+
+    if (!selectEl.dataset.listener) {
+        selectEl.dataset.listener = "true";
+        selectEl.addEventListener("change", () => {
+            filtroFechaHorario = selectEl.value;
+            if (ultimosDatosCargados) {
+                let conjunto;
+                if (filtroActual === "todos") conjunto = ultimosDatosCargados.todos;
+                else if (filtroActual === "trabajadores") conjunto = ultimosDatosCargados.trabajadores;
+                else if (filtroActual === "graduados") conjunto = ultimosDatosCargados.graduados;
+                else conjunto = ultimosDatosCargados.todos;
+                generarGraficoHorario(conjunto, false);
+            }
+        });
+    }
+}
+
+function generarGraficoHorario(encuestas, regenerarSelect = true) {
+    if (regenerarSelect) {
+        actualizarSelectorFechaHorario(encuestas);
+    }
+
+    let encuestasFiltradas = encuestas;
+    if (filtroFechaHorario && filtroFechaHorario !== "todas") {
+        encuestasFiltradas = encuestas.filter(e => obtenerFechaDia(e) === filtroFechaHorario);
+    }
+
     const conteoHoras = Array(24).fill(0);
     let respondio = 0;
 
@@ -2018,7 +2072,7 @@ function generarGraficoHorario(encuestas) {
         hour12: false
     });
 
-    encuestas.forEach(e => {
+    encuestasFiltradas.forEach(e => {
         const fechaStr = campo(e, "start") || e._submission_time;
         if (!fechaStr) return;
         const d = new Date(fechaStr);
@@ -2065,8 +2119,9 @@ function generarGraficoHorario(encuestas) {
 
     const leyenda = document.getElementById("leyendaHorario");
     if (leyenda) {
+        const prefijoPico = filtroFechaHorario === "todas" ? "🌟 Hora pico" : "🌟 Pico del día";
         leyenda.innerHTML = `
-            <span class="leyenda-pildora" style="--pill-color: var(--kimi-chart-4)">🌟 Hora pico: ${horaPicoTexto} (${maxEncuestasHora})</span>
+            <span class="leyenda-pildora" style="--pill-color: var(--kimi-chart-4)">${prefijoPico}: ${horaPicoTexto} (${maxEncuestasHora})</span>
             <span class="leyenda-pildora" style="--pill-color: var(--kimi-chart-1)">Franja principal: ${franjaPrincipal.nombre} (${pctFranja}%)</span>
         `;
     }
