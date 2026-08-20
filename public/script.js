@@ -108,31 +108,36 @@ const MAPA_TITULO = {
     "13": "Máster Fotografía y Sociedad"
 };
 
-const MAPA_ACTIVIDAD_BUCKET = {
-    "1": "Artes musicales",
-    "2": "Literatura",
-    "3": "Audiovisual",
-    "4": "Escénicas",
-    "5": "Visuales",
-    "6": "Visuales",
-    "7": "Otras",
-    "8": "Audiovisual",
-    "9": "Otras",
-    "10": "Gestión cultural",
-    "11": "Otras",
-    "12": "Otras"
+const MAPA_ACTIVIDAD = {
+    "1": "Artes musicales y sonoras",
+    "2": "Literatura y narración oral",
+    "3": "Artes audiovisuales y cine",
+    "4": "Artes escénicas",
+    "5": "Artes visuales y plásticas",
+    "6": "Artes aplicadas y diseño",
+    "7": "Patrimonio y memoria social",
+    "8": "Medios comunitarios",
+    "9": "Artes vivas e interdisciplinarias",
+    "10": "Gestión cultural y producción",
+    "11": "Investigación y formación",
+    "12": "Otra actividad"
 };
 
-const ORDEN_ACTIVIDAD = ["Artes musicales", "Visuales", "Escénicas", "Gestión cultural", "Audiovisual", "Literatura", "Otras"];
+const MAPA_ACTIVIDAD_BUCKET = MAPA_ACTIVIDAD;
 
 const COLORES_ACTIVIDAD = {
-    "Artes musicales": "var(--kimi-chart-1)",
-    "Visuales": "var(--kimi-chart-4)",
-    "Escénicas": "var(--kimi-chart-2)",
-    "Gestión cultural": "var(--kimi-chart-3)",
-    "Audiovisual": "#8a4b6b",
-    "Literatura": "var(--kimi-chart-6)",
-    "Otras": "var(--kimi-chart-5)"
+    "1": "var(--kimi-chart-1)",
+    "2": "#0284c7",
+    "3": "#8a4b6b",
+    "4": "var(--kimi-chart-2)",
+    "5": "var(--kimi-chart-4)",
+    "6": "#d4557f",
+    "7": "var(--kimi-chart-3)",
+    "8": "#0ea5e9",
+    "9": "#9333ea",
+    "10": "#059669",
+    "11": "#f59e0b",
+    "12": "var(--kimi-chart-5)"
 };
 
 async function obtenerConfig() {
@@ -1570,22 +1575,23 @@ function generarGraficoActividad(encuestas) {
     const conteo = {};
     encuestas.forEach(e => {
         const valor = campo(e, "p13");
-        if (!valor) return;
-        const bucket = MAPA_ACTIVIDAD_BUCKET[valor] || "Otras";
-        conteo[bucket] = (conteo[bucket] || 0) + 1;
+        if (!valor || !MAPA_ACTIVIDAD[valor]) return;
+        conteo[valor] = (conteo[valor] || 0) + 1;
     });
 
     const totalGeneral = Object.values(conteo).reduce((a, b) => a + b, 0);
     mostrarN("nActividad", totalGeneral);
-    document.getElementById("donaTotalActividad").innerHTML =
-        `<strong>${totalGeneral}</strong> respuestas registradas`;
+    const totalEl = document.getElementById("donaTotalActividad");
+    if (totalEl) {
+        totalEl.innerHTML = `<strong>${totalGeneral}</strong> respuestas registradas`;
+    }
 
-    const ordenados = ORDEN_ACTIVIDAD
-        .filter(cat => conteo[cat])
-        .map(cat => ({
-            label: cat,
-            count: conteo[cat],
-            valor: totalGeneral > 0 ? Number(((conteo[cat] / totalGeneral) * 100).toFixed(1)) : 0
+    const ordenados = Object.keys(conteo)
+        .map(codigo => ({
+            codigo: codigo,
+            label: MAPA_ACTIVIDAD[codigo],
+            count: conteo[codigo],
+            valor: totalGeneral > 0 ? Number(((conteo[codigo] / totalGeneral) * 100).toFixed(1)) : 0
         }))
         .sort((a, b) => b.count - a.count);
 
@@ -1602,11 +1608,11 @@ function generarGraficoActividad(encuestas) {
     const valores = ordenados.map(d => d.valor);
     const counts = ordenados.map(d => d.count);
     const colores = ordenados.map(d => {
-        const varName = COLORES_ACTIVIDAD[d.label];
+        const varName = COLORES_ACTIVIDAD[d.codigo] || "var(--kimi-chart-1)";
         return varName.startsWith("var(") ? cssVar(varName.slice(4, -1)) : varName;
     });
 
-    ajustarAlturaLienzo("graficoActividad", etiquetas.length, 34, 20, 200);
+    ajustarAlturaLienzo("graficoActividad", etiquetas.length, 32, 20, 240);
 
     chartActividad = new Chart(document.getElementById("graficoActividad"), {
         type: "bar",
